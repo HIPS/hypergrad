@@ -1,2 +1,4 @@
 *.pyc
+.nfs*
+odyssey_config.py
 
