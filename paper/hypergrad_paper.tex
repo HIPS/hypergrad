@@ -1,0 +1,100 @@
+\documentclass{article}
+\usepackage{times}
+\usepackage{graphicx}
+\usepackage{subfigure} 
+\usepackage{natbib}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{hyperref}
+\newcommand{\theHalgorithm}{\arabic{algorithm}}
+\usepackage{icml2015stylefiles/icml2015} 
+%\usepackage[accepted]{icml2015}
+
+% The \icmltitle you define below is probably too long as a header.
+% Therefore, a short form for the running title is supplied here:
+\newcommand\ourtitle{Gradient-based Hyperparameter Optimization through Reversible Learning}
+\icmltitlerunning{\ourtitle}
+
+\begin{document} 
+
+\twocolumn[
+\icmltitle{\ourtitle}
+
+% It is OKAY to include author information, even for blind
+% submissions: the style file will automatically remove it for you
+% unless you've provided the [accepted] option to the icml2015
+% package.
+\icmlauthor{Your Name}{email@yourdomain.edu}
+\icmladdress{Your Fantastic Institute,
+            314159 Pi St., Palo Alto, CA 94306 USA}
+\icmlauthor{Your CoAuthor's Name}{email@coauthordomain.edu}
+\icmladdress{Their Fantastic Institute,
+            27182 Exp St., Toronto, ON M6H 2T1 CANADA}
+
+% You may provide any keywords that you 
+% find helpful for describing your paper; these are used to populate 
+% the "keywords" metadata in the PDF but will not be shown in the document
+\icmlkeywords{hyperparameters, neural networks, reversible computation, automatic differentiation, machine learning, ICML}
+
+\vskip 0.3in
+]
+
+\begin{abstract} 
+Tuning more than a small number of hyper parameters remains difficult due to the fact that gradients are typically unavailable.
+We compute gradients of the cross-validation objective w.r.t. hyperparameters by chaining derivatives through the \emph{entire training procedure}, including hundreds of iterations of back propagation.
+These gradients allows us to richly parameterize our learning procedures, optimizing complex learning rate schedules, weight initialization distributions, and neural net architectures.
+We show state-of-the art results?
+Our results also provide examples of optimal learning schedules and initialization strategies for several benchmark problems.
+\end{abstract} 
+
+\section{Introduction}
+\label{intro}
+
+\section{Meta-Optimization}
+
+\section{Automatic Differentiation}
+
+\subsection{The vanishing gradient problem}
+
+"Learning long-term dependencies with gradient descent is difficult" \cite{bengio1994learning}
+
+Exploding-gradient problem \cite{pascanu2012understanding}
+
+\section{The Edge of Chaos}
+
+\subsection{Dealing with Memory}
+
+
+\section{Related Work}
+
+\subsection{Gradient-Based Training of Hyperparameters}
+{\textbf{Neural Nets}}
+\cite{bengio2000gradient, larsen1998adaptive} identified the benefits of using gradients to optimize the cross-validation loss with respect to neural net hyperparameters, and showed several simple proofs-of-concept.
+However, they were only able to compute gradients of hyperparameters controlling fixed, known functions of the weights, and so could not optimize parameters such as step-sizes or initialization distributions.
+
+{\textbf{Support Vector Machines}}
+\cite{chapelle2002choosing} point out that the lack of gradients in the support vector machine (SVM) objective limits the number of kernel parameters, usually to one or two.
+They introduced a differentiable bound on the SVM loss in order to be able to compute derivatives with respect to hundreds of hyperparameters, including weighting parameters for each input dimension in the kernel.
+However, this bound was not tight. [Need to have another read to figure out limitations of their approach]
+
+{\textbf{Bayesian Methods}}
+For Bayesian methods that have a closed-form marginal likelihood, it is already the case that gradients are available with respect to an many hyperparameters as desired.
+For example, this sort of flexibility has been used to construct complex, custom kernels for Gaussian process models \cite{rasmussen38gaussian}[Chapter 5].
+Variational inference also allow the tuning of hyperparameters in neural-network like models such as deep Gaussian processes \citep{deepGPVar14}.
+However, these methods do not enable the tuning of the parameters which themselves tune the marginal likelihood.
+
+\subsection{Reducing the Number of Hyperparameters}
+Several papers have addressed the problem of adapting learning parameters by attempting to set them automatically, or lessen sensitivity to their exact values, such as \cite{schaul2012no, Adam14, Adasecant14, Hotswap14}.
+These methods all retain at least a small number of hyperparameters, and method we propose here can in principle tune any of these.
+
+
+% Acknowledgements should only appear in the accepted version. 
+\section*{Acknowledgments} 
+ 
+
+
+\bibliography{references.bib}
+\bibliographystyle{icml2015stylefiles/icml2015}
+
+\end{document} 
+
