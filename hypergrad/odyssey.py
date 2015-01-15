@@ -6,6 +6,9 @@ Odyssey. Here's how to use it:
 * Make an `odyssey_config.py` that points to it (look at `odyssey_config_example.py`)
 * On Odyssey, run "python -m slurm_job_watcher" from within the tmp directory
 * Run a script (e.g. test_odyssey.py) from your local machine...it should just work
+
+Note: the function `collect_results` can be used to recover a job even if the
+local omap is canceled before all the Odyssey tasks have finished.
 """
 
 import inspect
@@ -26,8 +29,9 @@ slurm_fname = "batch_script.slurm"
 results_fname = lambda i : "results_{0}.pkl".format(i+1)
 stderr_fname = lambda i : "stderr_{0}.txt".format(i+1)
 stdout_fname = lambda i : "stdout_{0}.txt".format(i+1)
-run_signal_stem = "please_run_"
+incomplete_reminder = lambda jobname : "job_{0}_incomplete".format(jobname)
 complete_signal = lambda i : "task_complete_{0}".format(i+1)
+run_signal_stem = "please_run_"
 run_signal = lambda jobname : run_signal_stem + jobname
 jobdir = lambda jobname : "jobdir_" + jobname
 banner = lambda s : "{0} {1} {0}".format("="*10, s)
@@ -56,27 +60,43 @@ def omap(fun, arglist):
                                       other_options=slurm_options,
                                       module_name=module_name,
                                       fun_name=fun_name)
-    print "Submitting {0} tasks (output in {1})".format(N_tasks, working_dir)
     with temp_dir(working_dir):
         shutil.copy(module_path, ".")
         with open(arg_fname, 'w') as f: pickle.dump(arglist, f)
         with open(slurm_fname, 'w') as f: f.write(slurm_str)
         with open(run_signal_path, 'w'): pass
-        monitor_tasks(N_tasks, run_signal_path)
-        return map(get_results, range(N_tasks))
+        print "Submitting {0} tasks (output in {1})".format(N_tasks, working_dir)
+        while path.exists(run_signal_path): time.sleep(1)
+        print "Tasks submitted"
 
-def monitor_tasks(N_tasks, run_signal_path):
-    while path.exists(run_signal_path):
-        time.sleep(1)
-    print "Tasks submitted"
+    return collect_results(jobname)
+
+def collect_results(jobname):
+    with open(incomplete_reminder(jobname), 'w'): pass
+    jobname = str(jobname) # in case an int was passed in
+    working_dir = path.join(root_working_dir, jobdir(jobname))
+    with temp_dir(working_dir):
+        with open(arg_fname) as f:
+            N_tasks = len(pickle.load(f))            
+        monitor_tasks(N_tasks, jobname)
+        results = []
+        for i in range(N_tasks):
+            with open(results_fname(i)) as f:
+                results.append(pickle.load(f))
+    os.remove(incomplete_reminder(jobname))
+    return results
+
+def monitor_tasks(N_tasks, jobname):
+    start = time.time()
+    run_signal_path = path.join('..', run_signal(jobname))
     while True:
         status_str = "".join(map(status, range(N_tasks)))
-        sys.stdout.write("\rStatus: [{0}]".format(status_str))
+        cur_time = int(time.time() - start)
+        sys.stdout.write("\rStatus: [{0}] running for {1} s".format(status_str, cur_time))
         sys.stdout.flush()
         if all([s in ".E" for s in status_str]): break
         time.sleep(1)
-    print ""
-    print banner("All tasks complete")
+    print "\n" + banner("All tasks complete")
 
 def status(i):
     if path.exists(complete_signal(i)):
@@ -88,10 +108,6 @@ def status(i):
             return "E" # Error
     else:
         return "*" # Pending
-
-def get_results(i):
-    with open(results_fname(i)) as f:
-        return pickle.load(f)
 
 @contextmanager
 def temp_dir(new_dir):

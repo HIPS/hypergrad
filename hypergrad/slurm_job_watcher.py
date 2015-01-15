@@ -14,4 +14,4 @@ if __name__ == "__main__":
                 subprocess.call(["sbatch", slurm_fname])
             os.remove(fname)
 
-        time.sleep(1)
+        time.sleep(2)

@@ -1,3 +1,12 @@
+<!---  ./experiments/Jan_14_learning_rate_wiggliness/README.md --->
+# Jan 14 experiment: learning rate wiggliness
+Let's now look at the learning rate. As before...
+
+![](experiments/Jan_14_learning_rate_wiggliness/1/fig.png)
+
+Ok, similar story as with the parameter scale. There's an "edge of chaos" to the
+right but before then the gradients look pretty sensible.
+
 # Jan 11 planning
 
 Experiments in mind:
