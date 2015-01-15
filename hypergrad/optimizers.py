@@ -7,9 +7,10 @@ from exact_rep import ExactRep
 def sgd(loss_fun, batches, N_iter, x, v, alphas, betas):
     # TODO: Warp alpha and beta to map from real-valued domains (exp and logistic?)
     def print_perf():
-        if (i + 1) % iter_per_epoch == 0:
-            print "End of epoch {0}: loss is {1}".format(i / iter_per_epoch,
-                                                        loss_fun(X.val, batches.all_idxs))
+        pass
+        # if (i + 1) % iter_per_epoch == 0:
+        #     print "End of epoch {0}: loss is {1}".format(i / iter_per_epoch,
+        #                                                 loss_fun(X.val, batches.all_idxs))
             
     X, V = ExactRep(x), ExactRep(v)
     x_orig = X.val
@@ -47,7 +48,7 @@ def sgd(loss_fun, batches, N_iter, x, v, alphas, betas):
     d_alphas = np.array(d_alphas)
     d_betas = np.array(d_betas)
 
-    print "-"*80
+    # print "-"*80
     assert np.all(x_orig == X.val)
     return {'x_final'    : x_final,
             'loss_final' : loss_final,

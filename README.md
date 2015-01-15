@@ -1,7 +1,22 @@
+# Jan 11 planning
+
+Experiments in mind:
+
+* Trying not to stray into chaos, see if we can optimize the initial
+  distribution of weights. Look at gradient wrt individual weights
+  as a function of their magnitude.
+* Optimize learning rate schedule.
+
+Should probably do each of these for a few random seeds. Then we should think
+about optimizing generalization.
+
+<!---  ./experiments/Jan_9_param_scale_wiggliness/README.md --->
+# Jan 9 experiment: param scale wiggliness
+
 Investigating the wiggliness of the loss as a function of the scale of
 the initial parameters.
 
-![](1/fig.png)
+![](experiments/Jan_9_param_scale_wiggliness/1/fig.png)
 
 The actual loss looks very smooth but the gradient still goes
 crazy. It could be numerical instability or it could conceivably be
@@ -11,13 +26,14 @@ make it look rough on a small length scale. I think you'd want to try
 looking for smooth oscillations. There's a hint of this at the 10
 iteration level. Let's look at this closer, from, say, -2 to 1....
 
-![](2/fig.png)
+![](experiments/Jan_9_param_scale_wiggliness/2/fig.png)
 
 Ok, I think it's pretty clear that the function gets wiggly. But maybe
 we would be ok if we stayed on the peaceful side of chaos? Let's try
 more iterations...
 
-![](3/fig.png)
+![](experiments/Jan_9_param_scale_wiggliness/3/fig.png)
 
 Very interesting. It really does look like the chaos chills right out
 when the parameter scale is small enough.
+
