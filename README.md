@@ -5,7 +5,8 @@ Let's now look at the learning rate. As before...
 ![](experiments/Jan_14_learning_rate_wiggliness/1/fig.png)
 
 Ok, similar story as with the parameter scale. There's an "edge of chaos" to the
-right but before then the gradients look pretty sensible.
+right but before then the gradients look pretty
+sensible. [EDIT: Fixed image. The original showed the gradient wrt parameter scale.]
 
 # Jan 11 planning
 

@@ -47,14 +47,15 @@ def run(oiter):
     V0 = npr.randn(N_weights) * velocity_scale
     losses = []
     d_losses = []
+    alpha_0 = np.exp(log_alpha_0)
     for N_iters in all_N_iters:
-        alphas = np.full(N_iters, np.exp(log_alpha_0))
+        alphas = np.full(N_iters, alpha_0)
         betas = np.full(N_iters, beta_0)
         npr.seed(1)
         W0 = npr.randn(N_weights) * np.exp(log_param_scale)
         results = sgd(indexed_loss_fun, batch_idxs, N_iters, W0, V0, alphas, betas)
         losses.append(results['loss_final'])
-        d_losses.append(d_log_loss(W0, results['d_x']))
+        d_losses.append(d_log_loss(alpha_0, results['d_alphas']))
 
     return losses, d_losses
 
@@ -90,8 +91,8 @@ def plot():
     plt.savefig("fig.png")
 
 if __name__ == '__main__':
-    # results = omap(run, range(N_oiter))
-    # # results = collect_results(225866836343)
-    # with open('results.pkl', 'w') as f:
-    #     pickle.dump(results, f)
+    results = omap(run, range(N_oiter))
+    # results = collect_results(225866836343)
+    with open('results.pkl', 'w') as f:
+        pickle.dump(results, f)
     plot()
