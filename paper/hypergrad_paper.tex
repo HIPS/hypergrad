@@ -5,10 +5,17 @@
 \usepackage{natbib}
 \usepackage{algorithm}
 \usepackage{algorithmic}
+\usepackage{amsmath}
 \usepackage{hyperref}
 \newcommand{\theHalgorithm}{\arabic{algorithm}}
 \usepackage{icml2015stylefiles/icml2015} 
 %\usepackage[accepted]{icml2015}
+
+
+
+\newcommand{\numhypers}{N}
+\newcommand{\numsteps}{T}
+\newcommand{\drag}{\gamma}
 
 % The \icmltitle you define below is probably too long as a header.
 % Therefore, a short form for the running title is supplied here:
@@ -50,17 +57,73 @@ Our results also provide examples of optimal learning schedules and initializati
 \section{Introduction}
 \label{intro}
 
+
+
 \section{Meta-Optimization}
+
+The current state-of-the-art for hyperparameter optimization is achieved by model-based, gradient-free methods~\cite{snoek2012practical, bergstra2011algorithms, BerYamCox13, HutHooLey11}.
+These methods are able to effectively exploit all information learned through evaluations of the objective.
+However, in general they are not able to effectively optimize more than 10 to 20 parameters.
+Most importantly from our perspective, current hyper parameter optimization schemes do not usually have access to gradients with respect to these hyperparameters, although they could incorporate this information if it were available~\cite{solak2003derivative}.
 
 \section{Automatic Differentiation}
 
-\subsection{The vanishing gradient problem}
+Automatic differentiation (AD) software packages such as Theano~\cite{Bastien-Theano-2012, bergstra2010scipy} are a workhorse of deep learning, significantly speeding up development time by providing gradients automatically.
+However, these methods are typically only used to train parameters with respect to some loss.
+\cite{Autodiff14} suggest using automatic differentiation to compute gradients with respect to hyperparameters.
 
-"Learning long-term dependencies with gradient descent is difficult" \cite{bengio1994learning}
+\subsection{Forward vs. Reverse-Mode Differentiation}
 
-Exploding-gradient problem \cite{pascanu2012understanding}
+Forward-mode AD works by augmenting the forward computation with the directional gradient.
+This method has only twice the memory cost of simply computing the function of interest, but in general requires a separate forward pass for each parameter, resulting in a n$\mathcal{O}(\numhypers)$ slowdown~\cite{pearlmutter2008reverse}.
+Reverse-mode AD works by maintaining a tape of computations performed, and computing the Jacobian in one backwards pass, starting from the final result.
+Naive reverse-mode AD typically only requires approximately twice the time as computing the original function, but can require up to $\mathcal{O}(\numsteps\numhypers)$ memory.
+
+\section{Reversible Learning}
+
+In the case of large neural networks, the amount of memory required to store the millions of parameters being trained is typically close to the amount of physical RAM availabe~\cite{sequence2014}.
+Thus storing every parameter value throughout training in order to perform reverse-mode differentiation is completely impractical.
+If storing the parameter vector takes $\sim$1GB, and the parameter vector is updated tens of thousands of times (equal to the number of mini batches times the number of epochs) then storing the learning history becomes unmanageable even in physical storage.
+
+This section discusses how we overcome the technical difficulty of recovering the history of parameter vectors in order to perform reverse-mode AD, when performing stochastic gradient descent with momentum.
+
+\subsection{Reversible Dynamics}
+
+Stochastic gradient descent with momentum can be seen as a physical simulation of a system undergoing forces which are a function of the training data.
+\begin{align}
+x_{t+1} & = x_t + v_t \qquad \qquad \quad \textnormal{update position}\\
+v_{t+0.5} & = (1 - \drag) v_t + g_t \quad \quad \textnormal{drag}\\
+v_{t+1} & = v_{t+0.5} + g_t \qquad \quad \textnormal{update velocity}
+\end{align}
+If the momentum decay term $\gamma$ (the drag) is set to zero, then we recover a dynamics scheme known as the leapfrog, or Verlet, integrator~\citep{leapfrog1995}.
+These dynamics are exactly reversible through time.
+Exactly reversible dynamics such as these would allow us to trace the neural net parameter vector backwards, starting from their final value back going to the initial values.
+Having the parameter vectors available in this order would allow reverse-mode AD having fixed memory requirements no matter how many iterations of learning are performed.
+
+In practice, however, the drag term is usually set to a small value such as $\sim.02$.
+Thus information is lost each time drag is applied, and the learning process is no longer exactly reversible.
+Even if double-precision floating point numbers are used, errors accumulate exponentially, and the reversed learning procedure ends far from the initial point.
+
+
+
+\subsection{Self-closed Automatic Differentiation}
+
+The computation of [EQREF] requires the computation of the second derivative of BLANK.
+These gradients are in principle derivable by hand, but in order for this procedure to work without extra work by the user, we would require an automatic differentiation package which could compute second derivatives.
+
+\citet{pearlmutter2008reverse} implemented the first example of an automatic differentiation package that was \emph{closed under its own operation}, meaning it could be used to take 2nd or 3rd gradients simply by applying the gradient operation more than once. [Add more details]
+However, this package could only operate on code written in a limited form of Scheme in which each function could only have one argument.
+Popular AD popular packages such as Theano do not have this ability.
+Thus, we implemented our own automatic differentiation package (available at \url{www.redacted.com}) in Python that is closed under its own operation.
+This package has the additional feature that it operates on standard Numpy~cite{oliphant2007python} code.
+
+
 
 \section{The Edge of Chaos}
+
+\cite{pearlmutter1996investigation}[Chapter 4] contains a lot of discussion and examples (especially section 4.4) about the chaotic behavior of learning neural networks using gradient descent with momentum.
+
+\cite{pearlmutter2009sleep} argues that biological neural networks tune themselves so as to be at the "edge of chaos"
 
 \subsection{Dealing with Memory}
 
@@ -68,29 +131,46 @@ Exploding-gradient problem \cite{pascanu2012understanding}
 \section{Related Work}
 
 \subsection{Gradient-Based Training of Hyperparameters}
-{\textbf{Neural Nets}}
-\cite{bengio2000gradient, larsen1998adaptive} identified the benefits of using gradients to optimize the cross-validation loss with respect to neural net hyperparameters, and showed several simple proofs-of-concept.
+\textbf{Neural Nets}
+\citet{bengio2000gradient, larsen1998adaptive} identified the benefits of using gradients to optimize the cross-validation loss with respect to neural net hyperparameters, and showed several simple proofs-of-concept.
 However, they were only able to compute gradients of hyperparameters controlling fixed, known functions of the weights, and so could not optimize parameters such as step-sizes or initialization distributions.
 
-{\textbf{Support Vector Machines}}
-\cite{chapelle2002choosing} point out that the lack of gradients in the support vector machine (SVM) objective limits the number of kernel parameters, usually to one or two.
+\textbf{Support Vector Machines}
+\citet{chapelle2002choosing} point out that the lack of gradients in the support vector machine (SVM) objective limits the number of kernel parameters, usually to one or two.
 They introduced a differentiable bound on the SVM loss in order to be able to compute derivatives with respect to hundreds of hyperparameters, including weighting parameters for each input dimension in the kernel.
 However, this bound was not tight. [Need to have another read to figure out limitations of their approach]
 
-{\textbf{Bayesian Methods}}
+\textbf{Bayesian Methods}
 For Bayesian methods that have a closed-form marginal likelihood, it is already the case that gradients are available with respect to an many hyperparameters as desired.
-For example, this sort of flexibility has been used to construct complex, custom kernels for Gaussian process models \cite{rasmussen38gaussian}[Chapter 5].
-Variational inference also allow the tuning of hyperparameters in neural-network like models such as deep Gaussian processes \citep{deepGPVar14}.
+For example, this sort of flexibility has been used to construct complex, custom kernels for Gaussian process models~\cite{rasmussen38gaussian}[Chapter 5].
+%or to train the parameters of Markov random fields \cite{samuel2012gradient}
+Variational inference also allow the tuning of hyperparameters in neural-network like models such as deep Gaussian processes~\citep{deepGPVar14}.
 However, these methods do not enable the tuning of the parameters which themselves tune the marginal likelihood.
 
 \subsection{Reducing the Number of Hyperparameters}
 Several papers have addressed the problem of adapting learning parameters by attempting to set them automatically, or lessen sensitivity to their exact values, such as \cite{schaul2012no, Adam14, Adasecant14, Hotswap14}.
-These methods all retain at least a small number of hyperparameters, and method we propose here can in principle tune any of these.
+However, these methods all retain at least a small number of hyperparameters.
+In principle, the method we propose here can tune any remaining parameters.
+More importantly, having access to hyper-gradients might make the introduction of new, difficult-to-tune hyperparameters worthwhile.
+
+\subsection{Gradients of Iterative Procedures}
+
+\citet{Bridging14} tune the step-size and mass-matrix parameters of Hamiltonian Monte Carlo by chaining gradients back from a lower bound on the marginal likelihood.
+Because their application required a small, fixed number of steps of relatively few parameters, they did not require the memory-tape approach presented in this paper.
+
+\textbf{The Vanishing Gradient Problem}
+
+Training hyperparameters whose dependence on the final objective depends on many hundreds of iterations by gradient descent raises several issues.
+\citet{bengio1994learning} noted that "learning long-term dependencies with gradient descent is difficult."
 
 
-% Acknowledgements should only appear in the accepted version. 
+Exploding-gradient problem~\cite{pascanu2012understanding}
+
+\section{Conclusion}
+
+Implementing reversible learning as presented in this paper requires either that the learning algorithm is a form of (stochastic) gradient descent with
+
 \section*{Acknowledgments} 
- 
 
 
 \bibliography{references.bib}
