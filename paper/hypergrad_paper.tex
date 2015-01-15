@@ -75,7 +75,7 @@ However, these methods are typically only used to train parameters with respect 
 \subsection{Forward vs. Reverse-Mode Differentiation}
 
 Forward-mode AD works by augmenting the forward computation with the directional gradient.
-This method has only twice the memory cost of simply computing the function of interest, but in general requires a separate forward pass for each parameter, resulting in a n$\mathcal{O}(\numhypers)$ slowdown~\cite{pearlmutter2008reverse}.
+This method has only twice the memory cost of simply computing the function of interest, but in general requires a separate forward pass for each parameter, resulting in an $\mathcal{O}(\numhypers)$ slowdown~\cite{pearlmutter2008reverse}.
 Reverse-mode AD works by maintaining a tape of computations performed, and computing the Jacobian in one backwards pass, starting from the final result.
 Naive reverse-mode AD typically only requires approximately twice the time as computing the original function, but can require up to $\mathcal{O}(\numsteps\numhypers)$ memory.
 
@@ -125,7 +125,6 @@ This package has the additional feature that it operates on standard Numpy~cite{
 
 \cite{pearlmutter2009sleep} argues that biological neural networks tune themselves so as to be at the "edge of chaos"
 
-\subsection{Dealing with Memory}
 
 
 \section{Related Work}
@@ -159,7 +158,6 @@ More importantly, having access to hyper-gradients might make the introduction o
 Because their application required a small, fixed number of steps of relatively few parameters, they did not require the memory-tape approach presented in this paper.
 
 \textbf{The Vanishing Gradient Problem}
-
 Training hyperparameters whose dependence on the final objective depends on many hundreds of iterations by gradient descent raises several issues.
 \citet{bengio1994learning} noted that "learning long-term dependencies with gradient descent is difficult."
 
