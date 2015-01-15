@@ -22,7 +22,7 @@
 
 \newcommand{\numhypers}{N}
 \newcommand{\numsteps}{T}
-\newcommand{\drag}{\gamma}
+\newcommand{\decay}{\gamma}
 \newcommand{\stepsize}{\alpha}
 
 \newcommand\ourtitle{Gradient-based Hyperparameter Optimization through Reversible Learning}
@@ -102,26 +102,23 @@ Stochastic gradient descent with momentum (Algorithm \ref{alg:sgd}) can be seen 
    \caption{Gradient Descent with Momentum}
    \label{alg:sgd}
 \begin{algorithmic}
-   \STATE {\bfseries Input:} initial $\vx_1$, decay $\drag$, stepsize $\stepsize$, gradient $\nabla L(\vx)$
+   \STATE {\bfseries Input:} initial $\vx_1$, decay $\decay$, stepsize $\stepsize$, gradient $\nabla L(\vx)$
    \STATE Initialize $\vv = \vzero$
    \FOR{$t=1$ {\bfseries to} $T$}
    \STATE $g_t = \nabla L(\vx_t)$
-   \STATE $\vv_{t+1} = \drag \vv_t + (1 - \drag) \vg_t$ \COMMENT{update velocity}
+   \STATE $\vv_{t+1} = \decay \vv_t + (1 - \decay) \vg_t$ \COMMENT{update velocity}
    \STATE $\vx_{t+1} = \vx_t + \vv_t$ \COMMENT{update position}
    \ENDFOR
    \RETURN trained parameters $\vx$   
 \end{algorithmic}
 \end{algorithm}
 %
-If the momentum decay term $\gamma$ (the drag) is set to zero, then we recover a dynamics scheme known as the leapfrog, or Verlet, integrator~\citep{leapfrog1995}.
+If the momentum decay term $\gamma$ is set to one, then we recover a dynamics scheme known as the leapfrog, or Verlet, integrator~\citep{leapfrog1995}.
 These dynamics are exactly reversible through time.
 Exactly reversible dynamics such as these would allow us to trace the neural net parameter vector backwards, starting from their final value back going to the initial values.
 Having the parameter vectors available in this order would allow reverse-mode AD having fixed memory requirements no matter how many iterations of learning are performed.
 
-In practice, however, the drag term is usually set to a small value such as $\sim.02$.
-Thus information is lost each time drag is applied, and the learning process is no longer exactly reversible.
-Even if double-precision floating point numbers are used, errors accumulate exponentially, and the reversed learning procedure ends far from the initial point.
-However, if we could somehow simulate having exact real numbers, this procedure could be reversed, and used for reverse-mode AD.
+Even if the decay were less than one, if one could somehow simulate having exact real numbers, this procedure could be reversed, and used for reverse-mode AD.
 This procedure is given by Algorithm \ref{alg:reverse-sgd}.
 It is obtained by simply reversing the steps in Algorithm \ref{alg:sgd}, interleaved with computations of gradients w.r.t. the parameters of SGD, namely the initial parameters $\vx_1$, and the stepsize and momentum schedules.
 %
@@ -129,23 +126,22 @@ It is obtained by simply reversing the steps in Algorithm \ref{alg:sgd}, interle
    \caption{Memoryless Reverse-Mode Differentiation of \\Gradient Descent with Momentum}
    \label{alg:reverse-sgd}
 \begin{algorithmic}
-   \STATE {\bfseries Input:} final $\vx_T$, final $\vv_T$, $\drag$, $\stepsize$, gradient $\nabla L(\vx)$
+   \STATE {\bfseries Input:} final $\vx_T$, final $\vv_T$, $\decay$, $\stepsize$, gradient $\nabla L(\vx)$
    \STATE Initialize $d\vv = \vzero$
    \STATE Initialize $d\vx = \nabla L(\vx_T)$
    \FOR{$t=T$ {\bfseries counting down to} $1$}
     \STATE $\vx_{t+1} = \vx_t - \stepsize \vv_t$  \COMMENT{reverse position update}
    \STATE $\vg_t = \nabla L(\vx_t)$
-   \STATE $d\drag_t = d\vx\tra \vv_t$
-   \STATE $\vv_{t+1} = [\vv_t - (1 - \drag) \vg_t] / \drag$ \COMMENT{reverse velocity update}
-   \STATE $d\vv = \drag d\vv + \stepsize d\vx$
+   \STATE $d\decay_t = d\vx\tra \vv_t$
+   \STATE $\vv_{t+1} = [\vv_t - (1 - \decay) \vg_t] / \decay$ \COMMENT{reverse velocity update}
+   \STATE $d\vv = \decay d\vv + \stepsize d\vx$
    \STATE $d\stepsize_t = d\vv\tra(\vv_t + g_t)$
-   \STATE $d\vx = d\vx - (1 - \drag) H(\vx) d\vv$
+   \STATE $d\vx = d\vx - (1 - \decay) H(\vx) d\vv$
    \ENDFOR
-   \RETURN gradient of $\vx_T$ w.r.t $\vx_1$, $\drag$, and $\stepsize$: $d\vx, d\drag$ and $d\stepsize$
+   \RETURN gradient of $\vx_T$ w.r.t $\vx_1$, $\decay$, and $\stepsize$: $d\vx, d\decay$ and $d\stepsize$
 \end{algorithmic}
 \end{algorithm}
 %
-
 
 \subsection{Self-closed Automatic Differentiation}
 
@@ -158,10 +154,23 @@ Popular AD popular packages such as Theano do not have this ability to automatic
 Thus, we implemented our own automatic differentiation package (available at \url{www.redacted.com}) for Python that is closed under its own operation.
 This package has the additional feature that it operates on standard Numpy~\cite{oliphant2007python} code.
 
+\subsection{The Decay Term Causes Non-Reversibility}
+In practice, however, best performance is usually achieved when the decay term set to a value such as $0.98$.
+Since information is lost each time decay is applied, and the learning process is no longer exactly reversible.
+Even if double-precision floating point numbers are used, errors accumulate exponentially, and the reversed learning procedure ends far from the initial point.
+This means that naively applying Algorithm \ref{alg:reverse-sgd} will not provide accurate gradients if the decay term is less than one.
 
+\section{Reversible Computation Even with Non-Reversible Dynamics}
 
+To get around the problem of information loss caused by decay, we need to somehow store that information.
+We could easily do so by storing the weight vector at each iteration, but this would require too much memory to be practical for large neural nets trained for thousands of minibatches.
+Luckily, when the decay factor is close to 1, the amount of information lost at each iteration is small.
+For example, an integer multiplied by 0.98 will lose $0.029$ bits of information on average.
+Thus, if we needed only to store the small amount of information lost at each iteration, memory requirements would only be 2.9\% of what they would otherwise be.
 
+\subsection{Storing Fractional Bits on a Tape}
 
+We store all
 
 \section{Related Work}
 
@@ -205,8 +214,24 @@ Exploding-gradient problem~\cite{pascanu2012understanding}
 \subsection{The Edge of Chaos}
 
 \cite{pearlmutter1996investigation}[Chapter 4] contains a lot of discussion and examples (especially section 4.4) about the chaotic behavior of learning neural networks using gradient descent with momentum.
+One problem with training these networks is that when the learning rate is too high, the gradient becomes uninformative about the medium-term behavior of the function.
+Figure \ref{fig:chaos} illustrates this problem.
 
-\cite{pearlmutter2009sleep} argues that biological neural networks tune themselves so as to be at the "edge of chaos"
+\cite{pearlmutter2009sleep} argues that biological neural networks tune themselves so as to be at the "edge of chaos".
+Empirically, it seems like the best learning rates for training neural networks are just small enough to avoid this chaotic behavior.
+Lower learning rates don't reach convergence before training ends.
+
+
+\begin{figure}[ht]
+\vskip 0.2in
+\begin{center}
+\centerline{\includegraphics[width=\columnwidth]{../experiments/Jan_9_param_scale_wiggliness/3/fig.png}}
+\caption{When the learning rate is too high, the gradient becomes uninformative about the medium-term behavior of the function.}
+\label{fig:chaos}
+\end{center}
+\vskip -0.2in
+\end{figure} 
+
 
 \begin{figure}[ht]
 \vskip 0.2in
@@ -231,7 +256,8 @@ Exploding-gradient problem~\cite{pascanu2012understanding}
 
 \section{Conclusion}
 
-Implementing reversible learning as presented in this paper requires either that the learning algorithm is a form of (stochastic) gradient descent with
+Implementing reversible learning as presented in this paper requires either that the learning algorithm is a form of (stochastic) gradient descent with momentum, and that Hessian-vector products are available.
+Even when this is not the case, we hope that the training schedules and initialization schemes demosntrated in this paper can be a guide to practitioners for training tasks that aren't amenable to this sort of procedure.
 
 \section*{Acknowledgments} 
 
