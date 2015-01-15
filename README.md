@@ -1,3 +1,21 @@
+# Jan 14 experiment: tryint to optimize learning rate schedule
+
+Since gradients wrt learning rate look sensible when they start low, let's try
+now to actually optimize the schedule.
+
+![](experiments/Jan_15_optimize_learning_rate_schedule/1/fig.png)
+
+Some interesting features here. It improves at fist and then hits "chaos". The
+gradients become oscillatory, so maybe the instability is only at high
+frequencies? If that were true, we might just need some smoothing.
+
+That was with a small data set (1k). Let's try with 3k.
+
+![](experiments/Jan_15_optimize_learning_rate_schedule/2/fig.png)
+
+Pretty crazy. But with minibatches of 250 that's not even a full epoch. Let's
+try running for much longer, but average meta gradients over minibatches.
+
 <!---  ./experiments/Jan_14_learning_rate_wiggliness/README.md --->
 # Jan 14 experiment: learning rate wiggliness
 Let's now look at the learning rate. As before...

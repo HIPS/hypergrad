@@ -5,7 +5,7 @@ import struct
 import array
 import numpy as np
 
-datadir = os.path.expanduser('~/repos/hypergrad/data')
+datadir = os.path.expanduser('~/repos/Kayak/examples/data')
 
 def download(url, filename):
     if not os.path.exists(datadir):

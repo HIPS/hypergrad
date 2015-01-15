@@ -4,7 +4,7 @@ from collections import deque
 from funkyyak import grad
 from exact_rep import ExactRep
 
-def sgd(loss_fun, batches, N_iter, x, v, alphas, betas):
+def sgd(loss_fun, batches, N_iter, x, v, alphas, betas, record_learning_curve=False):
     # TODO: Warp alpha and beta to map from real-valued domains (exp and logistic?)
     def print_perf():
         pass
@@ -19,11 +19,14 @@ def sgd(loss_fun, batches, N_iter, x, v, alphas, betas):
     iters = zip(range(N_iter), alphas, betas, batches * num_epochs)
     loss_grad = grad(loss_fun)
     loss_hvp = grad(lambda x, d, idxs : np.dot(loss_grad(x, idxs), d))
+    learning_curve = []
     for i, alpha, beta, batch in iters:
         V.mul(beta)
         g = loss_grad(X.val, batch)
         V.sub((1.0 - beta) * g)
         X.add(alpha * V.val)
+        if record_learning_curve:
+            learning_curve.append(loss_fun(X.val, batches.all_idxs))
         print_perf()
 
     x_final = X.val
@@ -51,6 +54,7 @@ def sgd(loss_fun, batches, N_iter, x, v, alphas, betas):
     # print "-"*80
     assert np.all(x_orig == X.val)
     return {'x_final'    : x_final,
+            'learning_curve' : learning_curve,
             'loss_final' : loss_final,
             'd_x' : d_x,
             'd_v' : d_v,
