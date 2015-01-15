@@ -113,6 +113,9 @@ Stochastic gradient descent with momentum (Algorithm \ref{alg:sgd}) can be seen 
 \end{algorithmic}
 \end{algorithm}
 %
+We can also view stochastic gradient descent as a function, which takes an initial parameter vector, a step-size schedule, and a learning rate schedule.
+How to take the gradient of SGD with respect to these parameters?
+
 If the momentum decay term $\gamma$ is set to one, then we recover a dynamics scheme known as the leapfrog, or Verlet, integrator~\citep{leapfrog1995}.
 These dynamics are exactly reversible through time.
 Exactly reversible dynamics such as these would allow us to trace the neural net parameter vector backwards, starting from their final value back going to the initial values.
@@ -172,6 +175,30 @@ Thus, if we needed only to store the small amount of information lost at each it
 
 We store all
 
+%   def rational_mul(self, n, d):
+%        self.aux.push(self.intrep % d, d) # Store remainder bits externally
+%        self.intrep /= d                  # Divide by denominator
+%        self.intrep *= n                  # Multiply by numerator
+%        self.intrep += self.aux.pop(n)    # Pack bits into the remainder
+%
+\begin{algorithm}
+   \caption{Reversible Multiplication by a Ratio}
+   \label{alg:reversible-mult}
+\begin{algorithmic}
+   \STATE {\bfseries Input:} Giant integer $i$, Current value $c$, Numerator $n$, Denominator $d$
+   \STATE $i = id$ \COMMENT{make room for new bits from the division}
+   \STATE $i = i + (c \mod d)$ \COMMENT{store leftover bits from division}
+   \STATE $c = c / d$ \COMMENT{divide by denomenator}
+   \STATE $c = cn$ \COMMENT{multiply by numerator}
+   \STATE $b = i \mod n$ \COMMENT{extract bits to add after multiplication}
+   \STATE $i = i / n$ \COMMENT{get rid of extra room}
+   \STATE $c = c + b$ \COMMENT{insert extra bits from tape}
+   \RETURN new integer $i$, new value $c$
+\end{algorithmic}
+\end{algorithm}
+%
+
+
 \section{Related Work}
 
 \subsection{Gradient-Based Training of Hyperparameters}
@@ -225,8 +252,9 @@ Lower learning rates don't reach convergence before training ends.
 \begin{figure}[ht]
 \vskip 0.2in
 \begin{center}
-\centerline{\includegraphics[width=\columnwidth]{../experiments/Jan_9_param_scale_wiggliness/3/fig.png}}
-\caption{When the learning rate is too high, the gradient becomes uninformative about the medium-term behavior of the function.}
+\centerline{\includegraphics[width=\columnwidth]{../experiments/Jan_14_learning_rate_wiggliness/1/fig.png}}
+\caption{When the learning rate is too high, the gradient becomes uninformative about the medium-term behavior of the function.
+The step sizes which lead to chaotic behavior are only slightly larger than the optimal step sizes.}
 \label{fig:chaos}
 \end{center}
 \vskip -0.2in
