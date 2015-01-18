@@ -1,4 +1,12 @@
+# Jan 16 experiment: trying to optimize initial weight disribution
 
+We parameterized the initial weight distribution by a piecewise linear inverse
+cdf. It seems feasible enough to learn a scale for the initial weight
+distribution, but learning an actual shape seems trickier. Naive gradient
+descent leads to a pathology where the inverse cdf becomes constant for
+sections, corresponding to delta functions in the pdf.
+
+![](experiments/Jan_16_optimize_initial_dist/1/fig.png)
 
 # Jan 15 experiment: trying to optimize learning rate schedule
 
