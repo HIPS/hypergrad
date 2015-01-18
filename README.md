@@ -1,4 +1,6 @@
-# Jan 14 experiment: tryint to optimize learning rate schedule
+
+
+# Jan 15 experiment: trying to optimize learning rate schedule
 
 Since gradients wrt learning rate look sensible when they start low, let's try
 now to actually optimize the schedule.
@@ -15,6 +17,14 @@ That was with a small data set (1k). Let's try with 3k.
 
 Pretty crazy. But with minibatches of 250 that's not even a full epoch. Let's
 try running for much longer, but average meta gradients over minibatches.
+
+![](experiments/Jan_15_optimize_learning_rate_schedule/3/fig.png)
+
+This is an interesting plot, but not quite what I expected. It hardly improves
+the overall learning curve at all. Also interesting to note that the gradient is
+much higher at the start and at the end. We also haf to use a very high meta
+learning rate. Maybe it's not so surprising - the learning curve is very flat
+towards the end, so gradients are necessarily going to be small.
 
 <!---  ./experiments/Jan_14_learning_rate_wiggliness/README.md --->
 # Jan 14 experiment: learning rate wiggliness
