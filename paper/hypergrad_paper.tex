@@ -19,6 +19,10 @@
 \newcommand{\ones}[1]{\mat{1}_{#1}}
 \newcommand{\eye}[1]{\mat{E}_{#1}}
 \newcommand{\tra}{^{\mathsf{T}}}
+\newcommand{\vect}[1]{{\bf{#1}}}
+\newcommand{\mat}[1]{\mathbf{#1}}
+\newcommand{\pderiv}[2]{\frac{\partial #1}{\partial #2}}
+\newcommand{\npderiv}[2]{\nicefrac{\partial #1}{\partial #2}}
 
 \newcommand{\numhypers}{N}
 \newcommand{\numsteps}{T}
@@ -69,7 +73,7 @@ Our results also provide examples of optimal learning schedules and initializati
 \section{Meta-Optimization}
 
 The current state-of-the-art for hyperparameter optimization is achieved by model-based, gradient-free methods~\cite{snoek2012practical, bergstra2011algorithms, BerYamCox13, HutHooLey11}.
-These methods are able to effectively exploit all information learned through evaluations of the objective.
+These methods are able to effectively exploit the information learned through evaluations of the objective.
 However, in general they are not able to effectively optimize more than 10 to 20 parameters.
 Most importantly from our perspective, current hyper parameter optimization schemes do not usually have access to gradients with respect to these hyperparameters, although they could incorporate this information if it were available~\cite{solak2003derivative}.
 
@@ -77,14 +81,35 @@ Most importantly from our perspective, current hyper parameter optimization sche
 
 Automatic differentiation (AD) software packages such as Theano~\cite{Bastien-Theano-2012, bergstra2010scipy} are a workhorse of deep learning, significantly speeding up development time by providing gradients automatically.
 However, these methods are typically only used to train parameters with respect to some loss.
-\cite{Autodiff14} suggest using automatic differentiation to compute gradients with respect to hyperparameters.
+\citet{Autodiff14} suggest using automatic differentiation to compute gradients with respect to hyperparameters.
 
 \subsection{Forward vs. Reverse-Mode Differentiation}
 
-Forward-mode AD works by augmenting the forward computation with the directional gradient.
-This method has only twice the memory cost of simply computing the function of interest, but in general requires a separate forward pass for each parameter, resulting in an $\mathcal{O}(\numhypers)$ slowdown~\cite{pearlmutter2008reverse}.
-Reverse-mode AD works by maintaining a tape of computations performed, and computing the Jacobian in one backwards pass, starting from the final result.
+By the chain rule, the gradient of a set of nested functions is a product of the individual derivatives:
+%
+\begin{align*}
+\pderiv{f_4(f_3(f_2(f_1(x))))}{x} = \pderiv{f_4}{f_3} \cdot \pderiv{f_3}{f_2} \cdot \pderiv{f_2}{f_1} \cdot \pderiv{f_1}{x}
+\end{align*}
+%
+Forward-mode AD works by multiplying gradients in the same order as the functions are evaluated:
+%
+\begin{align*}
+\pderiv{f_4(f_3(f_2(f_1(x))))}{x} = \pderiv{f_4}{f_3} \cdot \left( \pderiv{f_3}{f_2} \cdot \left( \pderiv{f_2}{f_1} \cdot \pderiv{f_1}{x} \right) \right)
+\end{align*}
+%
+Reverse-mode AD works by maintaining a tape of computations performed, and computing the gradient in a backwards pass, starting from the final result:
+%
+\begin{align*}
+\pderiv{f_4(f_3(f_2(f_1(x))))}{x} = \left(  \left(  \pderiv{f_4}{f_3} \cdot \pderiv{f_3}{f_2} \right) \cdot \pderiv{f_2}{f_1} \right) \cdot \pderiv{f_1}{x} 
+\end{align*}
+%
+If each function has multivariate inputs and outputs, the gradients can be replaced with Jacobian matrices, but the order or operations remains the same.
+
+\textbf{Computational Complexity}
+In forward-mode, gradients can be computed at the same time as the original function, by augmenting the forward computation with the directional gradient.
+This method has only twice the memory cost of simply computing the function of interest, but in general requires a separate forward pass for each input parameter, resulting in an $\mathcal{O}(\numhypers)$ slowdown~\cite{pearlmutter2008reverse}.
 Naive reverse-mode AD typically only requires approximately twice the time as computing the original function, but can require up to $\mathcal{O}(\numsteps\numhypers)$ memory.
+In the next sections, we show how to drastically reduce the memory requirements of reverse-mode AD for differentiating through the entire learning procedure.
 
 \section{Reversible Learning}
 
@@ -169,18 +194,17 @@ To get around the problem of information loss caused by decay, we need to someho
 We could easily do so by storing the weight vector at each iteration, but this would require too much memory to be practical for large neural nets trained for thousands of minibatches.
 Luckily, when the decay factor is close to 1, the amount of information lost at each iteration is small.
 For example, an integer multiplied by 0.98 will lose $0.029$ bits of information on average.
-Thus, if we needed only to store the small amount of information lost at each iteration, memory requirements would only be 2.9\% of what they would otherwise be.
+Compared to storing a new 32-bit integer or floating-point number, 
+Thus, if we needed only to store the small amount of information lost at each iteration, memory requirements would only be ${\frac{0.029}{32} = 0.1\%}$ of what they would otherwise be.
 
 \subsection{Storing Fractional Bits on a Tape}
 
-We store all
+For each parameter being updated during learning, we keep a tape of bits.
+Each time an information-destroying operation (such as division by an integer) is performed, we store the information that would be needed to reverse the operation exactly.  In the case of division by an integer, this information is simply the remainder.
+During the reverse pass, when the inverse operation is performed (multiplication by that same integer), this extra information is extracted from the tape.
 
-%   def rational_mul(self, n, d):
-%        self.aux.push(self.intrep % d, d) # Store remainder bits externally
-%        self.intrep /= d                  # Divide by denominator
-%        self.intrep *= n                  # Multiply by numerator
-%        self.intrep += self.aux.pop(n)    # Pack bits into the remainder
-%
+[TODO: Explain fractional bits]
+
 \begin{algorithm}
    \caption{Reversible Multiplication by a Ratio}
    \label{alg:reversible-mult}
@@ -197,6 +221,63 @@ We store all
 \end{algorithmic}
 \end{algorithm}
 %
+
+
+\section{Results}
+
+\subsection{The Edge of Chaos}
+
+\cite{pearlmutter1996investigation}[Chapter 4] contains a lot of discussion and examples (especially section 4.4) about the chaotic behavior of learning neural networks using gradient descent with momentum.
+One problem with training these networks is that when the learning rate is too high, the gradient becomes uninformative about the medium-term behavior of the function.
+Figure \ref{fig:chaos} illustrates this problem.
+
+\cite{pearlmutter2009sleep} argues that biological neural networks tune themselves so as to be at the "edge of chaos".
+Empirically, it seems like the best learning rates for training neural networks are just small enough to avoid this chaotic behavior.
+Lower learning rates don't reach convergence before training ends.
+
+
+\begin{figure}[ht]
+\vskip 0.2in
+\begin{center}
+\centerline{\includegraphics[width=\columnwidth]{../experiments/Jan_14_learning_rate_wiggliness/1/fig.png}}
+\caption{When the learning rate is too high, the gradient becomes uninformative about the medium-term behavior of the function.
+The step sizes which lead to chaotic behavior are only slightly larger than the optimal step sizes.}
+\label{fig:chaos}
+\end{center}
+\vskip -0.2in
+\end{figure} 
+
+
+\begin{figure}[ht]
+\vskip 0.2in
+\begin{center}
+\centerline{\includegraphics[width=\columnwidth]{../experiments/Jan_15_optimize_learning_rate_schedule/2/fig.png}}
+\caption{Gradients with respect to step size as a function of training epoch.}
+\label{fig:chaos}
+\end{center}
+\vskip -0.2in
+\end{figure} 
+
+
+\begin{figure}[ht]
+\vskip 0.2in
+\begin{center}
+%\centerline{\includegraphics[width=\columnwidth]{icml2015stylefiles/icml_numpapers}}
+\caption{An example of a training schedule optimized by hyper-gradient descent.}
+\label{fig:optimal schedule}
+\end{center}
+\vskip -0.2in
+\end{figure} 
+
+\begin{figure}[ht]
+\vskip 0.2in
+\begin{center}
+%\centerline{\includegraphics[width=\columnwidth]{icml2015stylefiles/icml_numpapers}}
+\caption{An example of an initial weight distribution optimized by hyper-gradient descent.}
+\label{fig:optimal schedule}
+\end{center}
+\vskip -0.2in
+\end{figure} 
 
 
 \section{Related Work}
@@ -234,52 +315,6 @@ Training hyperparameters whose dependence on the final objective depends on many
 \citet{bengio1994learning} noted that "learning long-term dependencies with gradient descent is difficult."
 
 Exploding-gradient problem~\cite{pascanu2012understanding}
-
-
-\section{Results}
-
-\subsection{The Edge of Chaos}
-
-\cite{pearlmutter1996investigation}[Chapter 4] contains a lot of discussion and examples (especially section 4.4) about the chaotic behavior of learning neural networks using gradient descent with momentum.
-One problem with training these networks is that when the learning rate is too high, the gradient becomes uninformative about the medium-term behavior of the function.
-Figure \ref{fig:chaos} illustrates this problem.
-
-\cite{pearlmutter2009sleep} argues that biological neural networks tune themselves so as to be at the "edge of chaos".
-Empirically, it seems like the best learning rates for training neural networks are just small enough to avoid this chaotic behavior.
-Lower learning rates don't reach convergence before training ends.
-
-
-\begin{figure}[ht]
-\vskip 0.2in
-\begin{center}
-\centerline{\includegraphics[width=\columnwidth]{../experiments/Jan_14_learning_rate_wiggliness/1/fig.png}}
-\caption{When the learning rate is too high, the gradient becomes uninformative about the medium-term behavior of the function.
-The step sizes which lead to chaotic behavior are only slightly larger than the optimal step sizes.}
-\label{fig:chaos}
-\end{center}
-\vskip -0.2in
-\end{figure} 
-
-
-\begin{figure}[ht]
-\vskip 0.2in
-\begin{center}
-%\centerline{\includegraphics[width=\columnwidth]{icml2015stylefiles/icml_numpapers}}
-\caption{An example of a training schedule optimized by hyper-gradient descent.}
-\label{fig:optimal schedule}
-\end{center}
-\vskip -0.2in
-\end{figure} 
-
-\begin{figure}[ht]
-\vskip 0.2in
-\begin{center}
-%\centerline{\includegraphics[width=\columnwidth]{icml2015stylefiles/icml_numpapers}}
-\caption{An example of an initial weight distribution optimized by hyper-gradient descent.}
-\label{fig:optimal schedule}
-\end{center}
-\vskip -0.2in
-\end{figure} 
 
 
 \section{Conclusion}

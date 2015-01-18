@@ -8,9 +8,9 @@ def sgd(loss_fun, batches, N_iter, x, v, alphas, betas, record_learning_curve=Fa
     # TODO: Warp alpha and beta to map from real-valued domains (exp and logistic?)
     def print_perf():
         pass
-        # if (i + 1) % iter_per_epoch == 0:
-        #     print "End of epoch {0}: loss is {1}".format(i / iter_per_epoch,
-        #                                                 loss_fun(X.val, batches.all_idxs))
+        if (i + 1) % iter_per_epoch == 0:
+            print "End of epoch {0}: loss is {1}".format(i / iter_per_epoch,
+                                                        loss_fun(X.val, batches.all_idxs))
             
     X, V = ExactRep(x), ExactRep(v)
     x_orig = X.val
