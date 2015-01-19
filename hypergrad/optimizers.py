@@ -19,7 +19,7 @@ def sgd(loss_fun, batches, N_iter, x, v, alphas, betas, record_learning_curve=Fa
     iters = zip(range(N_iter), alphas, betas, batches * num_epochs)
     loss_grad = grad(loss_fun)
     loss_hvp = grad(lambda x, d, idxs : np.dot(loss_grad(x, idxs), d))
-    learning_curve = []
+    learning_curve = loss_fun(X.val, batches.all_idxs)
     for i, alpha, beta, batch in iters:
         V.mul(beta)
         g = loss_grad(X.val, batch)
@@ -27,7 +27,7 @@ def sgd(loss_fun, batches, N_iter, x, v, alphas, betas, record_learning_curve=Fa
         X.add(alpha * V.val)
         if record_learning_curve:
             learning_curve.append(loss_fun(X.val, batches.all_idxs))
-        print_perf()
+        #print_perf()
 
     x_final = X.val
     d_x = loss_grad(X.val, batches.all_idxs)
@@ -35,6 +35,7 @@ def sgd(loss_fun, batches, N_iter, x, v, alphas, betas, record_learning_curve=Fa
     d_v = np.zeros(d_x.shape)
     d_alphas = deque()
     d_betas = deque()
+    print_perf()
 
     for i, alpha, beta, batch in iters[::-1]:
         print_perf()
