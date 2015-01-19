@@ -1,3 +1,17 @@
+# Jan 16 experiment: Trying to optimize initial weight distributions
+
+We'd like to say something about what the optimal weight distribution looks like.  However, it's tricky to sensibly set learning rates for the hyperparameters.
+
+![](experiments/Jan_16_optimize_initial_dist/1/fig.png)
+
+It looks like a few weights have much larger gradients than others (possibly the bias terms?).
+To deal with this, we tried learning a separate initial distribution per layer:
+
+![](experiments/Jan_16_optimize_initial_dist/2/fig.png)
+
+It's not clear what's going wrong here - is it learning rates, or are the initial distributions way off?
+The bias distributions will probably end up looking bad no matter what, since they have fewer weights than bins, but why do they look better than the filter parameter distributions?
+
 # Jan 14 experiment: tryint to optimize learning rate schedule
 
 Since gradients wrt learning rate look sensible when they start low, let's try
