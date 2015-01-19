@@ -12,6 +12,13 @@ To deal with this, we tried learning a separate initial distribution per layer:
 It's not clear what's going wrong here - is it learning rates, or are the initial distributions way off?
 The bias distributions will probably end up looking bad no matter what, since they have fewer weights than bins, but why do they look better than the filter parameter distributions?
 
+I tried a simply experiment with only one layer and more meta-iterations:
+
+![](experiments/Jan_16_optimize_initial_dist/3/fig.png)
+
+When we zoom in, the distribution actually looks pretty sensible. Perhaps some of the spikes are artefacts, bins that have no data at all?  We can get around this by plotting the emperical histogram of weights instead of the distribution we learned.
+
+
 # Jan 14 experiment: tryint to optimize learning rate schedule
 
 Since gradients wrt learning rate look sensible when they start low, let's try
