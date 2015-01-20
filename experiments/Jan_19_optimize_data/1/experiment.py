@@ -11,7 +11,7 @@ from hypergrad.optimizers import sgd2
 layer_sizes = [784, 10]
 L2_reg = 0.1
 velocity_scale = 0.0
-log_alpha_0 = 0.0
+log_alpha_0 = 0.5
 beta_0 = 0.9
 log_param_scale = -2
 N_real_data = 1000
@@ -66,7 +66,7 @@ def plot():
 
     fig = plt.figure(0)
     fig.clf()
-    fig.set_size_inches((8,12))
+
 
     N_figs = 2
 
@@ -88,15 +88,18 @@ def plot():
     ax.matshow(concat_images, cmap = matplotlib.cm.binary)
     plt.xticks(np.array([]))
     plt.yticks(np.array([]))
-    plt.show()
+    fig.set_size_inches((8,12))
 
     plt.savefig("/tmp/fig.png")
     plt.savefig("fig.png")
+
+    plt.show()
+
 
 
 
 
 if __name__ == '__main__':
-    results = run()
-    with open('results.pkl', 'w') as f: pickle.dump(results, f)
+    #results = run()
+    #with open('results.pkl', 'w') as f: pickle.dump(results, f)
     plot()
