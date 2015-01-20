@@ -40,9 +40,10 @@ def mnist():
 
     return train_images, train_labels, test_images, test_labels
 
+one_hot = lambda x, K : np.array(x[:,None] == np.arange(K)[None, :], dtype=int)
+
 def load_data(normalize=False):
     partial_flatten = lambda x : np.reshape(x, (x.shape[0], np.prod(x.shape[1:])))
-    one_hot = lambda x, K : np.array(x[:,None] == np.arange(K)[None, :], dtype=int)
     train_images, train_labels, test_images, test_labels = mnist()
     train_images = partial_flatten(train_images) / 255.0
     test_images  = partial_flatten(test_images)  / 255.0
