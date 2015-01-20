@@ -63,8 +63,7 @@ def sgd(loss_fun, batches, N_iter, x, v, alphas, betas, record_learning_curve=Fa
             'd_betas'  : d_betas}
 
 
-def sgd2(optimizing_loss, secondary_loss, batches, N_iter, x0, v0, alphas, betas,
-         meta, record_learning_curve=False):
+def sgd2(optimizing_loss, secondary_loss, batches, N_iter, x0, v0, alphas, betas, meta):
     """
     This version takes a secondary loss, and also returns gradients w.r.t. the data.
     :param optimizing_loss: The loss to be optimized by SGD.
@@ -103,15 +102,14 @@ def sgd2(optimizing_loss, secondary_loss, batches, N_iter, x0, v0, alphas, betas
     L_hvp_meta = grad(lambda x, meta, d, idxs:
                       np.dot(L_grad(x, meta, idxs), d), 1) # Returns a size(meta) output.
 
-    learning_curve = optimizing_loss(X.val, meta, batches.all_idxs)
+    learning_curve = [optimizing_loss(X.val, meta, batches.all_idxs)]
     for i, alpha, beta, batch in iters:
         V.mul(beta)
         g = L_grad(X.val, meta, batch)
         V.sub((1.0 - beta) * g)
         X.add(alpha * V.val)
-        if record_learning_curve:
-            learning_curve.append(optimizing_loss(X.val, meta, batches.all_idxs))
-        print_perf()
+        learning_curve.append(optimizing_loss(X.val, meta, batches.all_idxs))
+        #print_perf()
 
     x_final = X.val
     dLd_x = L_grad(X.val, meta, batches.all_idxs)
@@ -127,7 +125,7 @@ def sgd2(optimizing_loss, secondary_loss, batches, N_iter, x0, v0, alphas, betas
     print_perf()
 
     for i, alpha, beta, batch in iters[::-1]:
-        print_perf()
+        #print_perf()
         dLd_v += dLd_x * alpha
         dMd_v += dMd_x * alpha
         X.sub(alpha * V.val)

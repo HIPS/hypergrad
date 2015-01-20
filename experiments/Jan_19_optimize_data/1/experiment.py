@@ -2,6 +2,7 @@
 import numpy as np
 import numpy.random as npr
 import pickle
+import matplotlib
 
 from hypergrad.data import load_data
 from hypergrad.nn_utils import make_nn_funs, BatchList
@@ -16,11 +17,11 @@ log_param_scale = -2
 N_real_data = 1000
 N_fake_data = 10
 batch_size = 10
-N_iters = 20
+N_iters = 10
 
 # ----- Variable for this run -----
-data_stepsize = 0.004
-N_meta_iter = 40
+data_stepsize = 0.04
+N_meta_iter = 50
 
 def run():
     train_images, train_labels, _, _, _ = load_data(normalize=True)
@@ -30,8 +31,10 @@ def run():
     parser, _, loss_fun, frac_err = make_nn_funs(layer_sizes, L2_reg, return_parser=True)
     N_weights = parser.N
 
-    fake_data = npr.zeros(train_images[:N_fake_data, :].shape)
-    fake_labels = np.range(0, 10)  # One of each label.
+    #fake_data = npr.randn(*(train_images[:N_fake_data, :].shape))
+    fake_data = np.zeros(train_images[:N_fake_data, :].shape)
+    one_hot = lambda x, K : np.array(x[:,None] == np.arange(K)[None, :], dtype=int)
+    fake_labels = one_hot(np.array(range(0, 10)), 10)  # One of each label.
 
     def indexed_loss_fun(x, meta_params, idxs):   # To be optimized by SGD.
         return loss_fun(x, X=meta_params[idxs], T=fake_labels[idxs])
@@ -47,11 +50,11 @@ def run():
     for i in range(N_meta_iter):
         print "Meta iteration {0}".format(i)
         results = sgd2(indexed_loss_fun, meta_loss_fun, batch_idxs, N_iters,
-                       x0, v0, np.exp(log_alphas), betas)
+                       x0, v0, np.exp(log_alphas), betas, fake_data)
 
         learning_curve = results['learning_curve']
         output.append((learning_curve, fake_data))
-        fake_data += results['dMd_meta'] * data_stepsize   # Update data with one gradient step.
+        fake_data -= results['dMd_meta'] * data_stepsize   # Update data with one gradient step.
 
     return output
 
@@ -59,13 +62,13 @@ def run():
 def plot():
     import matplotlib.pyplot as plt
     with open('results.pkl') as f:
-        all_learning_curves, all_bindicts = zip(*pickle.load(f))
+        all_learning_curves, all_fakedata = zip(*pickle.load(f))
 
     fig = plt.figure(0)
     fig.clf()
     fig.set_size_inches((8,12))
 
-    N_figs = len(all_bindicts[0]) + 1
+    N_figs = 2
 
     ax = fig.add_subplot(N_figs, 1, 1)
     ax.set_title("Learning Curve")
@@ -75,22 +78,23 @@ def plot():
     ax.set_xlabel("Step number")
     #ax.legend(loc=4)
 
-
-    for i, layer in enumerate(all_bindicts[0]):
-        ax = fig.add_subplot(N_figs, 1, i + 2)
-        ax.set_title("Weight initialization PDF " + layer.__repr__() )
-        ax.set_ylabel("PDF Height")
-        #ax.set_xlabel("Weight range")
-
-        for bindict in all_bindicts:
-            bins = bindict[layer]
-            x = np.linspace( np.min(bins), np.max(bins), 1000)
-            ax.plot(x, binpdf(x, bins), '-', label="{0} meta iters".format(i))
+    ax = fig.add_subplot(N_figs, 1, 2)
+    ax.set_title("Fake Data")
+    images = all_fakedata[-1]
+    concat_images = np.zeros((28, 0))
+    for i in range(N_fake_data):
+        cur_image = np.reshape(images[i, :], (28, 28))
+        concat_images = np.concatenate((concat_images, cur_image, np.zeros((28, 5))), axis=1)
+    ax.matshow(concat_images, cmap = matplotlib.cm.binary)
+    plt.xticks(np.array([]))
+    plt.yticks(np.array([]))
+    plt.show()
 
     plt.savefig("/tmp/fig.png")
     plt.savefig("fig.png")
 
-    plt.show()
+
+
 
 if __name__ == '__main__':
     results = run()
