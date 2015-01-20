@@ -81,15 +81,15 @@ def test_sgd2():
     N_iter = num_epochs * len(batch_idxs)
     alphas = 0.1 * npr.rand(len(batch_idxs) * num_epochs)
     betas = 0.5 + 0.2 * npr.rand(len(batch_idxs) * num_epochs)
-    meta = 0.1 * npr.randn(N_weights)
+    meta = 0.1 * npr.randn(N_weights*2)
 
     A = npr.randn(N_data, N_weights)
     def loss_fun(W, meta, idxs):
         sub_A = A[idxs, :]
-        return np.dot(np.dot(W + meta, np.dot(sub_A.T, sub_A)), W)
+        return np.dot(np.dot(W + meta[:N_weights] + meta[N_weights:], np.dot(sub_A.T, sub_A)), W)
 
-    def meta_loss_fun(W):
-        return np.dot(W, W)
+    def meta_loss_fun(meta):
+        return np.dot(meta, meta)
 
     result = sgd2(loss_fun, meta_loss_fun, batch_idxs, N_iter, W0, V0, alphas, betas, meta)
     d_x = result['dLd_x']
@@ -101,8 +101,7 @@ def test_sgd2():
 
     def full_loss(W0, V0, alphas, betas, meta):
         result = sgd2(loss_fun, meta_loss_fun, batch_idxs, N_iter, W0, V0, alphas, betas, meta)
-        x_final = result['x_final']
-        return loss_fun(x_final, meta, batch_idxs.all_idxs)
+        return result['L_final']
 
     def meta_loss(W0, V0, alphas, betas, meta):
         result = sgd2(loss_fun, meta_loss_fun, batch_idxs, N_iter, W0, V0, alphas, betas, meta)
@@ -114,8 +113,10 @@ def test_sgd2():
         assert np.allclose(an, num, rtol=1e-3, atol=1e-4), \
             "Type {0}, diffs are: {1}".format(i, an - num)
 
-    d_an = (dMd_meta)
-    d_num = nd(meta_loss, meta)
-    for i, (an, num) in enumerate(zip(d_an, d_num)):
-        assert np.allclose(an, num, rtol=1e-3, atol=1e-4), \
+    d_an = dMd_meta
+    d_num = nd(meta_loss, W0, V0, alphas, betas, meta)
+    # Only look at last derivative.
+    assert np.allclose(d_an, d_num[-1], rtol=1e-3, atol=1e-4), \
             "Type {0}, diffs are: {1}".format(i, an - num)
+
+test_sgd2()

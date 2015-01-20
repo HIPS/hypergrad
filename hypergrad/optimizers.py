@@ -96,11 +96,12 @@ def sgd2(optimizing_loss, secondary_loss, batches, N_iter, x0, v0, alphas, betas
     num_epochs = N_iter/len(batches) + 1
     iters = zip(range(N_iter), alphas, betas, batches * num_epochs)
     L_grad      = grad(optimizing_loss)    # Gradient wrt parameters.
+    M_grad      = grad(secondary_loss)     # Gradient wrt parameters.
     L_meta_grad = grad(optimizing_loss, 1) # Gradient wrt metaparameters.
-    M_meta_grad = grad(secondary_loss, 1)  # Gradient wrt metaparameters.
-    L_hvp      = grad(lambda x, d, idxs : np.dot(L_grad(     x, meta, idxs), d))   # Hessian-vector product.
-    L_hvp_meta = grad(lambda x, d, idxs : np.dot(L_meta_grad(x, meta, idxs), d))
-    M_hvp_meta = grad(lambda x, d, idxs : np.dot(M_meta_grad(x, meta, idxs), d))   # So meta.
+    L_hvp      = grad(lambda x, d, idxs:
+                      np.dot(L_grad(x, meta, idxs), d))    # Hessian-vector product.
+    L_hvp_meta = grad(lambda x, meta, d, idxs:
+                      np.dot(L_grad(x, meta, idxs), d), 1) # Returns a size(meta) output.
 
     learning_curve = optimizing_loss(X.val, meta, batches.all_idxs)
     for i, alpha, beta, batch in iters:
@@ -114,28 +115,33 @@ def sgd2(optimizing_loss, secondary_loss, batches, N_iter, x0, v0, alphas, betas
 
     x_final = X.val
     dLd_x = L_grad(X.val, meta, batches.all_idxs)
+    dMd_x = M_grad(X.val)
     L_final = optimizing_loss(x_final, meta, batches.all_idxs)
     M_final = secondary_loss(x_final)
     dLd_v = np.zeros(dLd_x.shape)
+    dMd_v = np.zeros(dMd_x.shape)
     dLd_alphas = deque()
     dLd_betas = deque()
     dLd_meta = L_meta_grad(X.val, meta, batches.all_idxs)
-    dMd_meta = M_meta_grad(X.val, meta, batches.all_idxs)
+    dMd_meta = np.zeros(dLd_meta.shape)
     print_perf()
 
     for i, alpha, beta, batch in iters[::-1]:
         print_perf()
         dLd_v += dLd_x * alpha
+        dMd_v += dMd_x * alpha
         X.sub(alpha * V.val)
         g = L_grad(X.val, meta, batch)
         dLd_alphas.appendleft(np.dot(dLd_x, V.val))
         V.add((1.0 - beta) * g)
         V.div(beta)
         dLd_betas.appendleft(np.dot(dLd_v, V.val + g))
-        dLd_x    -= (1.0 - beta) * L_hvp(     X.val, dLd_v, batch)
-        dLd_meta -= (1.0 - beta) * L_hvp_meta(X.val, dLd_v, batch)
-        dMd_meta -= (1.0 - beta) * M_hvp_meta(X.val, dLd_v, batch)
+        dLd_x    -= (1.0 - beta) * L_hvp(X.val, dLd_v, batch)
+        dMd_x    -= (1.0 - beta) * L_hvp(X.val, dMd_v, batch)
+        dLd_meta -= (1.0 - beta) * L_hvp_meta(X.val, meta, dLd_v, batch)
+        dMd_meta -= (1.0 - beta) * L_hvp_meta(X.val, meta, dMd_v, batch)
         dLd_v = dLd_v * beta
+        dMd_v = dMd_v * beta
 
     dLd_alphas = np.array(dLd_alphas)
     dLd_betas = np.array(dLd_betas)
@@ -150,4 +156,5 @@ def sgd2(optimizing_loss, secondary_loss, batches, N_iter, x0, v0, alphas, betas
             'dLd_v' : dLd_v,
             'dLd_alphas' : dLd_alphas,
             'dLd_betas'  : dLd_betas,
-            'dLd_meta'  : dLd_meta}
+            'dLd_meta'  : dLd_meta,
+            'dMd_meta'  : dMd_meta}
