@@ -97,14 +97,25 @@ def test_sgd2():
     d_alphas = result['dLd_alphas']
     d_betas = result['dLd_betas']
     d_meta = result['dLd_meta']
+    dMd_meta = result['dMd_meta']
 
     def full_loss(W0, V0, alphas, betas, meta):
         result = sgd2(loss_fun, meta_loss_fun, batch_idxs, N_iter, W0, V0, alphas, betas, meta)
         x_final = result['x_final']
         return loss_fun(x_final, meta, batch_idxs.all_idxs)
 
-    d_an = (d_x, d_v, d_alphas, d_betas, d_meta)
-    d_num = nd(full_loss, W0, V0, alphas, betas, meta)
+    def meta_loss(W0, V0, alphas, betas, meta):
+        result = sgd2(loss_fun, meta_loss_fun, batch_idxs, N_iter, W0, V0, alphas, betas, meta)
+        return result['M_final']
+
+    d_an = (d_x, d_v, d_alphas, d_betas, d_meta, dMd_meta)
+    d_num = nd(full_loss, W0, V0, alphas, betas, meta, )
+    for i, (an, num) in enumerate(zip(d_an, d_num)):
+        assert np.allclose(an, num, rtol=1e-3, atol=1e-4), \
+            "Type {0}, diffs are: {1}".format(i, an - num)
+
+    d_an = (dMd_meta)
+    d_num = nd(meta_loss, meta)
     for i, (an, num) in enumerate(zip(d_an, d_num)):
         assert np.allclose(an, num, rtol=1e-3, atol=1e-4), \
             "Type {0}, diffs are: {1}".format(i, an - num)

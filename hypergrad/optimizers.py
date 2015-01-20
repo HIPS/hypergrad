@@ -97,8 +97,10 @@ def sgd2(optimizing_loss, secondary_loss, batches, N_iter, x0, v0, alphas, betas
     iters = zip(range(N_iter), alphas, betas, batches * num_epochs)
     L_grad      = grad(optimizing_loss)    # Gradient wrt parameters.
     L_meta_grad = grad(optimizing_loss, 1) # Gradient wrt metaparameters.
+    M_meta_grad = grad(secondary_loss, 1)  # Gradient wrt metaparameters.
     L_hvp      = grad(lambda x, d, idxs : np.dot(L_grad(     x, meta, idxs), d))   # Hessian-vector product.
-    L_hvp_meta = grad(lambda x, d, idxs : np.dot(L_meta_grad(x, meta, idxs), d))   # So meta.
+    L_hvp_meta = grad(lambda x, d, idxs : np.dot(L_meta_grad(x, meta, idxs), d))
+    M_hvp_meta = grad(lambda x, d, idxs : np.dot(M_meta_grad(x, meta, idxs), d))   # So meta.
 
     learning_curve = optimizing_loss(X.val, meta, batches.all_idxs)
     for i, alpha, beta, batch in iters:
@@ -118,6 +120,7 @@ def sgd2(optimizing_loss, secondary_loss, batches, N_iter, x0, v0, alphas, betas
     dLd_alphas = deque()
     dLd_betas = deque()
     dLd_meta = L_meta_grad(X.val, meta, batches.all_idxs)
+    dMd_meta = M_meta_grad(X.val, meta, batches.all_idxs)
     print_perf()
 
     for i, alpha, beta, batch in iters[::-1]:
@@ -131,6 +134,7 @@ def sgd2(optimizing_loss, secondary_loss, batches, N_iter, x0, v0, alphas, betas
         dLd_betas.appendleft(np.dot(dLd_v, V.val + g))
         dLd_x    -= (1.0 - beta) * L_hvp(     X.val, dLd_v, batch)
         dLd_meta -= (1.0 - beta) * L_hvp_meta(X.val, dLd_v, batch)
+        dMd_meta -= (1.0 - beta) * M_hvp_meta(X.val, dLd_v, batch)
         dLd_v = dLd_v * beta
 
     dLd_alphas = np.array(dLd_alphas)
