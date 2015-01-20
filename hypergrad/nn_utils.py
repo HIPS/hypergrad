@@ -35,11 +35,16 @@ def make_nn_funs(layer_sizes, L2_reg):
 
     def predictions(W_vect, X):
         cur_units = X
-        for i in range(len(layer_sizes) - 1):
+        N_iter = len(layer_sizes) - 1
+        for i in range(N_iter):
             cur_W = parser.get(W_vect, ('weights', i))
             cur_B = parser.get(W_vect, ('biases', i))
-            cur_units = np.tanh(np.dot(cur_units, cur_W) + cur_B)
-        return cur_units - logsumexp(cur_units, axis=1)
+            cur_units = np.dot(cur_units, cur_W) + cur_B
+            if i == (N_iter - 1):
+                cur_units = cur_units - logsumexp(cur_units, axis=1)
+            else:
+                cur_units = np.tanh(cur_units)
+        return cur_units
 
     def loss(W_vect, X, T):
         log_prior = -L2_reg * np.dot(W_vect, W_vect)
