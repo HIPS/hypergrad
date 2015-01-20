@@ -193,9 +193,12 @@ This means that naively applying Algorithm \ref{alg:reverse-sgd} will not provid
 To get around the problem of information loss caused by decay, we need to somehow store that information.
 We could easily do so by storing the weight vector at each iteration, but this would require too much memory to be practical for large neural nets trained for thousands of minibatches.
 Luckily, when the decay factor is close to 1, the amount of information lost at each iteration is small.
+
+\textbf{Quantifying the Savings}
 For example, an integer multiplied by 0.98 will lose $0.029$ bits of information on average.
 Compared to storing a new 32-bit integer or floating-point number, 
 Thus, if we needed only to store the small amount of information lost at each iteration, memory requirements would only be ${\frac{0.029}{32} = 0.1\%}$ of what they would otherwise be.
+Even if the decay term is $0.5$, memory requirements are still only $\frac{1}{32}$ of what they would otherwise be.
 
 \subsection{Storing Fractional Bits on a Tape}
 

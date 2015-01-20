@@ -1,14 +1,33 @@
-# Jan 16 experiment: trying to optimize initial weight disribution
+# Jan 19 experiment: Optimizing fake data
 
-We parameterized the initial weight distribution by a piecewise linear inverse
-cdf. It seems feasible enough to learn a scale for the initial weight
-distribution, but learning an actual shape seems trickier. Naive gradient
-descent leads to a pathology where the inverse cdf becomes constant for
-sections, corresponding to delta functions in the pdf.
+Given only 10 training examples, what should those examples look like in order to maximize the performance on a validation set?
+
+![](experiments/Jan_19_optimize_data/1/fig.png)
+
+The gradients of the cross-validation loss w.r.t. the individual pixels of the training data produce 'canonical examples' of each digit.
+
+
+# Jan 16 experiment: Trying to optimize initial weight distributions
+
+We'd like to say something about what the optimal weight distribution looks like.  However, it's tricky to sensibly set learning rates for the hyperparameters.
 
 ![](experiments/Jan_16_optimize_initial_dist/1/fig.png)
 
-# Jan 15 experiment: trying to optimize learning rate schedule
+It looks like a few weights have much larger gradients than others (possibly the bias terms?).
+To deal with this, we tried learning a separate initial distribution per layer:
+
+![](experiments/Jan_16_optimize_initial_dist/2/fig.png)
+
+It's not clear what's going wrong here - is it learning rates, or are the initial distributions way off?
+The bias distributions will probably end up looking bad no matter what, since they have fewer weights than bins, but why do they look better than the filter parameter distributions?
+
+I tried a simply experiment with only one layer and more meta-iterations:
+
+![](experiments/Jan_16_optimize_initial_dist/3/fig.png)
+
+When we zoom in, the distribution actually looks pretty sensible. Perhaps some of the spikes are artefacts, bins that have no data at all?  We can get around this by plotting the emperical histogram of weights instead of the distribution we learned.
+
+# Jan 14 experiment: trying to optimize learning rate schedule
 
 Since gradients wrt learning rate look sensible when they start low, let's try
 now to actually optimize the schedule.
