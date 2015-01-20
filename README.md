@@ -1,3 +1,12 @@
+# Jan 19 experiment: Optimizing fake data
+
+Given only 10 training examples, what should those examples look like in order to maximize the performance on a validation set?
+
+![](experiments/Jan_19_optimize_data/1/fig.png)
+
+The gradients of the cross-validation loss w.r.t. the individual pixels of the training data produce 'canonical examples' of each digit.
+
+
 # Jan 16 experiment: Trying to optimize initial weight distributions
 
 We'd like to say something about what the optimal weight distribution looks like.  However, it's tricky to sensibly set learning rates for the hyperparameters.
