@@ -88,8 +88,8 @@ def test_sgd2():
         sub_A = A[idxs, :]
         return np.dot(np.dot(W + meta[:N_weights] + meta[N_weights:], np.dot(sub_A.T, sub_A)), W)
 
-    def meta_loss_fun(meta):
-        return np.dot(meta, meta)
+    def meta_loss_fun(w, meta):
+        return np.dot(w, w) + np.dot(meta, meta)
 
     def full_loss(W0, V0, alphas, betas, meta):
         result = sgd2(loss_fun, meta_loss_fun, batch_idxs, N_iter, W0, V0, alphas, betas, meta)
@@ -112,3 +112,5 @@ def test_sgd2():
     for i, (an, num) in enumerate(zip(d_an, d_num)):
         assert np.allclose(an, num, rtol=1e-3, atol=1e-4), \
             "Type {0}, diffs are: {1}".format(i, an - num)
+
+test_sgd2()

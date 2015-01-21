@@ -14,6 +14,10 @@ Given only 10 training examples, what should those examples look like in order t
 
 The gradients of the cross-validation loss w.r.t. the individual pixels of the training data produce 'canonical examples' of each digit.
 
+We can also see how much we overfit when optimizing the error on a validaiton set of size 10000, as well as how the training, validation and test-set error change over time:
+
+![](experiments/Jan_19_optimize_data/3/fig.png)
+
 # Jan 19 experiment: having a go at learning data augmentation
 
 Let's restrict ourselves to linear transformations of the data and try to learn
@@ -32,17 +36,6 @@ smoothing will have real eigenvalues, so maybe we can just do the transformation
 with both the learned matrix and its transpose? (There's still going to be a
 symmetry-related zero gradient though. Can we somehow solve this with
 reparameterization?)
-
-The gradients are going to be a bit of a pain. Let's try it first with
-smoothed nearest-neighbors (which can be done with funkyyak), and do it with
-neural nets if that looks promising.
-
-Plan:
-* Confirm that data augmentation does help (try a translation) and that
-  gradients are sensible.
-* Learn an augmentation matrix without smoothing and visualize the
-  transformation learned.
-* Try to learn a distribution over transformations.
 
 # Jan 16 experiment: Trying to optimize initial weight distributions
 
