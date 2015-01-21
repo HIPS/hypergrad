@@ -1,5 +1,4 @@
 import numpy as np
-from funkyyak import grad
 import matplotlib
 import matplotlib.pyplot as plt
 
@@ -17,6 +16,13 @@ class WeightsParser(object):
         idxs, shape = self.idxs_and_shapes[name]
         return np.reshape(vect[idxs], shape)
 
+    def set(self, vect, name, val):
+        idxs, shape = self.idxs_and_shapes[name]
+        if isinstance(val, np.ndarray):
+            vect[idxs] = val.ravel()
+        else:
+            vect[idxs] = val  # Can't unravel a float.
+
 class BatchList(list):
     def __init__(self, N_total, N_batch):
         start = 0
@@ -29,13 +35,14 @@ def logsumexp(X, axis):
     max_X = np.max(X)
     return max_X + np.log(np.sum(np.exp(X - max_X), axis=axis, keepdims=True))
 
-def make_nn_funs(layer_sizes, L2_reg, return_parser=False):
+def make_nn_funs(layer_sizes):
     parser = WeightsParser()
     for i, shape in enumerate(zip(layer_sizes[:-1], layer_sizes[1:])):
         parser.add_weights(('weights', i), shape)
         parser.add_weights(('biases', i), (1, shape[1]))
 
     def predictions(W_vect, X):
+        """Outputs normalized log-probabilities."""
         cur_units = X
         N_iter = len(layer_sizes) - 1
         for i in range(N_iter):
@@ -48,19 +55,17 @@ def make_nn_funs(layer_sizes, L2_reg, return_parser=False):
                 cur_units = np.tanh(cur_units)
         return cur_units
 
-    def loss(W_vect, X, T):
+    def loss(W_vect, X, T, L2_reg=0.0):
         log_prior = -L2_reg * np.dot(W_vect, W_vect)
         log_lik = np.sum(predictions(W_vect, X) * T) / X.shape[0]
         return - log_prior - log_lik
 
     def frac_err(W_vect, X, T):
-        preds = np.argmax(pred_fun(getval(W_vect), X), axis=1)
+        preds = np.argmax(predictions(W_vect, X), axis=1)
         return np.mean(np.argmax(T, axis=1) != preds)
 
-    if return_parser:
         return parser, predictions, loss, frac_err
-    else:
-        return parser.N, predictions, loss, frac_err
+
 
 def plot_mnist_images(images, ax, ims_per_row=5, padding=5):
     digit_dimensions = (28,28)

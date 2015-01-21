@@ -319,11 +319,16 @@ Training hyperparameters whose dependence on the final objective depends on many
 
 Exploding-gradient problem~\cite{pascanu2012understanding}
 
+\section{Extensions and Future Work}
+
+What other types of computation have a similar flavour to gradient descent with momentum?
+Long Short-Term Memory has a similar flavour, as do the computations performed by Neural Turing Machines.
+Reversible Learning might allow gradient (not hyper-gradient) computations with respect to very long computations performed by either architecture.
 
 \section{Conclusion}
 
 Implementing reversible learning as presented in this paper requires either that the learning algorithm is a form of (stochastic) gradient descent with momentum, and that Hessian-vector products are available.
-Even when this is not the case, we hope that the training schedules and initialization schemes demosntrated in this paper can be a guide to practitioners for training tasks that aren't amenable to this sort of procedure.
+Even when this is not the case, we hope that the training schedules and initialization schemes demonstrated in this paper can be a guide to practitioners for training tasks that aren't amenable to this sort of procedure.
 
 \section*{Acknowledgments} 
 
