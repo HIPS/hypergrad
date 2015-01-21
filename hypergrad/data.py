@@ -57,3 +57,14 @@ def load_data(normalize=False):
         test_images = test_images - train_mean
     return train_images, train_labels, test_images, test_labels, N_data
 
+def load_data_subset(*args):
+    train_images, train_labels, test_images, test_labels, _ = load_data()
+    all_images = np.concatenate((train_images, test_images), axis=0)
+    all_labels = np.concatenate((train_labels, test_labels), axis=0)
+    datapairs = []
+    start = 0
+    for N in args:
+        end = start + N
+        datapairs.append((all_images[start:end], all_labels[start:end]))
+        start = end
+    return datapairs

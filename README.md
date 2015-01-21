@@ -1,3 +1,11 @@
+# Jan 19 experiment: Data augmentation
+
+Trying to learn an augmentation transformation. It gives some improvement but
+the transformation itself isn't very interesting. Let's try restricting to local
+transformations.
+
+![](experiments/Jan_19_nearest_neighbors_augmentation/1/fig.png)
+
 # Jan 19 experiment: Optimizing fake data
 
 Given only 10 training examples, what should those examples look like in order to maximize the performance on a validation set?
@@ -6,6 +14,35 @@ Given only 10 training examples, what should those examples look like in order t
 
 The gradients of the cross-validation loss w.r.t. the individual pixels of the training data produce 'canonical examples' of each digit.
 
+# Jan 19 experiment: having a go at learning data augmentation
+
+Let's restrict ourselves to linear transformations of the data and try to learn
+the transformation matrix. May need to include smoothing to encourage it to be
+sparse and/or local. (e.g. could penalize or eliminate matrix elements between
+non-adjacent pixels). Since we're hoping to do this with gradients, perhaps we
+should only look at continuous deformations, of the form `y = matrixexp(A *
+t).dot(x)`. This will also let us have continuous compositions of
+transformations. If we put a Gaussian over all the `t` parameters, we would get
+a distribution over transformations. We may also want to enforce the eigenvalues
+of A to be imaginary so that the transformation doesn't grow or shrink
+anything. (Although this wouldn't let it capture things like smoothing.)
+Actually, thinking about this more, the bidirectional transformations like
+translation will have imaginary eigenvalues, whereas the directional ones like
+smoothing will have real eigenvalues, so maybe we can just do the transformation
+with both the learned matrix and its transpose? (There's still going to be a
+symmetry-related zero gradient though. Can we somehow solve this with
+reparameterization?)
+
+The gradients are going to be a bit of a pain. Let's try it first with
+smoothed nearest-neighbors (which can be done with funkyyak), and do it with
+neural nets if that looks promising.
+
+Plan:
+* Confirm that data augmentation does help (try a translation) and that
+  gradients are sensible.
+* Learn an augmentation matrix without smoothing and visualize the
+  transformation learned.
+* Try to learn a distribution over transformations.
 
 # Jan 16 experiment: Trying to optimize initial weight distributions
 
