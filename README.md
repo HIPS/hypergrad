@@ -6,6 +6,9 @@ Given only 10 training examples, what should those examples look like in order t
 
 The gradients of the cross-validation loss w.r.t. the individual pixels of the training data produce 'canonical examples' of each digit.
 
+We can also see how much we overfit when optimizing the error on a validaiton set of size 10000, as well as how the training, validation and test-set error change over time:
+
+![](experiments/Jan_19_optimize_data/3/fig.png)
 
 # Jan 16 experiment: Trying to optimize initial weight distributions
 
