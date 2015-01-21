@@ -58,7 +58,7 @@ def load_data(normalize=False):
     return train_images, train_labels, test_images, test_labels, N_data
 
 def load_data_subset(*args):
-    train_images, train_labels, test_images, test_labels, _ = load_data()
+    train_images, train_labels, test_images, test_labels, _ = load_data(normalize=True)
     all_images = np.concatenate((train_images, test_images), axis=0)
     all_labels = np.concatenate((train_labels, test_labels), axis=0)
     datapairs = []

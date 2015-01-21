@@ -56,7 +56,7 @@ def make_nn_funs(layer_sizes):
         return cur_units
 
     def loss(W_vect, X, T, L2_reg=0.0):
-        log_prior = -L2_reg * np.dot(W_vect, W_vect)
+        log_prior = -np.dot(W_vect * L2_reg, W_vect)
         log_lik = np.sum(predictions(W_vect, X) * T) / X.shape[0]
         return - log_prior - log_lik
 
@@ -64,7 +64,7 @@ def make_nn_funs(layer_sizes):
         preds = np.argmax(predictions(W_vect, X), axis=1)
         return np.mean(np.argmax(T, axis=1) != preds)
 
-        return parser, predictions, loss, frac_err
+    return parser, predictions, loss, frac_err
 
 
 def plot_mnist_images(images, ax, ims_per_row=5, padding=5):
