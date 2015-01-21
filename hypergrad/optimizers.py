@@ -70,7 +70,7 @@ def sgd2(optimizing_loss, secondary_loss, batches, N_iter, x0, v0, alphas, betas
     The first argument must be the parameters, the second must be the metaparameters,
     the third is data indicies.
     :param secondary_loss: Another loss we want to compute the gradient wrt.
-    Its only parameter is x.
+    It takes parameters and metaparameters.
     :param batches: A list of slices into the data.
     :param N_iter: Number of iterations of SGD.
     :param x0: Starting parameter values.
@@ -97,6 +97,7 @@ def sgd2(optimizing_loss, secondary_loss, batches, N_iter, x0, v0, alphas, betas
     L_grad      = grad(optimizing_loss)    # Gradient wrt parameters.
     M_grad      = grad(secondary_loss)     # Gradient wrt parameters.
     L_meta_grad = grad(optimizing_loss, 1) # Gradient wrt metaparameters.
+    M_meta_grad = grad(secondary_loss, 1)  # Gradient wrt metaparameters.
     L_hvp      = grad(lambda x, d, idxs:
                       np.dot(L_grad(x, meta, idxs), d))    # Hessian-vector product.
     L_hvp_meta = grad(lambda x, meta, d, idxs:
@@ -113,9 +114,9 @@ def sgd2(optimizing_loss, secondary_loss, batches, N_iter, x0, v0, alphas, betas
 
     x_final = X.val
     dLd_x = L_grad(X.val, meta, batches.all_idxs)
-    dMd_x = M_grad(X.val)
+    dMd_x = M_grad(X.val, meta)
     L_final = optimizing_loss(x_final, meta, batches.all_idxs)
-    M_final = secondary_loss(x_final)
+    M_final = secondary_loss(x_final, meta)
     dLd_v = np.zeros(dLd_x.shape)
     dMd_v = np.zeros(dMd_x.shape)
     dLd_alphas = deque()
@@ -123,7 +124,7 @@ def sgd2(optimizing_loss, secondary_loss, batches, N_iter, x0, v0, alphas, betas
     dMd_alphas = deque()
     dMd_betas  = deque()
     dLd_meta = L_meta_grad(X.val, meta, batches.all_idxs)
-    dMd_meta = np.zeros(dLd_meta.shape)
+    dMd_meta = M_meta_grad(X.val, meta)
     print_perf()
 
     for i, alpha, beta, batch in iters[::-1]:
