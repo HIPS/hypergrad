@@ -18,7 +18,7 @@ log_L2_reg_scale = np.log(0.01)
 
 # ----- Discrete training hyper-parameters -----
 layer_sizes = [784, 10]
-batch_size = 100
+batch_size = 200
 N_iters = 50
 
 # ----- Variables for meta-optimization -----
@@ -26,8 +26,8 @@ N_train_data = 10000
 N_val_data = 10000
 N_test_data = 1000
 meta_stepsize = 1000
-N_meta_iter = 30
-meta_L2_reg = 0.0
+N_meta_iter = 50
+meta_L2_reg = 0.01
 
 
 def run():
@@ -71,6 +71,7 @@ def run():
         validation_loss = results['M_final']
         test_loss = test_loss_fun(results['x_final'])
         output.append((learning_curve, validation_loss, test_loss,
+                       parser.get(results['x_final'], (('weights', 0))),
                        parser.get(np.exp(hyperparser.get(metas, 'log_L2_reg')), (('weights', 0)))))
         metas -= results['dMd_meta'] * meta_stepsize
         print "Meta iteration {0} Valiation loss {1} Test loss {2}"\
@@ -80,11 +81,11 @@ def run():
 
 def plot():
     with open('results.pkl') as f:
-        all_learning_curves, all_val_loss, all_test_loss, all_L2 = zip(*pickle.load(f))
+        all_learning_curves, all_val_loss, all_test_loss, all_weights, all_L2 = zip(*pickle.load(f))
 
     fig = plt.figure(0)
     fig.clf()
-    N_figs = 3
+    N_figs = 4
     ax = fig.add_subplot(N_figs, 1, 1)
     ax.set_title("Learning Curves")
     subsample = np.ceil(float(len(all_learning_curves)) / 50)
@@ -107,7 +108,13 @@ def plot():
     ax.legend(loc=2)
 
     ax = fig.add_subplot(N_figs, 1, 3)
-    ax.set_title("ARD")
+    ax.set_title("Weights")
+    images = all_weights[-1].T
+    plot_mnist_images(images, ax, ims_per_row=10)
+    fig.set_size_inches((8,12))
+
+    ax = fig.add_subplot(N_figs, 1, 4)
+    ax.set_title("Per-weight L2 penalty")
     images = all_L2[-1].T
     plot_mnist_images(images, ax, ims_per_row=10)
     fig.set_size_inches((8,12))
