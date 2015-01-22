@@ -1,3 +1,15 @@
+# Jan 21 experiment: Automatic Relevance Determination
+
+We're trying to take the project in the direction of learning interesting regularization schemes that would not be possible without hyper-gradients.
+
+As the simplest proof of concept we could think of, we learned a separate L2 regularization for each weight in a logistic regression.  The visualized weight penalties look pretty cool:
+
+![](experiments/Jan_21_nn_ard/1/fig.png)
+
+We also realized that convnets just a fancy form of regularization of fully-connected nets (sort of.)
+To appear soon: Generalizations of convnets!
+
+
 # Jan 19 experiment: Data augmentation
 
 Trying to learn an augmentation transformation. It gives some improvement but
