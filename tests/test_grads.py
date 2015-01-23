@@ -1,10 +1,11 @@
 import numpy as np
+from funkyyak import grad
 import numpy.random as npr
 import itertools as it
 from copy import copy
 
 from hypergrad.nn_utils import BatchList
-from hypergrad.optimizers import sgd, sgd2, sgd3
+from hypergrad.optimizers import sgd, sgd2, sgd3, simple_sgd, rms_prop, adam
 
 npr.seed(0)
 
@@ -35,6 +36,43 @@ def indexed_function(fun, arg, index):
         local_arg[index] = x
         return fun(local_arg)
     return partial_function
+
+
+def make_optimization_problem(N_weights):
+    true_argmin = npr.randn(N_weights)
+
+    def loss_fun(x, i):
+        """quadratic loss raised to a power"""
+        return np.dot(x - true_argmin, x - true_argmin)**(1.1)
+    return loss_fun, true_argmin
+
+def test_simple_sgd():
+    N_weights = 5
+    W0 = 0.1 * npr.randn(N_weights)
+    num_iters = 1000
+    (loss_fun, true_argmin) = make_optimization_problem(N_weights)
+    x_min = simple_sgd(grad(loss_fun), W0, num_iters=num_iters)
+    assert np.allclose(x_min, true_argmin, rtol=1e-3, atol=1e-4), \
+            "Diffs are: {0}".format(x_min - true_argmin)
+
+def test_rms_prop():
+    N_weights = 5
+    W0 = 0.1 * npr.randn(N_weights)
+    num_iters = 1000
+    (loss_fun, true_argmin) = make_optimization_problem(N_weights)
+    x_min = rms_prop(grad(loss_fun), W0, num_iters=num_iters)
+    assert np.allclose(x_min, true_argmin, rtol=1e-3, atol=1e-4), \
+            "Diffs are: {0}".format(x_min - true_argmin)
+
+def test_adam():
+    N_weights = 5
+    W0 = 0.1 * npr.randn(N_weights)
+    num_iters = 1000
+    (loss_fun, true_argmin) = make_optimization_problem(N_weights)
+    x_min = adam(grad(loss_fun), W0, num_iters=num_iters, step_size=0.1)
+    assert np.allclose(x_min, true_argmin, rtol=1e-3, atol=1e-4), \
+            "Diffs are: {0}".format(x_min - true_argmin)
+
 
 def test_sgd():
     N_weights = 5

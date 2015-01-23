@@ -230,16 +230,19 @@ def rms_prop(grad, x, callback=None, num_iters=100, learn_rate=0.1, gamma=0.9):
     return x
 
 def adam(grad, x, callback=None, num_iters=100,
-         a=0.0002, b1 = 0.1, b2 = 0.001, eps = 10**-8, lam=10**-8):
-    """Adam as described in http://arxiv.org/pdf/1412.6980.pdf"""
+         step_size=0.0002, b1 = 0.1, b2 = 0.001, eps = 10**-8, lam=10**-8):
+    """Adam as described in http://arxiv.org/pdf/1412.6980.pdf.
+    It's basically RMSprop with momentum, and some correction terms."""
     m = np.zeros(len(x))
     v = np.zeros(len(x))
-    velocity = np.zeros(len(x))
     for i in xrange(num_iters):
-        b1 = 1 - ( 1 - b1) * lambda**i
-        cur_grad = grad(x, i)
-        avg_sq_grad = avg_sq_grad * gamma + cur_grad**2 * (1 - gamma)
-        x -= learn_rate * cur_grad/np.sqrt(avg_sq_grad)
+        b1 = 1 - (1-b1)*lam**i
+        g = grad(x, i)
+        m = b1*g      + (1-b1)*m      # First  moment estimate
+        v = b2*(g**2) + (1-b2)*v      # Second moment estimate
+        mhat = m/(1-(1-b1)**(i+1))  # Bias correction
+        vhat = v/(1-(1-b2)**(i+1))
+        x -= step_size*mhat/(np.sqrt(vhat) + eps)
         if callback: callback(i, x)
     return x
 
