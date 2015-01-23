@@ -165,3 +165,44 @@ def sgd2(optimizing_loss, secondary_loss, batches, N_iter, x0, v0, alphas, betas
             'dMd_betas' : dMd_betas,
             'dLd_meta'  : dLd_meta,
             'dMd_meta'  : dMd_meta}
+
+def sgd3(optimizing_loss, secondary_loss, x0, v0, alphas, betas, meta, callback=None):
+    """Same as sgd2 but simplifies things by not bothering with grads of
+    optimizing loss (can always just pass that in as the secondary loss)"""
+    X, V = ExactRep(x0), ExactRep(v0)
+    L_grad = grad(optimizing_loss)  # Gradient wrt parameters.
+    grad_proj = lambda x, meta, d, i: np.dot(L_grad(x, meta, i), d)
+    L_hvp_x    = grad(grad_proj, 0) # Returns a size(x) output.
+    L_hvp_meta = grad(grad_proj, 1) # Returns a size(meta) output.
+    iters = zip(range(len(alphas)), alphas, betas)
+    for i, alpha, beta in iters:
+        g = L_grad(X.val, meta, i)
+        V.mul(beta).sub((1.0 - beta) * g)
+        X.add(alpha * V.val)
+        if callback: callback(i, X.val)
+    x_final = X.val
+    M_grad      = grad(secondary_loss, 0)  # Gradient wrt parameters.
+    M_meta_grad = grad(secondary_loss, 1)  # Gradient wrt metaparameters.
+    dMd_x = M_grad(X.val, meta)
+    dMd_v = np.zeros(dMd_x.shape)
+    dMd_alphas = deque()
+    dMd_betas  = deque()
+    dMd_meta = M_meta_grad(X.val, meta)
+    for i, alpha, beta in iters[::-1]:
+        dMd_alphas.appendleft(np.dot(dMd_x, V.val))
+        X.sub(alpha * V.val)
+        g = L_grad(X.val, meta, i)
+        V.add((1.0 - beta) * g).div(beta)
+        dMd_v += dMd_x * alpha
+        dMd_betas.appendleft(np.dot(dMd_v, V.val + g))
+        dMd_x    -= (1.0 - beta) * L_hvp_x(X.val, meta, dMd_v, i)
+        dMd_meta -= (1.0 - beta) * L_hvp_meta(X.val, meta, dMd_v, i)
+        dMd_v    *= beta
+
+    assert np.all(ExactRep(x0).val == X.val)
+    return {'x_final' : x_final,
+            'dMd_x'      : dMd_x,
+            'dMd_v'      : dMd_v,
+            'dMd_alphas' : dMd_alphas,
+            'dMd_betas'  : dMd_betas,
+            'dMd_meta'   : dMd_meta}

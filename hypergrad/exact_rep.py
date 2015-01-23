@@ -17,9 +17,11 @@ class ExactRep(object):
     def add(self, A):
         """Reversible addition of vector or scalar A."""
         self.intrep += self.float_to_intrep(A)
+        return self
 
     def sub(self, A):
         self.add(-A)
+        return self
 
     def rational_mul(self, n, d):
         self.aux.push(self.intrep % d, d) # Store remainder bits externally
@@ -30,10 +32,12 @@ class ExactRep(object):
     def mul(self, a):
         n, d = self.float_to_rational(a)
         self.rational_mul(n, d)
+        return self
         
     def div(self, a):
         n, d = self.float_to_rational(a)
         self.rational_mul(d, n)
+        return self
 
     def float_to_rational(self, a):
         assert a > 0.0
