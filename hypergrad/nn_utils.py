@@ -35,6 +35,9 @@ def logsumexp(X, axis):
     max_X = np.max(X)
     return max_X + np.log(np.sum(np.exp(X - max_X), axis=axis, keepdims=True))
 
+def logit(x): return 1 / (1 + np.exp(-x))
+def inv_logit(y): return -np.log( 1/y - 1)
+
 def make_nn_funs(layer_sizes):
     parser = WeightsParser()
     for i, shape in enumerate(zip(layer_sizes[:-1], layer_sizes[1:])):
