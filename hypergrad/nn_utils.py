@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
+from collections import OrderedDict
 
 class WeightsParser(object):
     def __init__(self):
@@ -22,6 +23,34 @@ class WeightsParser(object):
             vect[idxs] = val.ravel()
         else:
             vect[idxs] = val  # Can't unravel a float.
+
+class VectorParser(object):
+    def __init__(self):
+        self.idxs_and_shapes = OrderedDict()
+        self.vect = np.zeros((0,))
+
+    def add_shape(self, name, shape):
+        start = len(self.vect)
+        size = np.prod(shape)
+        self.idxs_and_shapes[name] = (slice(start, start + size), shape)
+        self.vect = np.concatenate((self.vect, np.zeros(size)), axis=0)
+
+    @property
+    def names(self):
+        return self.idxs_and_shapes.keys()
+
+    def __getitem__(self, name):
+        idxs, shape = self.idxs_and_shapes[name]
+        return np.reshape(self.vect[idxs], shape)
+
+    def __setitem__(self, name, val):
+        assert isinstance(val, np.ndarray)
+        if name not in self.idxs_and_shapes:
+            self.add_shape(name, val.shape)
+
+        idxs, shape = self.idxs_and_shapes[name]
+        assert val.shape == shape
+        self.vect[idxs] = val.ravel()
 
 class BatchList(list):
     def __init__(self, N_total, N_batch):
