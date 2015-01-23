@@ -208,10 +208,9 @@ def sgd3(optimizing_loss, secondary_loss, x0, v0, alphas, betas, meta, callback=
             'dMd_meta'   : dMd_meta}
 
 
-def simple_sgd(grad, x0, callback=None, num_iters=100, learn_rate=0.1, mass=0.9):
+def simple_sgd(grad, x, callback=None, num_iters=100, learn_rate=0.1, mass=0.9):
     """Stochastic gradient descent with momentum.
     grad() has signature grad(x, iter)"""
-    x = x0
     velocity = np.zeros(len(x))
     for i in xrange(num_iters):
         cur_grad = grad(x, i)
@@ -220,9 +219,8 @@ def simple_sgd(grad, x0, callback=None, num_iters=100, learn_rate=0.1, mass=0.9)
         if callback: callback(i, x)
     return x
 
-def rms_prop(grad, x0, callback=None, num_iters=100, learn_rate=0.1, gamma=0.9):
+def rms_prop(grad, x, callback=None, num_iters=100, learn_rate=0.1, gamma=0.9):
     """Root mean squared prop: See Adagrad paper for details."""
-    x = x0.copy()
     avg_sq_grad = np.ones(len(x))
     for i in xrange(num_iters):
         cur_grad = grad(x, i)
@@ -231,13 +229,12 @@ def rms_prop(grad, x0, callback=None, num_iters=100, learn_rate=0.1, gamma=0.9):
         if callback: callback(i, x)
     return x
 
-def adam(grad, x0, callback=None, num_iters=100,
-         a=0.0002, b1 = 0.1, b2 = 0.001, eps = 10**-8, lambda=10**-8):
+def adam(grad, x, callback=None, num_iters=100,
+         a=0.0002, b1 = 0.1, b2 = 0.001, eps = 10**-8, lam=10**-8):
     """Adam as described in http://arxiv.org/pdf/1412.6980.pdf"""
-    x = x0.copy()
     m = np.zeros(len(x))
     v = np.zeros(len(x))
-    velocity = np.zeros(len(x0))
+    velocity = np.zeros(len(x))
     for i in xrange(num_iters):
         b1 = 1 - ( 1 - b1) * lambda**i
         cur_grad = grad(x, i)
