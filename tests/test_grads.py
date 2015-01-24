@@ -49,27 +49,24 @@ def make_optimization_problem(N_weights):
 def test_simple_sgd():
     N_weights = 5
     W0 = 0.1 * npr.randn(N_weights)
-    num_iters = 1000
     (loss_fun, true_argmin) = make_optimization_problem(N_weights)
-    x_min = simple_sgd(grad(loss_fun), W0, num_iters=num_iters)
+    x_min = simple_sgd(grad(loss_fun), W0)
     assert np.allclose(x_min, true_argmin, rtol=1e-3, atol=1e-4), \
             "Diffs are: {0}".format(x_min - true_argmin)
 
 def test_rms_prop():
     N_weights = 5
     W0 = 0.1 * npr.randn(N_weights)
-    num_iters = 1000
     (loss_fun, true_argmin) = make_optimization_problem(N_weights)
-    x_min = rms_prop(grad(loss_fun), W0, num_iters=num_iters)
+    x_min = rms_prop(grad(loss_fun), W0)
     assert np.allclose(x_min, true_argmin, rtol=1e-3, atol=1e-4), \
             "Diffs are: {0}".format(x_min - true_argmin)
 
 def test_adam():
     N_weights = 5
     W0 = 0.1 * npr.randn(N_weights)
-    num_iters = 1000
     (loss_fun, true_argmin) = make_optimization_problem(N_weights)
-    x_min = adam(grad(loss_fun), W0, num_iters=num_iters, step_size=0.1)
+    x_min = adam(grad(loss_fun), W0)
     assert np.allclose(x_min, true_argmin, rtol=1e-3, atol=1e-4), \
             "Diffs are: {0}".format(x_min - true_argmin)
 
