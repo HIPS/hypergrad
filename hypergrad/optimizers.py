@@ -176,10 +176,10 @@ def sgd3(optimizing_loss, secondary_loss, x0, v0, alphas, betas, meta, callback=
     L_hvp_meta = grad(grad_proj, 1) # Returns a size(meta) output.
     iters = zip(range(len(alphas)), alphas, betas)
     for i, alpha, beta in iters:
+        if callback: callback(X.val, i)
         g = L_grad(X.val, meta, i)
         V.mul(beta).sub((1.0 - beta) * g)
         X.add(alpha * V.val)
-        if callback: callback(i, X.val)
     x_final = X.val
     M_grad      = grad(secondary_loss, 0)  # Gradient wrt parameters.
     M_meta_grad = grad(secondary_loss, 1)  # Gradient wrt metaparameters.
@@ -210,13 +210,14 @@ def sgd3(optimizing_loss, secondary_loss, x0, v0, alphas, betas, meta, callback=
 
 def simple_sgd(grad, x, callback=None, num_iters=100, learn_rate=0.1, mass=0.9):
     """Stochastic gradient descent with momentum.
-    grad() has signature grad(x, iter)"""
+    grad() has signature grad(x, i)"""
     velocity = np.zeros(len(x))
     for i in xrange(num_iters):
         cur_grad = grad(x, i)
+        if callback: callback(x, i)
         velocity = mass * velocity - (1.0 - mass) * cur_grad
         x += learn_rate * velocity
-        if callback: callback(i, x)
+
     return x
 
 def rms_prop(grad, x, callback=None, num_iters=100, learn_rate=0.1, gamma=0.9):
@@ -224,22 +225,22 @@ def rms_prop(grad, x, callback=None, num_iters=100, learn_rate=0.1, gamma=0.9):
     avg_sq_grad = np.ones(len(x))
     for i in xrange(num_iters):
         cur_grad = grad(x, i)
+        if callback: callback(x, i)
         avg_sq_grad = avg_sq_grad * gamma + cur_grad**2 * (1 - gamma)
         x -= learn_rate * cur_grad/np.sqrt(avg_sq_grad)
-        if callback: callback(i, x)
     return x
 
-def adam(grad, x, callback=None, num_iters=100,
-         a=0.0002, b1 = 0.1, b2 = 0.001, eps = 10**-8, lam=10**-8):
-    """Adam as described in http://arxiv.org/pdf/1412.6980.pdf"""
-    m = np.zeros(len(x))
-    v = np.zeros(len(x))
-    velocity = np.zeros(len(x))
-    for i in xrange(num_iters):
-        b1 = 1 - ( 1 - b1) * lambda**i
-        cur_grad = grad(x, i)
-        avg_sq_grad = avg_sq_grad * gamma + cur_grad**2 * (1 - gamma)
-        x -= learn_rate * cur_grad/np.sqrt(avg_sq_grad)
-        if callback: callback(i, x)
-    return x
+# def adam(grad, x, callback=None, num_iters=100,
+#          a=0.0002, b1 = 0.1, b2 = 0.001, eps = 10**-8, lam=10**-8):
+#     """Adam as described in http://arxiv.org/pdf/1412.6980.pdf"""
+#     m = np.zeros(len(x))
+#     v = np.zeros(len(x))
+#     velocity = np.zeros(len(x))
+#     for i in xrange(num_iters):
+#         b1 = 1 - ( 1 - b1) * lambda**i
+#         cur_grad = grad(x, i)
+#         avg_sq_grad = avg_sq_grad * gamma + cur_grad**2 * (1 - gamma)
+#         x -= learn_rate * cur_grad/np.sqrt(avg_sq_grad)
+#         if callback: callback(x, i)
+#     return x
 
