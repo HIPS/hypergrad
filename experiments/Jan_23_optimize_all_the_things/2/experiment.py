@@ -1,4 +1,5 @@
 """Gradient descent to optimize everything"""
+"""Two layer net. Improved stability by setting rms_prop's gamma to zero"""
 import numpy as np
 import numpy.random as npr
 import pickle
@@ -12,21 +13,22 @@ from hypergrad.optimizers import sgd3, rms_prop
 from hypergrad.odyssey import omap, collect_results
 
 # ----- Fixed params -----
-layer_sizes = [784, 10]
+layer_sizes = [784, 200, 10]
 batch_size = 200
-N_epochs = 10
+N_epochs = 5
 N_classes = 10
 N_train = 10**3
 N_valid = 10**3
 N_tests = 10**3
 # ----- Superparameters -----
-meta_alpha = 0.1
-N_meta_iter = 20
+meta_alpha = 0.2
+meta_gamma = 0.0 # Setting this to zero makes things much more stable
+N_meta_iter = 10
 # ----- Initial values of learned hyper-parameters -----
-init_log_L2_reg = 0.0
-init_log_alphas = 0.0
+init_log_L2_reg = -6.0
+init_log_alphas = -0.0
 init_invlogit_betas = inv_logit(0.9)
-init_log_param_scale = 0.0
+init_log_param_scale = -3.0
 
 def d_logit(x):
     return logit(x) * (1 - logit(x))
@@ -109,7 +111,8 @@ def run():
         meta_results['valid_loss'].append(valid_loss_fun(x))
         meta_results['tests_loss'].append(tests_loss_fun(x))
 
-    final_result = rms_prop(hyperloss_grad, hyperparams.vect, meta_callback, N_meta_iter, meta_alpha)
+    final_result = rms_prop(hyperloss_grad, hyperparams.vect,
+                            meta_callback, N_meta_iter, meta_alpha, meta_gamma)
     meta_results['all_learning_curves'] = all_learning_curves
     parser.vect = None # No need to pickle zeros
     return meta_results, parser
@@ -163,6 +166,7 @@ def plot():
     ax = fig.add_subplot(211)
     ax.set_title('Init scale learning curves')
     for i, y in enumerate(zip(*results['log_param_scale'])):
+        y = np.array(y) + 0.01 * i # Just distinguish overlapping lines
         ax.plot(y, 'o-', label=parser.names[i])
     ax.set_xlabel('Meta iter number')
     ax.set_ylabel('Log param scale')
@@ -171,6 +175,7 @@ def plot():
     ax = fig.add_subplot(212)
     ax.set_title('L2 reg learning curves')
     for i, y in enumerate(zip(*results['log_L2_reg'])):
+        y = np.array(y) + 0.01 * i # Just distinguish overlapping lines
         ax.plot(y, 'o-', label=parser.names[i])
     ax.set_xlabel('Meta iter number')
     ax.set_ylabel('Log L2 reg')
