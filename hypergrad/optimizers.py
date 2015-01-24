@@ -208,39 +208,42 @@ def sgd3(optimizing_loss, secondary_loss, x0, v0, alphas, betas, meta, callback=
             'dMd_meta'   : dMd_meta}
 
 
-def simple_sgd(grad, x, callback=None, num_iters=100, learn_rate=0.1, mass=0.9):
+def simple_sgd(grad, x, callback=None, num_iters=200, step_size=0.1, mass=0.9):
     """Stochastic gradient descent with momentum.
     grad() has signature grad(x, i)"""
     velocity = np.zeros(len(x))
     for i in xrange(num_iters):
+        if callback: callback(i, x)
         cur_grad = grad(x, i)
         if callback: callback(x, i)
         velocity = mass * velocity - (1.0 - mass) * cur_grad
-        x += learn_rate * velocity
-
+        x += step_size * velocity
     return x
 
-def rms_prop(grad, x, callback=None, num_iters=100, learn_rate=0.1, gamma=0.9):
+def rms_prop(grad, x, callback=None, num_iters=100, step_size=0.1, gamma=0.9):
     """Root mean squared prop: See Adagrad paper for details."""
     avg_sq_grad = np.ones(len(x))
     for i in xrange(num_iters):
+        if callback: callback(i, x)
         cur_grad = grad(x, i)
         if callback: callback(x, i)
         avg_sq_grad = avg_sq_grad * gamma + cur_grad**2 * (1 - gamma)
-        x -= learn_rate * cur_grad/np.sqrt(avg_sq_grad)
+        x -= step_size * cur_grad/np.sqrt(avg_sq_grad)
     return x
 
-# def adam(grad, x, callback=None, num_iters=100,
-#          a=0.0002, b1 = 0.1, b2 = 0.001, eps = 10**-8, lam=10**-8):
-#     """Adam as described in http://arxiv.org/pdf/1412.6980.pdf"""
-#     m = np.zeros(len(x))
-#     v = np.zeros(len(x))
-#     velocity = np.zeros(len(x))
-#     for i in xrange(num_iters):
-#         b1 = 1 - ( 1 - b1) * lambda**i
-#         cur_grad = grad(x, i)
-#         avg_sq_grad = avg_sq_grad * gamma + cur_grad**2 * (1 - gamma)
-#         x -= learn_rate * cur_grad/np.sqrt(avg_sq_grad)
-#         if callback: callback(x, i)
-#     return x
-
+def adam(grad, x, callback=None, num_iters=100,
+         step_size=0.1, b1 = 0.1, b2 = 0.001, eps = 10**-8, lam=10**-8):
+    """Adam as described in http://arxiv.org/pdf/1412.6980.pdf.
+    It's basically RMSprop with momentum, and some correction terms."""
+    m = np.zeros(len(x))
+    v = np.zeros(len(x))
+    for i in xrange(num_iters):
+        if callback: callback(i, x)
+        b1t = 1 - (1-b1)*(lam**i)
+        g = grad(x, i)
+        m = b1t*g     + (1-b1t)*m      # First  moment estimate
+        v = b2*(g**2) + (1-b2)*v      # Second moment estimate
+        mhat = m/(1-(1-b1)**(i+1))  # Bias correction
+        vhat = v/(1-(1-b2)**(i+1))
+        x -= step_size*mhat/(np.sqrt(vhat) + eps)
+    return x
