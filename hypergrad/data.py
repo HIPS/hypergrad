@@ -68,3 +68,7 @@ def load_data_subset(*args):
         datapairs.append((all_images[start:end], all_labels[start:end]))
         start = end
     return datapairs
+
+def load_data_dicts(*args):
+    datapairs = load_data_subset(*args)
+    return [{"X" : dat[0], "T" : dat[1]} for dat in datapairs]

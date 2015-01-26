@@ -1,18 +1,16 @@
 """Gradient descent to optimize everything"""
-"""Exactly the same as Jan_23/1/experiment.py - just checking funkyyak"""
+"""Now just seeing if we can clean this up a bit"""
 import numpy as np
 import numpy.random as npr
 import pickle
-from functools import partial
-import itertools as it
-import socket
+from collections import defaultdict
 
 from funkyyak import grad, kylist, getval
 
-from hypergrad.data import load_data_subset
+from hypergrad.util import memoize
+from hypergrad.data import load_data_dicts
 from hypergrad.nn_utils import make_nn_funs, BatchList, VectorParser, logit, inv_logit
 from hypergrad.optimizers import sgd5, rms_prop
-from hypergrad.odyssey import omap, collect_results
 
 # ----- Fixed params -----
 layer_sizes = [784, 10]
@@ -22,6 +20,8 @@ N_classes = 10
 N_train = 10**3
 N_valid = 10**3
 N_tests = 10**3
+N_batches = N_train / batch_size
+N_iters = N_epochs * N_batches
 # ----- Superparameters -----
 meta_alpha = 0.1
 N_meta_iter = 20
@@ -31,12 +31,13 @@ init_log_alphas = 0.0
 init_invlogit_betas = inv_logit(0.9)
 init_log_param_scale = 0.0
 
+def fill_parser(parser, items):
+    partial_vects = [np.full(parser[name].size, items[i])
+                     for i, name in enumerate(parser.names)]
+    return np.concatenate(partial_vects, axis=0)
+
 def run():
-    (train_images, train_labels),\
-    (valid_images, valid_labels),\
-    (tests_images, tests_labels) = load_data_subset(N_train, N_valid, N_tests)
-    batch_idxs = BatchList(N_train, batch_size)
-    N_iters = N_epochs * len(batch_idxs)
+    train_data, valid_data, tests_data = load_data_dicts(N_train, N_valid, N_tests)
     parser, pred_fun, loss_fun, frac_err = make_nn_funs(layer_sizes)
     N_weight_types = len(parser.names)
     hyperparams = VectorParser()
@@ -45,64 +46,47 @@ def run():
     hyperparams['log_alphas']      = np.full(N_iters, init_log_alphas)
     hyperparams['invlogit_betas']  = np.full(N_iters, init_invlogit_betas)
 
-    def indexed_loss_fun(w, log_L2_reg, i):
-        idxs = batch_idxs[i % len(batch_idxs)]
-        partial_vects = [np.full(parser[name].size, np.exp(log_L2_reg[i]))
-                         for i, name in enumerate(parser.names)]
-        L2_reg_vect = np.concatenate(partial_vects, axis=0)
-        return loss_fun(w, X=train_images[idxs], T=train_labels[idxs], L2_reg=L2_reg_vect)
+    # TODO: memoize
+    def primal_optimizer(hyperparam_vect, i_hyper):
+        def indexed_loss_fun(w, L2_vect, i_iter):
+            seed = i_hyper * 10**6 + i_iter
+            idxs = npr.RandomState(seed).randint(N_train, size=batch_size)
+            return loss_fun(w, train_data['X'][idxs], train_data['T'][idxs], L2_vect)
 
-    def train_loss_fun(w, log_L2_reg=0.0):
-        return loss_fun(w, X=train_images, T=train_labels)
-
-    def valid_loss_fun(w, log_L2_reg=0.0):
-        return loss_fun(w, X=valid_images, T=valid_labels)
-
-    def tests_loss_fun(w, log_L2_reg=0.0):
-        return loss_fun(w, X=tests_images, T=tests_labels)
-
-    all_learning_curves = []
-    all_x = []
-
-    def hyperloss(hyperparam_vect, i):
         learning_curve = []
-        def callback(x, i):
-            if i % len(batch_idxs) == 0:
-                learning_curve.append(loss_fun(x, X=train_images, T=train_labels))
+        def callback(x, i_iter):
+            if i_iter % N_batches == 0:
+                learning_curve.append(loss_fun(x, **train_data))
 
-        npr.seed(i)
-        N_weights = parser.vect.size
-        V0 = np.zeros(N_weights)
         cur_hyperparams = hyperparams.new_vect(hyperparam_vect)
-        layer_param_scale = [np.full(parser[name].size, 
-                                     np.exp(cur_hyperparams['log_param_scale'][i]))
-                             for i, name in enumerate(parser.names)]
-        W0 = npr.randn(N_weights) * np.concatenate(layer_param_scale, axis=0)
-        alphas     = np.exp(cur_hyperparams['log_alphas'])
-        betas      =  logit(cur_hyperparams['invlogit_betas'])
-        log_L2_reg =        cur_hyperparams['log_L2_reg']
-        W_opt = sgd5(grad(indexed_loss_fun), kylist(W0, alphas, betas, log_L2_reg), callback)
-        all_x.append(getval(W_opt))
-        all_learning_curves.append(learning_curve)
-        return valid_loss_fun(W_opt)
+        W0 = fill_parser(parser, np.exp(cur_hyperparams['log_param_scale']))
+        W0 *= npr.RandomState(i_hyper).randn(W0.size)
+        alphas = np.exp(cur_hyperparams['log_alphas'])
+        betas  = logit(cur_hyperparams['invlogit_betas'])
+        L2_reg = fill_parser(parser, np.exp(cur_hyperparams['log_L2_reg']))
+        V0 = np.zeros(W0.size)
+        W_opt = sgd5(grad(indexed_loss_fun), kylist(W0, alphas, betas, L2_reg), callback)
+        return W_opt, learning_curve
 
+    def hyperloss(hyperparam_vect, i_hyper):
+        W_opt, _ = primal_optimizer(hyperparam_vect, i_hyper)
+        return loss_fun(W_opt, **valid_data)
     hyperloss_grad = grad(hyperloss)
 
-    add_fields = ['train_loss', 'valid_loss', 'tests_loss']
-    meta_results = {field : [] for field in add_fields + hyperparams.names}
-    def meta_callback(hyperparam_vect, i):
-        x = all_x[-1]
+    meta_results = defaultdict(list)
+    def meta_callback(hyperparam_vect, i_hyper):
+        print "Epoch {0}".format(i_hyper)
+        x, learning_curve = primal_optimizer(hyperparam_vect, i_hyper)
         cur_hyperparams = hyperparams.new_vect(hyperparam_vect.copy())
-        log_L2_reg = cur_hyperparams['log_L2_reg']
         for field in cur_hyperparams.names:
             meta_results[field].append(cur_hyperparams[field])
+        meta_results['train_loss'].append(loss_fun(x, **train_data))
+        meta_results['valid_loss'].append(loss_fun(x, **valid_data))
+        meta_results['tests_loss'].append(loss_fun(x, **tests_data))
+        meta_results['learning_curves'].append(learning_curve)
 
-        meta_results['train_loss'].append(train_loss_fun(x))
-        meta_results['valid_loss'].append(valid_loss_fun(x))
-        meta_results['tests_loss'].append(tests_loss_fun(x))
-
-    final_result = rms_prop(hyperloss_grad, hyperparams.vect, meta_callback, N_meta_iter, meta_alpha)
-    meta_results['all_learning_curves'] = all_learning_curves
+    final_result = rms_prop(hyperloss_grad, hyperparams.vect,
+                            meta_callback, N_meta_iter, meta_alpha)
     parser.vect = None # No need to pickle zeros
     return meta_results, parser
 
@@ -116,7 +100,7 @@ def plot():
     # ----- Primal learning curves -----
     ax = fig.add_subplot(211)
     ax.set_title('Primal learning curves')
-    for i, y in enumerate(results['all_learning_curves']):
+    for i, y in enumerate(results['learning_curves']):
         ax.plot(y, 'o-', label='Meta iter {0}'.format(i))
     ax.set_xlabel('Epoch number')
     ax.set_ylabel('Negative log prob')
