@@ -10,7 +10,7 @@ from funkyyak import grad, kylist, getval
 from hypergrad.util import memoize
 from hypergrad.data import load_data_dicts
 from hypergrad.nn_utils import make_nn_funs, BatchList, VectorParser, logit, inv_logit
-from hypergrad.optimizers import sgd5, rms_prop
+from hypergrad.optimizers import sgd4, rms_prop
 
 # ----- Fixed params -----
 layer_sizes = [784, 10]
@@ -46,7 +46,6 @@ def run():
     hyperparams['log_alphas']      = np.full(N_iters, init_log_alphas)
     hyperparams['invlogit_betas']  = np.full(N_iters, init_invlogit_betas)
 
-    # TODO: memoize
     def primal_optimizer(hyperparam_vect, i_hyper):
         def indexed_loss_fun(w, L2_vect, i_iter):
             seed = i_hyper * 10**6 + i_iter
@@ -65,7 +64,7 @@ def run():
         betas  = logit(cur_hyperparams['invlogit_betas'])
         L2_reg = fill_parser(parser, np.exp(cur_hyperparams['log_L2_reg']))
         V0 = np.zeros(W0.size)
-        W_opt = sgd5(grad(indexed_loss_fun), kylist(W0, alphas, betas, L2_reg), callback)
+        W_opt = sgd4(grad(indexed_loss_fun), kylist(W0, alphas, betas, L2_reg), callback)
         return W_opt, learning_curve
 
     def hyperloss(hyperparam_vect, i_hyper):

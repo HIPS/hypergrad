@@ -3,6 +3,7 @@ import numpy as np
 from collections import deque
 from funkyyak import grad, Node, Differentiable
 from exact_rep import ExactRep
+from hypergrad.util import memoize
 
 def sgd(loss_fun, batches, N_iter, x, v, alphas, betas, record_learning_curve=False):
     # TODO: Warp alpha and beta to map from real-valued domains (exp and logistic?)
@@ -207,7 +208,8 @@ def sgd3(optimizing_loss, secondary_loss, x0, v0, alphas, betas, meta, callback=
             'dMd_betas'  : dMd_betas,
             'dMd_meta'   : dMd_meta}
 
-def sgd4(L_grad, hypers, callback=None):
+@memoize
+def sgd4_forward_verbose(L_grad, hypers, callback=None):
     x0, alphas, betas, meta = hypers
     X, V = ExactRep(x0), ExactRep(np.zeros(x0.size))
     iters = zip(range(len(alphas)), alphas, betas)
@@ -216,8 +218,15 @@ def sgd4(L_grad, hypers, callback=None):
         g = L_grad(X.val, meta, i)
         V.mul(beta).sub((1.0 - beta) * g)
         X.add(alpha * V.val)
-        x_final = X.val
+    return X, V, iters
 
+def sgd4_forward(L_grad, hypers, callback=None):
+    X, V, iters = sgd4_forward_verbose(L_grad, hypers, callback)
+    return X.val
+
+def sgd4_reverse(ans, L_grad, hypers, callback=None):
+    X, V, iters = sgd4_forward_verbose(L_grad, hypers, callback)
+    x0, alphas, betas, meta = hypers
     def hypergrad(outgrad):
         d_x = outgrad
         d_alphas, d_betas = np.zeros(len(alphas)), np.zeros(len(betas))
@@ -238,9 +247,9 @@ def sgd4(L_grad, hypers, callback=None):
         assert np.all(ExactRep(x0).val == X.val)
         return d_x, d_alphas, d_betas, d_meta
 
-    return x_final, [None, hypergrad]
+    return [None, hypergrad]
 
-sgd5 = Differentiable(lambda *args : sgd4(*args)[0], sgd4, result_included=True)
+sgd4 = Differentiable(sgd4_forward, sgd4_reverse)
 
 def simple_sgd(grad, x, callback=None, num_iters=200, step_size=0.1, mass=0.9):
     """Stochastic gradient descent with momentum.

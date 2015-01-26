@@ -16,6 +16,7 @@ class memoize(object):
         self.cache = {}
 
     def __call__(self, *args):
+        # print "Cache hit?", self.func, str(args) in self.cache, str(args)[:80]
         return self.cache.setdefault(str(args), self.func(*args))
 
     def __get__(self, obj, objtype):
