@@ -1,7 +1,7 @@
 import itertools as it
 import numpy as np
 from collections import deque
-from funkyyak import grad
+from funkyyak import grad, Node, Differentiable
 from exact_rep import ExactRep
 
 def sgd(loss_fun, batches, N_iter, x, v, alphas, betas, record_learning_curve=False):
@@ -206,6 +206,41 @@ def sgd3(optimizing_loss, secondary_loss, x0, v0, alphas, betas, meta, callback=
             'dMd_alphas' : dMd_alphas,
             'dMd_betas'  : dMd_betas,
             'dMd_meta'   : dMd_meta}
+
+def sgd4(L_grad, hypers, callback=None):
+    x0, alphas, betas, meta = hypers
+    X, V = ExactRep(x0), ExactRep(np.zeros(x0.size))
+    iters = zip(range(len(alphas)), alphas, betas)
+    for i, alpha, beta in iters:
+        if callback: callback(X.val, i)
+        g = L_grad(X.val, meta, i)
+        V.mul(beta).sub((1.0 - beta) * g)
+        X.add(alpha * V.val)
+        x_final = X.val
+
+    def hypergrad(outgrad):
+        d_x = outgrad
+        d_alphas, d_betas = np.zeros(len(alphas)), np.zeros(len(betas))
+        d_v, d_meta = np.zeros(d_x.shape), np.zeros(meta.shape)
+        grad_proj = lambda x, meta, d, i: np.dot(L_grad(x, meta, i), d)
+        L_hvp_x    = grad(grad_proj, 0) # Returns a size(x) output.
+        L_hvp_meta = grad(grad_proj, 1) # Returns a size(meta) output.
+        for i, alpha, beta in iters[::-1]:
+            d_alphas[i] = np.dot(d_x, V.val)
+            X.sub(alpha * V.val)
+            g = L_grad(X.val, meta, i)
+            V.add((1.0 - beta) * g).div(beta)
+            d_v += d_x * alpha
+            d_betas[i] = np.dot(d_v, V.val + g)
+            d_x    -= (1.0 - beta) * L_hvp_x(X.val, meta, d_v, i)
+            d_meta -= (1.0 - beta) * L_hvp_meta(X.val, meta, d_v, i)
+            d_v    *= beta
+        assert np.all(ExactRep(x0).val == X.val)
+        return d_x, d_alphas, d_betas, d_meta
+
+    return x_final, [None, hypergrad]
+
+sgd5 = Differentiable(lambda *args : sgd4(*args)[0], sgd4, result_included=True)
 
 def simple_sgd(grad, x, callback=None, num_iters=200, step_size=0.1, mass=0.9):
     """Stochastic gradient descent with momentum.
