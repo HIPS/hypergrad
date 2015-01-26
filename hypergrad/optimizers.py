@@ -273,7 +273,7 @@ def rms_prop(grad, x, callback=None, num_iters=100, step_size=0.1, gamma=0.9):
     return x
 
 def adam(grad, x, callback=None, num_iters=100,
-         step_size=0.1, b1 = 0.1, b2 = 0.001, eps = 10**-8, lam=10**-8):
+         step_size=0.1, b1 = 0.1, b2 = 0.01, eps = 10**-4, lam=10**-4):
     """Adam as described in http://arxiv.org/pdf/1412.6980.pdf.
     It's basically RMSprop with momentum, and some correction terms."""
     m = np.zeros(len(x))
