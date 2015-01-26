@@ -78,6 +78,7 @@ def logsumexp(X, axis):
 
 def logit(x): return 1 / (1 + np.exp(-x))
 def inv_logit(y): return -np.log( 1/y - 1)
+def d_logit(x): return logit(x) * (1 - logit(x))
 
 def make_nn_funs(layer_sizes):
     parser = VectorParser()

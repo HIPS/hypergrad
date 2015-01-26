@@ -235,11 +235,11 @@ def adam(grad, x, callback=None, num_iters=100,
     m = np.zeros(len(x))
     v = np.zeros(len(x))
     for i in xrange(num_iters):
-        if callback: callback(i, x)
+        if callback: callback(x, i)
         b1t = 1 - (1-b1)*(lam**i)
         g = grad(x, i)
-        m = b1t*g     + (1-b1t)*m      # First  moment estimate
-        v = b2*(g**2) + (1-b2)*v      # Second moment estimate
+        m = b1t*g     + (1-b1t)*m   # First  moment estimate
+        v = b2*(g**2) + (1-b2)*v    # Second moment estimate
         mhat = m/(1-(1-b1)**(i+1))  # Bias correction
         vhat = v/(1-(1-b2)**(i+1))
         x -= step_size*mhat/(np.sqrt(vhat) + eps)

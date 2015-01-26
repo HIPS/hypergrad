@@ -77,6 +77,16 @@ These methods are able to effectively exploit the information learned through ev
 However, in general they are not able to effectively optimize more than 10 to 20 parameters.
 Most importantly from our perspective, current hyper parameter optimization schemes do not usually have access to gradients with respect to these hyperparameters, although they could incorporate this information if it were available~\cite{solak2003derivative}.
 
+\begin{figure}[ht]
+\vskip 0.2in
+\begin{center}
+\centerline{\includegraphics[width=\columnwidth]{../experiments/Jan_25_Figure_1/1/learning_curves.pdf}}
+\caption{We backpropagate gradients of the final loss through the entire learning procedure in order to update learning and model hyperparameters.}
+\label{fig:chaos}
+\end{center}
+\vskip -0.2in
+\end{figure} 
+
 \section{Automatic Differentiation}
 
 Automatic differentiation (AD) software packages such as Theano~\cite{Bastien-Theano-2012, bergstra2010scipy} are a workhorse of deep learning, significantly speeding up development time by providing gradients automatically.
