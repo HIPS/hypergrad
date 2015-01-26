@@ -13,8 +13,8 @@ from hypergrad.optimizers import sgd4, rms_prop, adam
 
 # ----- Fixed params -----
 layer_sizes = [784, 10]
-batch_size = 200
-N_iters = 200
+batch_size = 1000
+N_iters = 100
 N_classes = 10
 N_train = 1000
 N_valid = 10**3
@@ -25,7 +25,7 @@ N_batches = N_train / batch_size
 init_log_L2_reg = 0.0
 init_log_alphas = -2.0
 init_invlogit_betas = inv_logit(0.9)
-init_log_param_scale = -4.0
+init_log_param_scale = -7.0
 # ----- Superparameters -----
 meta_alpha = 0.04
 N_meta_iter = 100
@@ -55,7 +55,8 @@ def run():
         def indexed_loss_fun(w, L2_vect, i_iter):
             rs = npr.RandomState(npr.RandomState(global_seed + i_hyper).randint(1000))
             seed = i_hyper * 10**6 + i_iter   # Deterministic seed needed for backwards pass.
-            idxs = rs.randint(N_train, size=batch_size)
+            # idxs = rs.randint(N_train, size=batch_size)
+            idxs = np.arange(N_train)
             return loss_fun(w, train_data['X'][idxs], train_data['T'][idxs], L2_vect)
 
         learning_curve = []
