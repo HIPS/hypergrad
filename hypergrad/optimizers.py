@@ -208,7 +208,7 @@ def sgd3(optimizing_loss, secondary_loss, x0, v0, alphas, betas, meta, callback=
             'dMd_betas'  : dMd_betas,
             'dMd_meta'   : dMd_meta}
 
-@memoize
+#@memoize
 def sgd4_forward_verbose(L_grad, hypers, callback=None):
     x0, alphas, betas, meta = hypers
     X, V = ExactRep(x0), ExactRep(np.zeros(x0.size))
@@ -262,14 +262,15 @@ def simple_sgd(grad, x, callback=None, num_iters=200, step_size=0.1, mass=0.9):
         x += step_size * velocity
     return x
 
-def rms_prop(grad, x, callback=None, num_iters=100, step_size=0.1, gamma=0.9):
+def rms_prop(grad, x, callback=None, num_iters=100, step_size=0.1, gamma=0.9,
+             eps = 10**-8):
     """Root mean squared prop: See Adagrad paper for details."""
     avg_sq_grad = np.ones(len(x)) # Is this really a sensible initialization?
     for i in xrange(num_iters):
         cur_grad = grad(x, i)
         if callback: callback(x, i)
         avg_sq_grad = avg_sq_grad * gamma + cur_grad**2 * (1 - gamma)
-        x -= step_size * cur_grad/np.sqrt(avg_sq_grad)
+        x -= step_size * cur_grad/(np.sqrt(avg_sq_grad) + eps)
     return x
 
 def adam(grad, x, callback=None, num_iters=100,
