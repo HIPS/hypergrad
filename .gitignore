@@ -10,4 +10,5 @@ paper/*.out
 paper/*.synctex.gz
 paper/*.pdf
 *.tex.swp
-
+data/omniglot/*
+data/mnist/*
