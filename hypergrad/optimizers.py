@@ -214,8 +214,8 @@ def sgd4_forward_verbose(L_grad, hypers, callback=None):
     X, V = ExactRep(x0), ExactRep(np.zeros(x0.size))
     iters = zip(range(len(alphas)), alphas, betas)
     for i, alpha, beta in iters:
-        if callback: callback(X.val, i)
         g = L_grad(X.val, meta, i)
+        if callback: callback(X.val, V.val, g, i)
         V.mul(beta).sub((1.0 - beta) * g)
         X.add(alpha * V.val)
     return X, V, iters
