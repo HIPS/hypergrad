@@ -107,6 +107,23 @@ def plot():
     with open('results.pkl') as f:
         results, parser = pickle.load(f)
 
+
+    # ----- Nice versions of Alpha and beta schedules for paper -----
+    # fig = plt.figure(0)
+    # fig.set_size_inches((6,4))
+    # fig.clf()
+    # ax = fig.add_subplot(111)
+    # #ax.set_title('Alpha learning curves')
+    # ax.plot(np.exp(results['log_alphas'][-1]), 'o-', label="Step size")
+    # ax.plot(logit(results['invlogit_betas'][-1]), 'o-', label="Momentum")
+    # ax.set_xlabel('Learning Iteration', fontproperties='serif')
+    # ax.set_ylabel('Log alpha')
+    # ax.legend(numpoints=1, loc=1, frameon=False, bbox_to_anchor=(1.0, 0.5),
+    #           borderaxespad=0.0, prop={'family':'serif', 'size':'12'})
+    # plt.show()
+    # plt.savefig('alpha_beta_paper.png')
+    # plt.savefig('alpha_beta_paper.pdf', pad_inches=0.05, bbox_inches='tight')
+
     fig = plt.figure(0)
     fig.set_size_inches((6,8))
     # ----- Primal learning curves -----
@@ -199,7 +216,7 @@ def plot():
     plt.savefig('scale_and_reg.png')
 
 if __name__ == '__main__':
-    results = run()
-    with open('results.pkl', 'w') as f:
-        pickle.dump(results, f)
+    #results = run()
+    #with open('results.pkl', 'w') as f:
+    #    pickle.dump(results, f)
     plot()
