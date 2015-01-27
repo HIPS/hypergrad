@@ -4,7 +4,8 @@
 \usepackage{subfigure} 
 \usepackage{natbib}
 \usepackage{algorithm}
-\usepackage{algorithmic}
+%\usepackage{algorithmic}
+\usepackage{algpseudocode}
 \usepackage{amsmath}
 \usepackage{hyperref}
 \newcommand{\theHalgorithm}{\arabic{algorithm}}
@@ -28,10 +29,10 @@
 \newcommand{\numsteps}{T}
 \newcommand{\decay}{\gamma}
 \newcommand{\stepsize}{\alpha}
+\newcommand{\gradx}{\nabla_x L(\vx_t)}
 
 \newcommand\ourtitle{Gradient-based Hyperparameter Optimization through Reversible Learning}
-% A short form for the running title is supplied here:
-\icmltitlerunning{\ourtitle}
+\icmltitlerunning{\ourtitle} % A short form for the running title.
 
 \begin{document} 
 
@@ -136,15 +137,15 @@ Stochastic gradient descent with momentum (Algorithm \ref{alg:sgd}) can be seen 
 \begin{algorithm}
    \caption{Gradient Descent with Momentum}
    \label{alg:sgd}
-\begin{algorithmic}
-   \STATE {\bfseries Input:} initial $\vx_1$, decay $\decay$, stepsize $\stepsize$, gradient $\nabla L(\vx)$
-   \STATE Initialize $\vv = \vzero$
-   \FOR{$t=1$ {\bfseries to} $T$}
-   \STATE $g_t = \nabla L(\vx_t)$
-   \STATE $\vv_{t+1} = \decay \vv_t + (1 - \decay) \vg_t$ \COMMENT{update velocity}
-   \STATE $\vx_{t+1} = \vx_t + \vv_t$ \COMMENT{update position}
-   \ENDFOR
-   \RETURN trained parameters $\vx$   
+\begin{algorithmic}[1]
+   \State {\bfseries Input:} initial $\vx_1$, decay $\decay$, stepsize $\stepsize$, gradient $\gradx$\!\!
+   \State Initialize $\vv_1 = \vzero$
+   \For{$t=1$ {\bfseries to} $T$}
+   \State $g_t = \gradx$ \Comment{evaluate gradient}
+   \State $\vv_{t+1} = \decay \vv_t + (1 - \decay) \vg_t$ \Comment{update velocity}
+   \State $\vx_{t+1} = \vx_t + \vv_t$ \Comment{update position}
+   \EndFor
+   \State \textbf{return} trained parameters $\vx$   
 \end{algorithmic}
 \end{algorithm}
 %
@@ -163,20 +164,20 @@ It is obtained by simply reversing the steps in Algorithm \ref{alg:sgd}, interle
 \begin{algorithm}
    \caption{Memoryless Reverse-Mode Differentiation of \\Gradient Descent with Momentum}
    \label{alg:reverse-sgd}
-\begin{algorithmic}
-   \STATE {\bfseries Input:} final $\vx_T$, final $\vv_T$, $\decay$, $\stepsize$, gradient $\nabla L(\vx)$
-   \STATE Initialize $d\vv = \vzero$
-   \STATE Initialize $d\vx = \nabla L(\vx_T)$
-   \FOR{$t=T$ {\bfseries counting down to} $1$}
-    \STATE $\vx_{t+1} = \vx_t - \stepsize \vv_t$  \COMMENT{reverse position update}
-   \STATE $\vg_t = \nabla L(\vx_t)$
-   \STATE $d\decay_t = d\vx\tra \vv_t$
-   \STATE $\vv_{t+1} = [\vv_t - (1 - \decay) \vg_t] / \decay$ \COMMENT{reverse velocity update}
-   \STATE $d\vv = \decay d\vv + \stepsize d\vx$
-   \STATE $d\stepsize_t = d\vv\tra(\vv_t + g_t)$
-   \STATE $d\vx = d\vx - (1 - \decay) H(\vx) d\vv$
-   \ENDFOR
-   \RETURN gradient of $\vx_T$ w.r.t $\vx_1$, $\decay$, and $\stepsize$: $d\vx, d\decay$ and $d\stepsize$
+\begin{algorithmic}[1]
+   \State {\bfseries Input:} final $\vx_T$, final $\vv_T$, $\decay$, $\stepsize$, gradient $\nabla L(\vx)$
+   \State Initialize $d\vv = \vzero$
+   \State Initialize $d\vx = \nabla L(\vx_T)$
+   \For{$t=T$ {\bfseries counting down to} $1$}
+    \State $\vx_{t+1} = \vx_t - \stepsize \vv_t$  \Comment{reverse position update}
+   \State $\vg_t = \nabla L(\vx_t)$ \Comment{evaluate gradient}
+   \State $d\decay_t = d\vx\tra \vv_t$
+   \State $\vv_{t+1} = [\vv_t - (1 - \decay) \vg_t] / \decay$ \Comment{reverse velocity update}
+   \State $d\vv = \decay d\vv + \stepsize d\vx$
+   \State $d\stepsize_t = d\vv\tra(\vv_t + g_t)$
+   \State $d\vx = d\vx - (1 - \decay) H(\vx) d\vv$
+   \EndFor
+   \State \textbf{return} gradient of $\vx_T$ w.r.t $\vx_1$, $\decay$, and $\stepsize$: $d\vx, d\decay$ and $d\stepsize$
 \end{algorithmic}
 \end{algorithm}
 %
@@ -205,14 +206,14 @@ We could easily do so by storing the weight vector at each iteration, but this w
 Luckily, when the decay factor is close to 1, the amount of information lost at each iteration is small.
 
 \textbf{Quantifying the Savings}
-For example, an integer multiplied by 0.98 will lose $0.029$ bits of information on average.
+for example, an integer multiplied by 0.98 will lose $0.029$ bits of information on average.
 Compared to storing a new 32-bit integer or floating-point number, 
 Thus, if we needed only to store the small amount of information lost at each iteration, memory requirements would only be ${\frac{0.029}{32} = 0.1\%}$ of what they would otherwise be.
 Even if the decay term is $0.5$, memory requirements are still only $\frac{1}{32}$ of what they would otherwise be.
 
 \subsection{Storing Fractional Bits on a Tape}
 
-For each parameter being updated during learning, we keep a tape of bits.
+for each parameter being updated during learning, we keep a tape of bits.
 Each time an information-destroying operation (such as division by an integer) is performed, we store the information that would be needed to reverse the operation exactly.  In the case of division by an integer, this information is simply the remainder.
 During the reverse pass, when the inverse operation is performed (multiplication by that same integer), this extra information is extracted from the tape.
 
@@ -221,16 +222,16 @@ During the reverse pass, when the inverse operation is performed (multiplication
 \begin{algorithm}
    \caption{Reversible Multiplication by a Ratio}
    \label{alg:reversible-mult}
-\begin{algorithmic}
-   \STATE {\bfseries Input:} Giant integer $i$, Current value $c$, Numerator $n$, Denominator $d$
-   \STATE $i = id$ \COMMENT{make room for new bits from the division}
-   \STATE $i = i + (c \mod d)$ \COMMENT{store leftover bits from division}
-   \STATE $c = c / d$ \COMMENT{divide by denomenator}
-   \STATE $c = cn$ \COMMENT{multiply by numerator}
-   \STATE $b = i \mod n$ \COMMENT{extract bits to add after multiplication}
-   \STATE $i = i / n$ \COMMENT{get rid of extra room}
-   \STATE $c = c + b$ \COMMENT{insert extra bits from tape}
-   \RETURN new integer $i$, new value $c$
+\begin{algorithmic}[1]
+   \State {\bfseries Input:} Giant integer $i$, Current value $c$, Numerator $n$, Denominator $d$
+   \State $i = id$ \Comment{make room for new bits from the division}
+   \State $i = i + (c \mod d)$ \Comment{store leftover bits from division}
+   \State $c = c / d$ \Comment{divide by denomenator}
+   \State $c = cn$ \Comment{multiply by numerator}
+   \State $b = i \mod n$ \Comment{extract bits to add after multiplication}
+   \State $i = i / n$ \Comment{get rid of extra room}
+   \State $c = c + b$ \Comment{insert extra bits from tape}
+   \State \textbf{return} new integer $i$, new value $c$
 \end{algorithmic}
 \end{algorithm}
 %
@@ -306,8 +307,8 @@ They introduced a differentiable bound on the SVM loss in order to be able to co
 However, this bound was not tight. [Need to have another read to figure out limitations of their approach]
 
 \textbf{Bayesian Methods}
-For Bayesian methods that have a closed-form marginal likelihood, it is already the case that gradients are available with respect to an many hyperparameters as desired.
-For example, this sort of flexibility has been used to construct complex, custom kernels for Gaussian process models~\cite{rasmussen38gaussian}[Chapter 5].
+for Bayesian methods that have a closed-form marginal likelihood, it is already the case that gradients are available with respect to an many hyperparameters as desired.
+for example, this sort of flexibility has been used to construct complex, custom kernels for Gaussian process models~\cite{rasmussen38gaussian}[Chapter 5].
 %or to train the parameters of Markov random fields \cite{samuel2012gradient}
 Variational inference also allow the tuning of hyperparameters in neural-network like models such as deep Gaussian processes~\citep{deepGPVar14}.
 However, these methods do not enable the tuning of the parameters which themselves tune the marginal likelihood.
