@@ -248,6 +248,21 @@ During the reverse pass, when the inverse operation is performed (multiplication
 
 \section{Results}
 
+\subsection{Optimizing Step-size and Momentum Schedules}
+
+\begin{figure}[ht]
+\vskip 0.2in
+\begin{center}
+\centerline{\includegraphics[width=\columnwidth]{../experiments/Jan_26_schedule_curves/6_large_weights_II/alpha_beta_paper.pdf}}
+\caption{\emph{Top:} A step-size training schedule optimized by hyper-gradient descent.
+\emph{Bottom:} The momenutm schedule optimized for the same task.}
+\label{fig:optimal schedule}
+\end{center}
+\vskip -0.2in
+\end{figure} 
+
+
+
 \subsection{The Edge of Chaos}
 
 \cite{pearlmutter1996investigation}[Chapter 4] contains a lot of discussion and examples (especially section 4.4) about the chaotic behavior of learning neural networks using gradient descent with momentum.
@@ -281,26 +296,6 @@ The step sizes which lead to chaotic behavior are only slightly larger than the 
 \vskip -0.2in
 \end{figure} 
 
-
-\begin{figure}[ht]
-\vskip 0.2in
-\begin{center}
-%\centerline{\includegraphics[width=\columnwidth]{icml2015stylefiles/icml_numpapers}}
-\caption{An example of a training schedule optimized by hyper-gradient descent.}
-\label{fig:optimal schedule}
-\end{center}
-\vskip -0.2in
-\end{figure} 
-
-\begin{figure}[ht]
-\vskip 0.2in
-\begin{center}
-%\centerline{\includegraphics[width=\columnwidth]{icml2015stylefiles/icml_numpapers}}
-\caption{An example of an initial weight distribution optimized by hyper-gradient descent.}
-\label{fig:optimal schedule}
-\end{center}
-\vskip -0.2in
-\end{figure} 
 
 
 \section{Related Work}

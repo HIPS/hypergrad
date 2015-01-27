@@ -267,10 +267,10 @@ def rms_prop(grad, x, callback=None, num_iters=100, step_size=0.1, gamma=0.9,
     """Root mean squared prop: See Adagrad paper for details."""
     avg_sq_grad = np.ones(len(x)) # Is this really a sensible initialization?
     for i in xrange(num_iters):
-        cur_grad = grad(x, i)
-        if callback: callback(x, i)
-        avg_sq_grad = avg_sq_grad * gamma + cur_grad**2 * (1 - gamma)
-        x -= step_size * cur_grad/(np.sqrt(avg_sq_grad) + eps)
+        g = grad(x, i)
+        if callback: callback(x, i, g)
+        avg_sq_grad = avg_sq_grad * gamma + g**2 * (1 - gamma)
+        x -= step_size * g/(np.sqrt(avg_sq_grad) + eps)
     return x
 
 def adam(grad, x, callback=None, num_iters=100,

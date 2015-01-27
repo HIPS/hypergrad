@@ -82,7 +82,7 @@ def run():
     hyperloss_grad = grad(hyperloss)
 
     meta_results = defaultdict(list)
-    old_metagrad = np.ones(hyperparams.vect.size)
+    old_metagrad = [np.ones(hyperparams.vect.size)]
     def meta_callback(hyperparam_vect, i_hyper, metagrad):
         print "Meta Epoch {0}".format(i_hyper)
         x, learning_curve_dict = primal_optimizer(hyperparam_vect, i_hyper)
@@ -94,8 +94,10 @@ def run():
         meta_results['tests_loss'].append(loss_fun(x, **tests_data))
         meta_results['learning_curves'].append(learning_curve_dict)
         meta_results['meta_grad_magnitude'].append(np.linalg.norm(metagrad))
-        meta_results['meta_grad_angle'].append(np.dot(old_metagrad, metagrad) / (np.linalg.norm(metagrad)*np.linalg.norm(old_metagrad)))
-
+        meta_results['meta_grad_angle'].append(np.dot(old_metagrad[0], metagrad) \
+                                               / (np.linalg.norm(metagrad)*
+                                                  np.linalg.norm(old_metagrad[0])))
+        old_metagrad[0] = metagrad
     final_result = rms_prop(hyperloss_grad, hyperparams.vect,
                             meta_callback, N_meta_iter, meta_alpha, gamma=0.0)
     #meta_callback(final_result, N_meta_iter)
@@ -109,20 +111,30 @@ def plot():
 
 
     # ----- Nice versions of Alpha and beta schedules for paper -----
-    # fig = plt.figure(0)
-    # fig.set_size_inches((6,4))
-    # fig.clf()
-    # ax = fig.add_subplot(111)
-    # #ax.set_title('Alpha learning curves')
-    # ax.plot(np.exp(results['log_alphas'][-1]), 'o-', label="Step size")
-    # ax.plot(logit(results['invlogit_betas'][-1]), 'o-', label="Momentum")
-    # ax.set_xlabel('Learning Iteration', fontproperties='serif')
-    # ax.set_ylabel('Log alpha')
-    # ax.legend(numpoints=1, loc=1, frameon=False, bbox_to_anchor=(1.0, 0.5),
-    #           borderaxespad=0.0, prop={'family':'serif', 'size':'12'})
-    # plt.show()
-    # plt.savefig('alpha_beta_paper.png')
-    # plt.savefig('alpha_beta_paper.pdf', pad_inches=0.05, bbox_inches='tight')
+    fig = plt.figure(0)
+    fig.clf()
+    ax = fig.add_subplot(211)
+    #ax.set_title('Alpha learning curves')
+    ax.plot(np.exp(results['log_alphas'][-1]), 'o-', label="Step size")
+    #ax.set_xlabel('Learning Iteration', fontproperties='serif')
+    low, high = ax.get_ylim()
+    ax.set_ylim([0, high])
+    ax.set_ylabel('Step size', fontproperties='serif')
+    ax.set_xticklabels([])
+
+    ax = fig.add_subplot(212)
+    #ax.set_title('Alpha learning curves')
+    ax.plot(logit(results['invlogit_betas'][-1]), 'go-', label="Momentum")
+    ax.set_ylim([0, 1])
+    ax.set_xlabel('Learning Iteration', fontproperties='serif')
+    ax.set_ylabel('Momentum', fontproperties='serif')
+
+    #ax.legend(numpoints=1, loc=1, frameon=False, bbox_to_anchor=(1.0, 0.5),
+    #          prop={'family':'serif', 'size':'12'})
+    fig.set_size_inches((5,3))
+    #plt.show()
+    plt.savefig('alpha_beta_paper.png')
+    plt.savefig('alpha_beta_paper.pdf', pad_inches=0.05, bbox_inches='tight')
 
     fig = plt.figure(0)
     fig.set_size_inches((6,8))
