@@ -236,9 +236,9 @@ def sgd4_reverse(ans, L_grad, hypers, callback=None):
         L_hvp_meta = grad(grad_proj, 1) # Returns a size(meta) output.
         for i, alpha, beta in iters[::-1]:
             d_alphas[i] = np.dot(d_x, V.val)
-            X.sub(alpha * V.val)
-            g = L_grad(X.val, meta, i)
-            V.add((1.0 - beta) * g).div(beta)
+            X.sub(alpha * V.val)               # Reverse position update
+            g = L_grad(X.val, meta, i)         # Evaluate gradient
+            V.add((1.0 - beta) * g).div(beta)  # Reverse momentum update
             d_v += d_x * alpha
             d_betas[i] = np.dot(d_v, V.val + g)
             d_x    -= (1.0 - beta) * L_hvp_x(X.val, meta, d_v, i)

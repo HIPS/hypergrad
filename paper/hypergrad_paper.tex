@@ -26,10 +26,15 @@
 \newcommand{\npderiv}[2]{\nicefrac{\partial #1}{\partial #2}}
 
 \newcommand{\numhypers}{N}
+\newcommand{\hypers}{{\boldsymbol{\theta}}}
+\newcommand{\params}{\vx}
 \newcommand{\numsteps}{T}
 \newcommand{\decay}{\gamma}
+\newcommand{\decays}{{\boldsymbol{\decay}}}
 \newcommand{\stepsize}{\alpha}
-\newcommand{\gradx}{\nabla_x L(\vx_t)}
+\newcommand{\stepsizes}{{\boldsymbol{\stepsize}}}
+\newcommand{\gradparams}{\nabla_\params L(\params_t, \hypers)}
+\newcommand{\gradparamst}{\nabla_\params L(\params_t, \hypers)}
 
 \newcommand\ourtitle{Gradient-based Hyperparameter Optimization through Reversible Learning}
 \icmltitlerunning{\ourtitle} % A short form for the running title.
@@ -138,14 +143,14 @@ Stochastic gradient descent with momentum (Algorithm \ref{alg:sgd}) can be seen 
    \caption{Gradient Descent with Momentum}
    \label{alg:sgd}
 \begin{algorithmic}[1]
-   \State {\bfseries Input:} initial $\vx_1$, decay $\decay$, stepsize $\stepsize$, gradient $\gradx$\!\!
-   \State Initialize $\vv_1 = \vzero$
+   \State {\bfseries input:} initial $\vx_1$, decays $\decays$, stepsizes $\stepsizes$, loss $L(\params, \hypers)$
+   \State initialize $\vv_1 = \vzero$
    \For{$t=1$ {\bfseries to} $T$}
-   \State $g_t = \gradx$ \Comment{evaluate gradient}
-   \State $\vv_{t+1} = \decay \vv_t + (1 - \decay) \vg_t$ \Comment{update velocity}
-   \State $\vx_{t+1} = \vx_t + \vv_t$ \Comment{update position}
+   \State $g_t = \gradparamst$ \Comment{evaluate gradient}
+   \State $\vv_{t+1} = \decay_t \vv_t + (1 - \decay_t) \vg_t$ \Comment{update velocity}
+   \State $\vx_{t+1} = \vx_t + \stepsize_t \vv_t$ \Comment{update position}
    \EndFor
-   \State \textbf{return} trained parameters $\vx$   
+   \State \textbf{output} trained parameters $\vx_T$
 \end{algorithmic}
 \end{algorithm}
 %
@@ -162,31 +167,35 @@ This procedure is given by Algorithm \ref{alg:reverse-sgd}.
 It is obtained by simply reversing the steps in Algorithm \ref{alg:sgd}, interleaved with computations of gradients w.r.t. the parameters of SGD, namely the initial parameters $\vx_1$, and the stepsize and momentum schedules.
 %
 \begin{algorithm}
-   \caption{Memoryless Reverse-Mode Differentiation of \\Gradient Descent with Momentum}
+   \caption{Memory-efficient Reverse-Mode \\ Differentiation through Gradient Descent with Momentum}
    \label{alg:reverse-sgd}
 \begin{algorithmic}[1]
-   \State {\bfseries Input:} final $\vx_T$, final $\vv_T$, $\decay$, $\stepsize$, gradient $\nabla L(\vx)$
-   \State Initialize $d\vv = \vzero$
-   \State Initialize $d\vx = \nabla L(\vx_T)$
+   \State {\bfseries input:} $\vx_T$, $\vv_T$, $\decays$, $\stepsizes$, train loss $L(\params, \hypers)$, function $f(\params)$
+   \State initialize $d\vv = \vzero$, $d\hypers = \vzero$, $d\stepsize_t = \vzero$, $d\decay = \vzero$
+   \State initialize $d\vx = \nabla_\params f(\params_T)$
    \For{$t=T$ {\bfseries counting down to} $1$}
-    \State $\vx_{t+1} = \vx_t - \stepsize \vv_t$  \Comment{reverse position update}
-   \State $\vg_t = \nabla L(\vx_t)$ \Comment{evaluate gradient}
-   \State $d\decay_t = d\vx\tra \vv_t$
-   \State $\vv_{t+1} = [\vv_t - (1 - \decay) \vg_t] / \decay$ \Comment{reverse velocity update}
-   \State $d\vv = \decay d\vv + \stepsize d\vx$
-   \State $d\stepsize_t = d\vv\tra(\vv_t + g_t)$
-   \State $d\vx = d\vx - (1 - \decay) H(\vx) d\vv$
+   \State $d\stepsize_t = d\vv\tra \vv_t$
+   \State $\vx_{t+1} = \vx_t - \stepsize \vv_t$
+   \vspace{-0.95\baselineskip}
+   \State $\vg_t = \gradparamst$
+   \hfill \scalebox{1.1}{\Bigg\}} \vspace{-\baselineskip} \begin{minipage}{2.5cm} exactly reverse \\ SGD operations \\ using bit-stores \strut \end{minipage}
+   \State $\vv_{t+1} = [\vv_t - (1 - \decay) \vg_t] / \decay$
+   \State $d\vv = d\vv + \stepsize d\vx$
+   \State $d\decay_t = d\vx\tra (\vv_t + \vg_t)$
+   \State $d\vx = d\vx - (1 - \decay) d\vv \nabla_\params \gradparamst$ \label{line:hvp1}
+   \State $d\hypers = d\hypers - (1 - \decay) d\vv \nabla_\hypers \gradparamst$ \label{line:hvp2}
+   \State $d\vv = \decay d\vv$
    \EndFor
-   \State \textbf{return} gradient of $\vx_T$ w.r.t $\vx_1$, $\decay$, and $\stepsize$: $d\vx, d\decay$ and $d\stepsize$
+   \State \textbf{output} gradient of $f(\vx_T)$ w.r.t $\vx_1$, $\vv_1$, $\decays$, $\stepsizes$ and $\hypers$
 \end{algorithmic}
 \end{algorithm}
 %
 
-\subsection{Self-closed Automatic Differentiation}
-
-The computation of [EQREF] requires the computation of the second derivative of BLANK.
+\paragraph{Computational complexity}
+Computations of steps \ref{line:hvp1} and \ref{line:hvp2} requires a Hessian-vector product, which can be computed exactly in about the same time required to compute a gradient \citep{pearlmutter1994fast}.
 These gradients are in principle derivable by hand, but in order for this procedure to work without extra work by the user, we would require an automatic differentiation package which could compute second derivatives.
 
+\subsection{Self-closed Automatic Differentiation}
 \citet{pearlmutter2008reverse} implemented the first example of an automatic differentiation package that was \emph{closed under its own operation}, meaning it could be used to take 2nd or 3rd gradients simply by applying the gradient operation more than once. [Add more details]
 However, this package could only operate on code written in a limited form of Scheme in which each function could only have one argument.
 Popular AD popular packages such as Theano do not have this ability to automatically compute higher-order gradients.
@@ -217,7 +226,7 @@ for each parameter being updated during learning, we keep a tape of bits.
 Each time an information-destroying operation (such as division by an integer) is performed, we store the information that would be needed to reverse the operation exactly.  In the case of division by an integer, this information is simply the remainder.
 During the reverse pass, when the inverse operation is performed (multiplication by that same integer), this extra information is extracted from the tape.
 
-[TODO: Explain fractional bits]
+[TODO: Explain fractional bits, and break up the following algorithm into multiply and divide steps.]
 
 \begin{algorithm}
    \caption{Reversible Multiplication by a Ratio}
