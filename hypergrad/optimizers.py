@@ -285,12 +285,12 @@ sgd_meta_only = Differentiable(sgd_meta_only,
 
 def simple_sgd(grad, x, callback=None, num_iters=200, step_size=0.1, mass=0.9):
     """Stochastic gradient descent with momentum.
-    grad() has signature grad(x, i)"""
+    grad() has signature grad(x, i, g)"""
     velocity = np.zeros(len(x))
     for i in xrange(num_iters):
-        cur_grad = grad(x, i)
-        if callback: callback(x, i)
-        velocity = mass * velocity - (1.0 - mass) * cur_grad
+        g = grad(x, i)
+        if callback: callback(x, i, g)
+        velocity = mass * velocity - (1.0 - mass) * g
         x += step_size * velocity
     return x
 
@@ -312,9 +312,9 @@ def adam(grad, x, callback=None, num_iters=100,
     m = np.zeros(len(x))
     v = np.zeros(len(x))
     for i in xrange(num_iters):
-        if callback: callback(x, i)
         b1t = 1 - (1-b1)*(lam**i)
         g = grad(x, i)
+        if callback: callback(x, i, g)
         m = b1t*g     + (1-b1t)*m   # First  moment estimate
         v = b2*(g**2) + (1-b2)*v    # Second moment estimate
         mhat = m/(1-(1-b1)**(i+1))  # Bias correction
