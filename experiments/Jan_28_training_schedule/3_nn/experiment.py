@@ -11,7 +11,7 @@ from hypergrad.optimizers import sgd4, rms_prop, adam
 from hypergrad.util import RandomState
 
 # ----- Fixed params -----
-layer_sizes = [784, 10]
+layer_sizes = [784, 50, 10]
 batch_size = 200
 N_iters = 20
 N_classes = 10
@@ -25,7 +25,7 @@ thin = np.ceil(N_iters/N_batches)
 init_log_L2_reg = -100.0
 init_log_alphas = -1.0
 init_invlogit_betas = inv_logit(0.5)
-init_log_param_scale = -3.0
+init_log_param_scale = -1.0
 # ----- Superparameters -----
 meta_alpha = 0.04
 N_meta_iter = 50

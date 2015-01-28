@@ -76,7 +76,7 @@ def run():
 
     def hyperloss(hyperparam_vect, i_hyper):
         W_opt, _ = primal_optimizer(hyperparam_vect, i_hyper)
-        return loss_fun(W_opt, **valid_data)
+        return loss_fun(W_opt, **train_data)
     hyperloss_grad = grad(hyperloss)
 
     meta_results = defaultdict(list)
