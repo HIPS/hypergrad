@@ -15,21 +15,22 @@ from hypergrad.optimizers import sgd4, rms_prop, adam
 # ----- Fixed params -----
 layer_sizes = [784, 10]
 batch_size = 200
-N_iters = 100
+N_iters = 50
 N_classes = 10
 N_train = 10000
 N_valid = 10**3
 N_tests = 10**3
-N_batches = N_train / batch_size
+N_batches = 10 #N_train / batch_size
+thin = np.ceil(N_iters/N_batches)
 #N_iters = N_epochs * N_batches
 # ----- Initial values of learned hyper-parameters -----
-init_log_L2_reg = -2.0
+init_log_L2_reg = -4.0
 init_log_alphas = -1.0
-init_invlogit_betas = inv_logit(0.99)
+init_invlogit_betas = inv_logit(0.5)
 init_log_param_scale = -2.0
 # ----- Superparameters -----
 meta_alpha = 0.04
-N_meta_iter = 100
+N_meta_iter = 50
 
 global_seed = npr.RandomState(3).randint(1000)
 
@@ -61,7 +62,7 @@ def run():
 
         learning_curve_dict = defaultdict(list)
         def callback(x, v, g, i_iter):
-            if i_iter % N_batches == 0:
+            if i_iter % thin == 0:
                 learning_curve_dict['learning_curve'].append(loss_fun(x, **train_data))
                 learning_curve_dict['grad_norm'].append(np.linalg.norm(g))
                 learning_curve_dict['weight_norm'].append(np.linalg.norm(x))
@@ -99,7 +100,7 @@ def run():
                                                / (np.linalg.norm(metagrad)*
                                                   np.linalg.norm(old_metagrad[0])))
         old_metagrad[0] = metagrad
-        print "Meta Epoch {0:2.4f} Train loss {1:2.4f} Valid Loss {2:2.4f}" \
+        print "Meta Epoch {0} Train loss {1:2.4f} Valid Loss {2:2.4f}" \
               " Test Loss {3:2.4f} Test Err {4:2.4f}".format(
             i_hyper, meta_results['train_loss'][-1], meta_results['valid_loss'][-1],
             meta_results['train_loss'][-1], meta_results['test_err'][-1])
@@ -142,7 +143,7 @@ def plot():
     plt.savefig('alpha_beta_paper.png')
     plt.savefig('alpha_beta_paper.pdf', pad_inches=0.05, bbox_inches='tight')
 
-    fig = plt.figure(0)
+    fig.clf()
     fig.set_size_inches((6,8))
     # ----- Primal learning curves -----
     ax = fig.add_subplot(311)
