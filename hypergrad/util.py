@@ -1,6 +1,8 @@
-
 from contextlib import contextmanager
 from time import time
+import numpy.random as npr
+import numpy as np
+import hashlib
 
 @contextmanager
 def tictoc(text=""):
@@ -21,3 +23,8 @@ class memoize(object):
 
     def __get__(self, obj, objtype):
         return partial(self.__call__, obj)
+
+def RandomState(obj):
+    # Takes an arbitray object as seed (uses its string representation)
+    hashed_int = int(hashlib.md5(str(obj)).hexdigest()[:8], base=16) # 32-bit int
+    return npr.RandomState(hashed_int)
