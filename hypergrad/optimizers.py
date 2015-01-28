@@ -1,5 +1,6 @@
 import itertools as it
 import numpy as np
+from functools import partial
 from collections import deque
 from funkyyak import grad, Node, Differentiable
 from exact_rep import ExactRep
@@ -208,8 +209,7 @@ def sgd3(optimizing_loss, secondary_loss, x0, v0, alphas, betas, meta, callback=
             'dMd_betas'  : dMd_betas,
             'dMd_meta'   : dMd_meta}
 
-#@memoize
-def sgd4_forward_verbose(L_grad, hypers, callback=None):
+def sgd4(L_grad, hypers, callback=None, forward_pass_only=True):
     x0, alphas, betas, meta = hypers
     X, V = ExactRep(x0), ExactRep(np.zeros(x0.size))
     iters = zip(range(len(alphas)), alphas, betas)
@@ -218,15 +218,11 @@ def sgd4_forward_verbose(L_grad, hypers, callback=None):
         if callback: callback(X.val, V.val, g, i)
         V.mul(beta).sub((1.0 - beta) * g)
         X.add(alpha * V.val)
-    return X, V, iters
+    x_final = X.val
 
-def sgd4_forward(L_grad, hypers, callback=None):
-    X, V, iters = sgd4_forward_verbose(L_grad, hypers, callback)
-    return X.val
+    if forward_pass_only:
+        return x_final
 
-def sgd4_reverse(ans, L_grad, hypers, callback=None):
-    X, V, iters = sgd4_forward_verbose(L_grad, hypers, callback)
-    x0, alphas, betas, meta = hypers
     def hypergrad(outgrad):
         d_x = outgrad
         d_alphas, d_betas = np.zeros(len(alphas)), np.zeros(len(betas))
@@ -247,9 +243,9 @@ def sgd4_reverse(ans, L_grad, hypers, callback=None):
         assert np.all(ExactRep(x0).val == X.val)
         return d_x, d_alphas, d_betas, d_meta
 
-    return [None, hypergrad]
+    return x_final, [None, hypergrad]
 
-sgd4 = Differentiable(sgd4_forward, sgd4_reverse)
+sgd4 = Differentiable(sgd4, partial(sgd4, forward_pass_only=False))
 
 def simple_sgd(grad, x, callback=None, num_iters=200, step_size=0.1, mass=0.9):
     """Stochastic gradient descent with momentum.

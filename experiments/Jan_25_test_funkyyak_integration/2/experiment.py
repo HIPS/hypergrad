@@ -53,7 +53,7 @@ def run():
             return loss_fun(w, train_data['X'][idxs], train_data['T'][idxs], L2_vect)
 
         learning_curve = []
-        def callback(x, i_iter):
+        def callback(x, v, g, i_iter):
             if i_iter % N_batches == 0:
                 learning_curve.append(loss_fun(x, **train_data))
 
@@ -73,7 +73,7 @@ def run():
     hyperloss_grad = grad(hyperloss)
 
     meta_results = defaultdict(list)
-    def meta_callback(hyperparam_vect, i_hyper):
+    def meta_callback(hyperparam_vect, i_hyper, g):
         print "Epoch {0}".format(i_hyper)
         x, learning_curve = primal_optimizer(hyperparam_vect, i_hyper)
         cur_hyperparams = hyperparams.new_vect(hyperparam_vect.copy())
