@@ -114,8 +114,7 @@ def make_nn_funs(layer_sizes):
     return parser, predictions, loss, frac_err
 
 
-def plot_mnist_images(images, ax, ims_per_row=5, padding=5):
-    digit_dimensions = (28,28)
+def plot_images(images, ax, ims_per_row=5, padding=5, digit_dimensions=(28,28)):
     N_images = images.shape[0]
     N_rows = np.ceil(float(N_images) / ims_per_row)
     concat_images = np.zeros(((digit_dimensions[0] + padding) * N_rows + padding,
@@ -132,3 +131,5 @@ def plot_mnist_images(images, ax, ims_per_row=5, padding=5):
     ax.matshow(concat_images, cmap = matplotlib.cm.binary)
     plt.xticks(np.array([]))
     plt.yticks(np.array([]))
+
+plot_mnist_images = plot_images
