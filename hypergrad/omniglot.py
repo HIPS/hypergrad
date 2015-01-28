@@ -22,8 +22,8 @@ def load_data():
     one_hot = lambda x, K : np.array(x[:,None] == np.arange(K)[None, :], dtype=int)
     with open(datapath("omniglot_data.pkl")) as f:
         images, alphabet_labels, char_labels = pickle.load(f)
-    print np.min(char_labels), np.max(char_labels)
-    print np.min(alphabet_labels), np.max(alphabet_labels)
+    # print np.min(char_labels), np.max(char_labels)
+    # print np.min(alphabet_labels), np.max(alphabet_labels)
     char_labels = one_hot(char_labels, NUM_CHARS)
     alphabets = []
     for i_alphabet in range(NUM_ALPHABETS):

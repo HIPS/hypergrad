@@ -247,6 +247,42 @@ def sgd4(L_grad, hypers, callback=None, forward_pass_only=True):
 
 sgd4 = Differentiable(sgd4, partial(sgd4, forward_pass_only=False))
 
+
+def sgd_meta_only(L_grad, meta, x0, alpha, beta, N_iters,
+                  callback=None, forward_pass_only=True):
+    X, V = ExactRep(x0), ExactRep(np.zeros(x0.size))
+    for i in range(N_iters):
+        g = L_grad(X.val, meta, i)
+        if callback: callback(X.val, V.val, g, i)
+        V.mul(beta).sub((1.0 - beta) * g)
+        X.add(alpha * V.val)
+    x_final = X.val
+
+    if forward_pass_only:
+        return x_final
+
+    def hypergrad(outgrad):
+        d_x = outgrad
+        d_v, d_meta = np.zeros(d_x.shape), np.zeros(meta.shape)
+        grad_proj = lambda x, meta, d, i: np.dot(L_grad(x, meta, i), d)
+        L_hvp_x    = grad(grad_proj, 0) # Returns a size(x) output.
+        L_hvp_meta = grad(grad_proj, 1) # Returns a size(meta) output.
+        for i in range(N_iters)[::-1]:
+            X.sub(alpha * V.val)               # Reverse position update
+            g = L_grad(X.val, meta, i)         # Evaluate gradient
+            V.add((1.0 - beta) * g).div(beta)  # Reverse momentum update
+            d_v += d_x * alpha
+            d_x    -= (1.0 - beta) * L_hvp_x(X.val, meta, d_v, i)
+            d_meta -= (1.0 - beta) * L_hvp_meta(X.val, meta, d_v, i)
+            d_v    *= beta
+        assert np.all(ExactRep(x0).val == X.val)
+        return d_meta
+
+    return x_final, [None, hypergrad]
+
+sgd_meta_only = Differentiable(sgd_meta_only,
+                               partial(sgd_meta_only, forward_pass_only=False))
+
 def simple_sgd(grad, x, callback=None, num_iters=200, step_size=0.1, mass=0.9):
     """Stochastic gradient descent with momentum.
     grad() has signature grad(x, i)"""
