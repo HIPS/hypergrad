@@ -1,6 +1,7 @@
 import numpy as np
 import pickle
-
+from collections import defaultdict
+from functools import partial
 from funkyyak import grad, kylist, getval
 
 import hypergrad.omniglot as omniglot
@@ -11,22 +12,23 @@ from hypergrad.util import RandomState, dictslice
 # ----- Fixed params -----
 layer_sizes = [784, 100, 55]
 batch_size = 200
-N_iters = 50
-N_test_alphabets = 10
+N_iters = 200
+N_test_alphabets = 20
 N_valid_dpts = 100
-alpha = 0.1
+alpha = 0.05
 beta = 0.9
 seed = 0
+N_alphabets_eval = 1
 # ----- Superparameters -----
-meta_alpha = 0.1
-N_meta_iter = 20
+meta_alpha = 0.05
+N_meta_iter = 101
+N_hyper_thin = 20
 # ----- Initial values of learned hyper-parameters -----
-log_scale_std  = 0.1
-log_scale_mean = 0.0
-offset_std = 0.1
+log_scale_init = 1.0
+offset_init_std = 0.1
 
 def run():
-    RS = RandomState(seed)
+    RS = RandomState((seed, "top_rs"))
     all_alphabets = omniglot.load_data()
     RS.shuffle(all_alphabets)
     train_alphabets = all_alphabets[:-N_test_alphabets]
@@ -34,38 +36,58 @@ def run():
     w_parser, pred_fun, loss_fun, frac_err = make_nn_funs(layer_sizes)
     N_weights = w_parser.vect.size
     hyperparams_0 = VectorParser()
-    hyperparams_0['log_scale']  = log_scale_std * RS.randn(N_weights) + log_scale_mean 
-    hyperparams_0['offset']     =    offset_std * RS.randn(N_weights)
+    hyperparams_0['log_scale']  = log_scale_init * np.ones(N_weights)
+    hyperparams_0['offset'] = offset_init_std * RS.randn(N_weights)
 
-    def reg_loss_fun(W, data, hyperparams, reg_penalty):
+    def reg_loss_fun(W, data, hyperparam_vect, reg_penalty):
+        hyperparams = hyperparams_0.new_vect(hyperparam_vect)
         Z = np.exp(hyperparams['log_scale']) * W + hyperparams['offset']
-        return loss_fun(Z, **data) + np.dot(Z, Z)
+        return loss_fun(Z, **data) + np.dot(W, W) * reg_penalty
 
-    def hyperloss(hyperparam_vect, i_hyper):
-        RS = RandomState((seed, i_hyper))        
-        alphabet = shuffle_alphabet(RS.choice(train_alphabets), RS)
+    def hyperloss(hyperparam_vect, i_hyper, alphabets, verbose=True, report_train_loss=False):
+        RS = RandomState((seed, i_hyper, "hyperloss"))        
+        alphabet = shuffle_alphabet(RS.choice(alphabets), RS)
         N_train = alphabet['X'].shape[0] - N_valid_dpts
         train_data = dictslice(alphabet, slice(None, N_train))
-        valid_data = dictslice(alphabet, slice(N_train, None))
-        def primal_loss(W, hyperparam_vect, i_primal):
+        if report_train_loss:
+            valid_data = dictslice(alphabet, slice(None, N_valid_dpts))
+        else:
+            valid_data = dictslice(alphabet, slice(N_train, None))
+        def primal_loss(W, hyperparam_vect, i_primal, reg_penalty=True):
             RS = RandomState((seed, i_hyper, i_primal))
             idxs = RS.permutation(N_train)[:batch_size]
             minibatch = dictslice(train_data, idxs)
-            cur_hyperparams = hyperparams_0.new_vect(hyperparam_vect)
-            return reg_loss_fun(W, minibatch, cur_hyperparams, reg_penalty=True)
-
-        def callback(*args):
-            print ".",
+            loss = reg_loss_fun(W, minibatch, hyperparam_vect, reg_penalty)
+            if verbose and i_primal % 10 == 0: print "Iter {0}, loss, {1}".format(i_primal, getval(loss))
+            return loss
 
         W0 = np.zeros(N_weights)
-        W_final = sgd(grad(primal_loss), hyperparam_vect, W0, alpha, beta, N_iters, callback)
+        W_final = sgd(grad(primal_loss), hyperparam_vect, W0, alpha, beta, N_iters, callback=None)
         return reg_loss_fun(W_final, valid_data, hyperparam_vect, reg_penalty=False)
 
-    def meta_callback(*args):
-        print "Meta epoch {0}".format(0)
+    results = defaultdict(list)
+    def record_results(hyperparam_vect, i_hyper, g):
+        print "Meta iter {0}. Recording results".format(i_hyper)
+        RS = RandomState((seed, i_hyper, "evaluation"))
+        def loss_fun(alphabets, report_train_loss):
+            return np.mean([hyperloss(hyperparam_vect, RS.int32(), alphabets=alphabets,
+                                      verbose=False, report_train_loss=report_train_loss)
+                            for i in range(N_alphabets_eval)])
+        cur_hyperparams = hyperparams_0.new_vect(hyperparam_vect.copy())
+        if i_hyper % N_hyper_thin == 0:
+            # Storing O(N_weights) is a bit expensive so we thin it out and store in low precision
+            for field in cur_hyperparams.names:
+                results[field].append(cur_hyperparams[field].astype(np.float16))
+        results['train_loss'].append(loss_fun(train_alphabets, report_train_loss=True))
+        results['valid_loss'].append(loss_fun(train_alphabets, report_train_loss=False))
+        results['tests_loss'].append(loss_fun(tests_alphabets, report_train_loss=False))
+        print "Train:", results['train_loss']
+        print "Valid:", results['valid_loss']
+        print "Tests:", results['tests_loss']
 
-    final_result = rms_prop(grad(hyperloss), hyperparams_0.vect,
-                            meta_callback, N_meta_iter, meta_alpha)
+    train_hyperloss = partial(hyperloss, alphabets=train_alphabets)
+    rms_prop(grad(train_hyperloss), hyperparams_0.vect, record_results, N_meta_iter, meta_alpha, gamma=0)
+    return results
 
 def shuffle_alphabet(alphabet, RS):
     # Shuffles both data and label indices
@@ -76,7 +98,20 @@ def shuffle_alphabet(alphabet, RS):
 def plot():
     import matplotlib.pyplot as plt
     with open('results.pkl') as f:
-        results, parser = pickle.load(f)
+        results = pickle.load(f)
+
+    fig = plt.figure(0)
+    fig.set_size_inches((6,4))
+    # ----- Primal learning curves -----
+    ax = fig.add_subplot(111)
+    ax.set_title('Meta learning curves')
+    losses = ['train_loss', 'valid_loss', 'tests_loss']
+    for loss_type in losses:
+        ax.plot(results[loss_type], 'o-', label=loss_type)
+    ax.set_xlabel('Meta iter number')
+    ax.set_ylabel('Negative log prob')
+    ax.legend(loc=1, frameon=False)
+    plt.savefig('learning_curves.png')
 
 if __name__ == '__main__':
     results = run()
