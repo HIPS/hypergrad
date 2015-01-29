@@ -80,7 +80,7 @@ def run():
 
     add_fields = ['train_loss', 'valid_loss', 'tests_loss', 'iter_num']
     meta_results = {field : [] for field in add_fields + hyperparams.names}
-    def meta_callback(hyperparam_vect, i):
+    def meta_callback(hyperparam_vect, i, g):
         if i % N_meta_thin == 0:
             print "Meta iter {0}".format(i)
             x = all_x[-1]
@@ -138,7 +138,7 @@ def plot():
         if i == 0:
             ax.plot([x[1]], [y[1]], [z[1]], '*', color='Black', label="Start", markersize=15)
         ax.plot(x, y, z, '-o', color=colors[i], markersize=2, linewidth=2)
-        ax.plot([x[-1]], [y[-1]], [z[-1]], 'o', color=colors[i], label='Finish {0}'.format(i+1), markersize=9)
+        ax.plot([x[-1]], [y[-1]], [z[-1]], 'o', color=colors[i], label='Meta-iteration {0}'.format(i+1), markersize=9)
 
     ax.set_xlabel('Weight 2', fontproperties='serif')
     ax.set_ylabel('Weight 1', fontproperties='serif')
@@ -150,7 +150,7 @@ def plot():
     ax.w_yaxis.set_pane_color((1.0, 1.0, 1.0, 1.0))
     ax.w_zaxis.set_pane_color((1.0, 1.0, 1.0, 1.0))
     ax.view_init(elev=46, azim=-120)
-    ax.legend(numpoints=1, loc=1, frameon=True, bbox_to_anchor=(1.0, 0.5),
+    ax.legend(numpoints=1, loc=0, frameon=True, # bbox_to_anchor=(1.0, 0.5),
               borderaxespad=0.0, prop={'family':'serif', 'size':'12'})
 
     #plt.show()
