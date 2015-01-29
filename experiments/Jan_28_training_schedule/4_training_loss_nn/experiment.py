@@ -25,7 +25,7 @@ thin = np.ceil(N_iters/N_batches)
 init_log_L2_reg = -100.0
 init_log_alphas = -1.0
 init_invlogit_betas = inv_logit(0.5)
-init_log_param_scale = -1.0
+init_log_param_scale = -3.0
 # ----- Superparameters -----
 meta_alpha = 0.04
 N_meta_iter = 50

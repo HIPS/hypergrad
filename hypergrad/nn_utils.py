@@ -41,6 +41,7 @@ class VectorParser(object):
         return new_parser
 
     def copy(self):
+        """Creates a parser with a blank vector."""
         new_parser = VectorParser()
         for name, (idxs, shape) in self.idxs_and_shapes.iteritems():
             new_parser.add_shape(name, shape)
