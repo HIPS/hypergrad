@@ -202,13 +202,14 @@ Popular AD popular packages such as Theano do not have this ability to automatic
 Thus, we implemented our own automatic differentiation package (available at \url{www.redacted.com}) for Python that is closed under its own operation.
 This package has the additional feature that it operates on standard Numpy~\cite{oliphant2007python} code.
 
-\subsection{The Decay Term Causes Non-Reversibility}
-In practice, however, best performance is usually achieved when the decay term set to a value such as $0.98$.
+\subsection{The decay term causes non-reversibility}
+%In practice, however, best performance is usually achieved when the decay term set to a value such as $0.98$.
+The decay term must be less than one in order for the optimizer to converge.
 Since information is lost each time decay is applied, and the learning process is no longer exactly reversible.
 Even if double-precision floating point numbers are used, errors accumulate exponentially, and the reversed learning procedure ends far from the initial point.
 This means that naively applying Algorithm \ref{alg:reverse-sgd} will not provide accurate gradients if the decay term is less than one.
 
-\section{Reversible Computation Even with Non-Reversible Dynamics}
+\section{Reversible computation even with non-reversible dynamics}
 
 To get around the problem of information loss caused by decay, we need to somehow store that information.
 We could easily do so by storing the weight vector at each iteration, but this would require too much memory to be practical for large neural nets trained for thousands of minibatches.
@@ -246,26 +247,15 @@ During the reverse pass, when the inverse operation is performed (multiplication
 %
 
 
-\section{Results}
+\section{When are gradients meaningful?}
 
-\subsection{Optimizing Step-size and Momentum Schedules}
+Gradient-based optimizers can perform poorly when the surface being optimized is locally ``wiggly''.
+Small wiggles cause both the direction and size of the gradient to be less correlated with the medium-scale shape of the function.
+When do we expect the training loss of a neural network to be wiggly with respect to hyperparameters?
 
-\begin{figure}[ht]
-\vskip 0.2in
-\begin{center}
-\centerline{\includegraphics[width=\columnwidth]{../experiments/Jan_26_schedule_curves/6_large_weights_II/alpha_beta_paper.pdf}}
-\caption{\emph{Top:} A step-size training schedule optimized by hyper-gradient descent.
-\emph{Bottom:} The momenutm schedule optimized for the same task.}
-\label{fig:optimal schedule}
-\end{center}
-\vskip -0.2in
-\end{figure} 
+\paragraph{The edge of chaos}
+\citet*[Chapter 4]{pearlmutter1996investigation} discusses the chaotic behavior of gradient descent with momentum when training learning neural networks.
 
-
-
-\subsection{The Edge of Chaos}
-
-\cite{pearlmutter1996investigation}[Chapter 4] contains a lot of discussion and examples (especially section 4.4) about the chaotic behavior of learning neural networks using gradient descent with momentum.
 One problem with training these networks is that when the learning rate is too high, the gradient becomes uninformative about the medium-term behavior of the function.
 Figure \ref{fig:chaos} illustrates this problem.
 
@@ -295,6 +285,48 @@ The step sizes which lead to chaotic behavior are only slightly larger than the 
 \end{center}
 \vskip -0.2in
 \end{figure} 
+
+
+\section{Results}
+
+\subsection{Optimizing Step-size and Momentum Schedules}
+
+Having access to gradients allows us to optimize thousands of hyperparameters.
+
+Each primal iteration uses a different set of random initial weights, as well as a random reshuffling of dataset.
+This prevents the learning schedules from depending on quirks of the initial random initialization.
+
+\begin{figure}[ht]
+\vskip 0.2in
+\begin{center}
+\centerline{\includegraphics[width=\columnwidth]{../experiments/Jan_26_schedule_curves/6_large_weights_II/alpha_beta_paper.pdf}}
+\caption{\emph{Top:} A step-size training schedule optimized by hyper-gradient descent.
+\emph{Bottom:} The momentum schedule optimized for the same task.}
+\label{fig:optimal schedule}
+\end{center}
+\vskip -0.2in
+\end{figure} 
+
+\subsubsection{Overfitting}
+
+How many hyperparameters can we fruitfully optimize?
+The main limitation seems to be overfitting.
+
+Figure [BLANK] shows the difference between training, validation and test-set error when optimizing 
+
+
+\subsection{Learning to Learn Languages}
+
+\begin{figure}[ht]
+\vskip 0.2in
+\begin{center}
+\centerline{\includegraphics[width=\columnwidth]{../experiments/Jan_27_first_omniglot_expt/random_images.png}}
+\caption{Example languages drawn from the Omniglot dataset.}
+\label{fig:omniglot}
+\end{center}
+\vskip -0.2in
+\end{figure} 
+
 
 
 
