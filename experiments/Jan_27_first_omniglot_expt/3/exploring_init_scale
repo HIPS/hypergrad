@@ -1,0 +1,24 @@
+Exploring superparams. Here are all the constants:
+{'shuffle_alphabet': <function shuffle_alphabet at 0x7f43e4fb3c08>, 'partial': <type 'functools.partial'>, 'rms_prop': <function rms_prop at 0x7f43e4fb3aa0>, 'seed': 0, 'alpha': 0.05, 'meta_alpha': 0.05, 'sgd': <function differentiable_fun at 0x7f43e4fb39b0>, 'dictslice': <function dictslice at 0x7f43e4fb3410>, 'N_iters': 100, 'N_meta_iter': 1, 'kylist': <function differentiable_fun at 0x7f43e9b18410>, 'omniglot': <module 'hypergrad.omniglot' from '/home/dougal/Dropbox/proj/hypergrad/hypergrad/omniglot.pyc'>, '__package__': None, 'log_scale_init': 1.0, 'RandomState': <class 'hypergrad.util.RandomState'>, 'make_nn_funs': <function make_nn_funs at 0x7f43ed8b07d0>, 'np': <module 'numpy' from '/usr/local/lib/python2.7/dist-packages/numpy/__init__.pyc'>, 'N_valid_dpts': 100, '__doc__': ' Just exploring the initialization meta params for now ', 'defaultdict': <type 'collections.defaultdict'>, 'run': <function run at 0x7f43e4fb3b90>, 'getval': <function getval at 0x7f43e9b02410>, '__builtins__': <module '__builtin__' (built-in)>, '__file__': 'experiment.py', 'batch_size': 200, 'beta': 0.9, 'pickle': <module 'pickle' from '/usr/lib/python2.7/pickle.pyc'>, '__name__': '__main__', 'initialization_scale': 0.1, 'N_test_alphabets': 20, 'layer_sizes': [784, 200, 55], 'VectorParser': <class 'hypergrad.nn_utils.VectorParser'>, 'N_alphabets_eval': 1, 'N_hyper_thin': 20, 'grad': <function grad at 0x7f43e9b72c80>, 'offset_init_std': 0.1}
+/home/dougal/Dropbox/proj/FunkyYak/funkyyak/grads.py:52: RuntimeWarning: overflow encountered in square
+  np.tanh   = P(np.tanh,   lambda ans, x : [lambda g : g / np.cosh(x) **2])
+/home/dougal/Dropbox/proj/FunkyYak/funkyyak/core.py:28: RuntimeWarning: divide by zero encountered in log
+  return fun(*args, **kwargs)
+/home/dougal/Dropbox/proj/FunkyYak/funkyyak/core.py:28: RuntimeWarning: invalid value encountered in multiply
+  return fun(*args, **kwargs)
+/home/dougal/Dropbox/proj/FunkyYak/funkyyak/grads.py:46: RuntimeWarning: divide by zero encountered in divide
+  np.log    = P(np.log,    lambda ans, x : [lambda g : g / x])
+/home/dougal/Dropbox/proj/FunkyYak/funkyyak/grads.py:46: RuntimeWarning: overflow encountered in divide
+  np.log    = P(np.log,    lambda ans, x : [lambda g : g / x])
+/home/dougal/Dropbox/proj/FunkyYak/funkyyak/grads.py:45: RuntimeWarning: invalid value encountered in multiply
+  np.exp    = P(np.exp,    lambda ans, x : [lambda g : ans * g])
+/home/dougal/Dropbox/proj/FunkyYak/funkyyak/core.py:28: RuntimeWarning: overflow encountered in cosh
+  return fun(*args, **kwargs)
+Superparams: (0.1, 2.0, 0.1, 0.1)
+Train/valid loss: [1.2358730540867615, 2.9457365913284748]
+Superparams: (0.1, 2.0, 0.1, 1.0)
+Train/valid loss: [1.0924261494763607, 2.9682923513602155]
+Superparams: (0.1, 2.0, 0.1, 2.0)
+Train/valid loss: [1.0567560991554767, 3.1241820130448299]
+Superparams: (0.1, 2.0, 0.1, 5.0)
+Train/valid loss: [199.44972643168913, 275.71514458092958]
