@@ -18,14 +18,16 @@ N_classes = 10
 N_train = 10000
 N_valid = 10**3
 N_tests = 10**3
-N_batches = 5 #N_train / batch_size
+N_batches = 5
 thin = np.ceil(N_iters/N_batches)
-#N_iters = N_epochs * N_batches
+
 # ----- Initial values of learned hyper-parameters -----
 init_log_L2_reg = -100.0
 init_log_alphas = -1.0
 init_invlogit_betas = inv_logit(0.5)
-init_log_param_scale = -1.0
+init_log_param_scale = -3.0
+init_rescales = 1.0
+
 # ----- Superparameters -----
 meta_alpha = 0.04
 N_meta_iter = 50
@@ -45,6 +47,8 @@ def run():
     hyperparams['log_param_scale'] = np.full(N_weight_types, init_log_param_scale)
     hyperparams['log_alphas']      = np.full(N_iters, init_log_alphas)
     hyperparams['invlogit_betas']  = np.full(N_iters, init_invlogit_betas)
+    for name in parser.names:
+        hyperparams[('rescale', name)] = np.full(N_iters, init_rescales)
     fixed_hyperparams = VectorParser()
     fixed_hyperparams['log_L2_reg'] = np.full(N_weight_types, init_log_L2_reg)
 
@@ -70,7 +74,17 @@ def run():
         alphas = np.exp(cur_hyperparams['log_alphas'])
         betas  = logit(cur_hyperparams['invlogit_betas'])
         L2_reg = fill_parser(parser, np.exp(fixed_hyperparams['log_L2_reg']))
-        W_opt = sgd4(grad(indexed_loss_fun), kylist(W0, alphas, betas, L2_reg), callback)
+
+        grad_indexed = grad(indexed_loss_fun)
+        def indexed_grad_fun(x, meta, t):
+            """Rescales the gradients of each weight type."""
+            unscaled_grads = grad_indexed(x, meta, t)
+            rescaled_grads = []
+            parser2 = parser.new_vect(unscaled_grads)
+            for name in parser2.idxs_and_shapes.keys():
+                 rescaled_grads.append(parser2[name].ravel() * cur_hyperparams[('rescale', name)][t])
+            return np.concatenate(rescaled_grads)
+        W_opt = sgd4(indexed_grad_fun, kylist(W0, alphas, betas, L2_reg), callback)
         #callback(W_opt, N_iters)
         return W_opt, learning_curve_dict
 

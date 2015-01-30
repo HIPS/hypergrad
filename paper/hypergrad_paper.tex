@@ -264,7 +264,7 @@ Empirically, it seems like the best learning rates for training neural networks 
 Lower learning rates don't reach convergence before training ends.
 
 
-\begin{figure}[ht]
+\begin{figure}[h!]
 \vskip 0.2in
 \begin{center}
 \centerline{\includegraphics[width=\columnwidth]{../experiments/Jan_14_learning_rate_wiggliness/1/fig.png}}
@@ -276,15 +276,15 @@ The step sizes which lead to chaotic behavior are only slightly larger than the 
 \end{figure} 
 
 
-\begin{figure}[ht]
-\vskip 0.2in
-\begin{center}
-\centerline{\includegraphics[width=\columnwidth]{../experiments/Jan_15_optimize_learning_rate_schedule/2/fig.png}}
-\caption{Gradients with respect to step size as a function of training epoch.}
-\label{fig:chaos}
-\end{center}
-\vskip -0.2in
-\end{figure} 
+%\begin{figure}[ht]
+%\vskip 0.2in
+%\begin{center}
+%\centerline{\includegraphics[width=\columnwidth]{../experiments/Jan_15_optimize_learning_rate_schedule/2/fig.png}}
+%\caption{Gradients with respect to step size as a function of training epoch.}
+%\label{fig:chaos}
+%\end{center}
+%\vskip -0.2in
+%\end{figure} 
 
 
 \section{Results}
@@ -296,13 +296,27 @@ Having access to gradients allows us to optimize thousands of hyperparameters.
 Each primal iteration uses a different set of random initial weights, as well as a random reshuffling of dataset.
 This prevents the learning schedules from depending on quirks of the initial random initialization.
 
-\begin{figure}[ht]
+\begin{figure}[h!]
 \vskip 0.2in
 \begin{center}
-\centerline{\includegraphics[width=\columnwidth]{../experiments/Jan_26_schedule_curves/6_large_weights_II/alpha_beta_paper.pdf}}
+\centerline{\includegraphics[width=\columnwidth]{../experiments/Jan_28_training_schedule/4_training_loss_nn/alpha_beta_paper.pdf}}
 \caption{\emph{Top:} A step-size training schedule optimized by hyper-gradient descent.
 \emph{Bottom:} The momentum schedule optimized for the same task.}
 \label{fig:optimal schedule}
+\end{center}
+\vskip -0.2in
+\end{figure} 
+
+
+
+\begin{figure}[h!]
+\vskip 0.2in
+\begin{center}
+\centerline{\includegraphics[width=\columnwidth]{../experiments/Jan_28_training_schedule/4_training_loss_nn/scale_and_reg.png}}
+\caption{\emph{Top:} Meta-training curves for the initialization scales of different types of weights.
+Meta-learning sets the weight distribution of the first layer weights to be very small, and the second layer weights to be large.
+Only one layer needs to be non-zero at initialization in order to break symmetry.}
+\label{fig:nn meta-learning curves}
 \end{center}
 \vskip -0.2in
 \end{figure} 
@@ -312,12 +326,22 @@ This prevents the learning schedules from depending on quirks of the initial ran
 How many hyperparameters can we fruitfully optimize?
 The main limitation seems to be overfitting.
 
-Figure [BLANK] shows the difference between training, validation and test-set error when optimizing 
+\begin{figure}[h!]
+\vskip 0.2in
+\begin{center}
+\centerline{\includegraphics[width=\columnwidth]{../experiments/Jan_28_training_schedule/4_training_loss_nn/learning_curves.png}}
+\caption{\emph{Top:} Learning curves.  \emph{Middle:} Meta-learning curves. }
+\label{fig:nn meta-learning curves}
+\end{center}
+\vskip -0.2in
+\end{figure} 
+
+Figure \ref{fig:nn meta-learning curves} shows the difference between training, validation and test-set error when optimizing 
 
 
 \subsection{Learning to Learn Languages}
 
-\begin{figure}[ht]
+\begin{figure}[h!]
 \vskip 0.2in
 \begin{center}
 \centerline{\includegraphics[width=\columnwidth]{../experiments/Jan_27_first_omniglot_expt/random_images.png}}
