@@ -122,7 +122,7 @@ Reverse-mode AD works by maintaining a tape of computations performed, and compu
 If each function has multivariate inputs and outputs, the gradients can be replaced with Jacobian matrices, but the order or operations remains the same.
 
 \textbf{Computational Complexity}
-In forward-mode, gradients can be computed at the same time as the original function, by augmenting the forward computation with the directional gradient.
+In forward-mode, gradients can be computed at the same time as the original function, keeping track of the directional gradient.
 This method has only twice the memory cost of simply computing the function of interest, but in general requires a separate forward pass for each input parameter, resulting in an $\mathcal{O}(\numhypers)$ slowdown~\cite{pearlmutter2008reverse}.
 Naive reverse-mode AD typically only requires approximately twice the time as computing the original function, but can require up to $\mathcal{O}(\numsteps\numhypers)$ memory.
 In the next sections, we show how to drastically reduce the memory requirements of reverse-mode AD for differentiating through the entire learning procedure.
@@ -222,6 +222,8 @@ Thus, if we needed only to store the small amount of information lost at each it
 Even if the decay term is $0.5$, memory requirements are still only $\frac{1}{32}$ of what they would otherwise be.
 
 \subsection{Storing Fractional Bits on a Tape}
+
+\paragraph{Arithmetic Coding} 	\cite{steinruecken2014a}
 
 for each parameter being updated during learning, we keep a tape of bits.
 Each time an information-destroying operation (such as division by an integer) is performed, we store the information that would be needed to reverse the operation exactly.  In the case of division by an integer, this information is simply the remainder.
@@ -403,6 +405,7 @@ Even when this is not the case, we hope that the training schedules and initiali
 
 \section*{Acknowledgments} 
 
+We would like to thank Christian Steinruecken for helpful discussions.
 
 \bibliography{references.bib}
 \bibliographystyle{icml2015stylefiles/icml2015}
