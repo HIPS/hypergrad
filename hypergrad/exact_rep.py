@@ -40,9 +40,9 @@ class ExactRep(object):
         return self
 
     def float_to_rational(self, a):
-        assert a > 0.0
-        d = 2**16 / int(a + 1)
-        n = int(a * d + 1)
+        assert np.all(a > 0.0)
+        d = 2**16 / np.fix(a+1).astype(int) # Uglier than it used to be: np.int(a + 1)
+        n = np.fix(a * d + 1).astype(int)
         return  n, d
 
     def float_to_intrep(self, x):
@@ -61,7 +61,7 @@ class BitStore(object):
 
     def push(self, N, M):
         """Stores integer N, given that 0 <= N < M"""
-        assert M <= 2**16
+        assert np.all(M <= 2**16)
         self.store *= M
         self.store += N
 
