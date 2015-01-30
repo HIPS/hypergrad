@@ -1,0 +1,8 @@
+Exploring superparams. Here are all the constants:
+{'shuffle_alphabet': <function shuffle_alphabet at 0x7f419c292c08>, 'partial': <type 'functools.partial'>, 'rms_prop': <function rms_prop at 0x7f419c292aa0>, 'seed': 0, 'alpha': 0.05, 'meta_alpha': 0.05, 'sgd': <function differentiable_fun at 0x7f419c2929b0>, 'dictslice': <function dictslice at 0x7f419c292410>, 'N_iters': 100, 'N_meta_iter': 1, 'kylist': <function differentiable_fun at 0x7f41a0deb410>, 'omniglot': <module 'hypergrad.omniglot' from '/home/dougal/Dropbox/proj/hypergrad/hypergrad/omniglot.pyc'>, '__package__': None, 'log_scale_init': 1.0, 'RandomState': <class 'hypergrad.util.RandomState'>, 'make_nn_funs': <function make_nn_funs at 0x7f419c2937d0>, 'np': <module 'numpy' from '/usr/local/lib/python2.7/dist-packages/numpy/__init__.pyc'>, 'N_valid_dpts': 100, '__doc__': ' Just exploring the initialization meta params for now ', 'defaultdict': <type 'collections.defaultdict'>, 'run': <function run at 0x7f419c292b90>, 'getval': <function getval at 0x7f41a0dd5410>, '__builtins__': <module '__builtin__' (built-in)>, '__file__': 'experiment.py', 'batch_size': 200, 'beta': 0.9, 'pickle': <module 'pickle' from '/usr/lib/python2.7/pickle.pyc'>, '__name__': '__main__', 'N_test_alphabets': 20, 'layer_sizes': [784, 200, 55], 'VectorParser': <class 'hypergrad.nn_utils.VectorParser'>, 'N_alphabets_eval': 1, 'N_hyper_thin': 20, 'grad': <function grad at 0x7f41a0e44c80>, 'offset_init_std': 0.1}
+Superparams: (0.1, 2.0, 0.01)
+Train/valid loss: [2.0736151225709691, 2.7867622868169066]
+Superparams: (0.1, 2.0, 0.1)
+Train/valid loss: [1.2453028414661487, 2.9494164869612236]
+Superparams: (0.1, 2.0, 0.5)
+Train/valid loss: [1.1122118025411691, 8.3869086136753701]

@@ -12,19 +12,20 @@ from hypergrad.util import RandomState, dictslice
 # ----- Fixed params -----
 layer_sizes = [784, 100, 55]
 batch_size = 200
-N_iters = 200
+N_iters = 100
+alpha = 0.1
+beta = 0.9
+seed = 1
 N_test_alphabets = 20
 N_valid_dpts = 100
-alpha = 0.05
-beta = 0.9
-seed = 0
-N_alphabets_eval = 1
+N_alphabets_eval = 6
 # ----- Superparameters -----
-meta_alpha = 0.05
-N_meta_iter = 101
-N_hyper_thin = 20
+meta_alpha = 0.01
+N_meta_iter = 301
+N_hyper_thin = 50
+initialization_scale = 0.1
 # ----- Initial values of learned hyper-parameters -----
-log_scale_init = 1.0
+log_scale_init = 2.0
 offset_init_std = 0.1
 
 def run():
@@ -61,15 +62,16 @@ def run():
             if verbose and i_primal % 10 == 0: print "Iter {0}, loss, {1}".format(i_primal, getval(loss))
             return loss
 
-        W0 = np.zeros(N_weights)
+        W0 = RS.randn(N_weights) * initialization_scale
         W_final = sgd(grad(primal_loss), hyperparam_vect, W0, alpha, beta, N_iters, callback=None)
         return reg_loss_fun(W_final, valid_data, hyperparam_vect, reg_penalty=False)
 
     results = defaultdict(list)
     def record_results(hyperparam_vect, i_hyper, g):
         print "Meta iter {0}. Recording results".format(i_hyper)
-        RS = RandomState((seed, i_hyper, "evaluation"))
+        # RS = RandomState((seed, i_hyper, "evaluation"))
         def loss_fun(alphabets, report_train_loss):
+            RS = RandomState((seed, "evaluation")) # Same alphabet with i_hyper now
             return np.mean([hyperloss(hyperparam_vect, RS.int32(), alphabets=alphabets,
                                       verbose=False, report_train_loss=report_train_loss)
                             for i in range(N_alphabets_eval)])
