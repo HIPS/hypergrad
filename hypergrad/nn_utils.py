@@ -36,6 +36,7 @@ class VectorParser(object):
         self.vect = np.concatenate((self.vect, np.zeros(size)), axis=0)
 
     def new_vect(self, vect):
+        assert vect.size == self.vect.size
         new_parser = self.copy()
         new_parser.vect = vect
         return new_parser

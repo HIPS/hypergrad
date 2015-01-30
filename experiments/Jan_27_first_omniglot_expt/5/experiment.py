@@ -3,6 +3,7 @@ import pickle
 from collections import defaultdict
 from functools import partial
 from funkyyak import grad, kylist, getval
+import itertools as it
 
 import hypergrad.omniglot as omniglot
 from hypergrad.nn_utils import make_nn_funs, VectorParser
@@ -99,8 +100,28 @@ def shuffle_alphabet(alphabet, RS):
 
 def plot():
     import matplotlib.pyplot as plt
+    import matplotlib as mpl
+    def plot_filters(ax, parser, lims, N_cols=10, L_img=28, padding=2):
+        filters = parser[('weights', 0)]
+        N_filters = filters.shape[1]
+        filters = filters.reshape((L_img, L_img, N_filters))
+        N_rows = N_filters / N_cols + (N_filters % N_cols > 0)
+        image = np.full(((L_img + padding) * N_cols, 
+                         (L_img + padding) * N_rows), 0)
+        def pix_range(i):
+            offset = i * (L_img + padding)
+            return slice(offset, offset + L_img)
+
+        for i_x, i_y in it.product(range(N_rows), range(N_cols)):
+            i_filter = i_x + i_y * N_cols
+            if i_filter < N_filters:
+                image[pix_range(i_x), pix_range(i_y)] = filters[:, :, i_filter]
+        ax.imshow(image, cmap = mpl.cm.binary)
+        ax.set_xticks([])
+        ax.set_yticks([])
+
     with open('results.pkl') as f:
-        results = pickle.load(f)
+         results = pickle.load(f)
 
     fig = plt.figure(0)
     fig.set_size_inches((6,4))
@@ -128,8 +149,27 @@ def plot():
         ax.plot(np.sort(offset), label = "Meta iter {0}".format(i * N_hyper_thin))
     plt.savefig('Learned regularization.png')
 
+    w_parser, _, _, _ = make_nn_funs(layer_sizes)
+    log_scales = w_parser.new_vect(results['log_scale'][-1])
+    offset     = w_parser.new_vect(results['offset'][-1])
+    fig.clf()
+    fig.set_size_inches((6,6))
+    ax = fig.add_subplot(111)
+    plot_filters(ax, log_scales, [0, 4])
+    ax.set_title("Scales")
+    plt.savefig("L2_scale_filters.png")
+    plt.savefig("L2_scale_filters.pdf")
+
+    fig.clf()
+    fig.set_size_inches((6,6))
+    ax = fig.add_subplot(111)
+    plot_filters(ax, offset, [-1, 1])
+    ax.set_title("Offsets")
+    plt.savefig("L2_mean_filters.png")
+    plt.savefig("L2_mean_filters.pdf")
+
 if __name__ == '__main__':
-    results = run()
-    with open('results.pkl', 'w') as f:
-        pickle.dump(results, f, 1)
+    # results = run()
+    # with open('results.pkl', 'w') as f:
+    #     pickle.dump(results, f, 1)
     plot()
