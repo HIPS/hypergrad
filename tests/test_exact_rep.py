@@ -49,5 +49,17 @@ def test_repeated_mul_div():
     assert np.mean(A_cur_float == A) < 0.2
     assert all(exact_A.val == orig_value)
 
+def test_mul_div_with_vector():
+    """Test if an exact rep can be multiplied and divided elementwise with a vector."""
+    A = npr.randn(100)
+    B = npr.rand(100)
+
+    exact_A = ExactRep(A)
+    orig_value = exact_A.val
+    exact_A.mul(B)
+    assert np.allclose(exact_A.val, A*B, rtol=1e-3, atol=1e-4)
+    exact_A.div(B)
+    assert all(exact_A.val == orig_value)
+
 # TODO: Check that bit representation is what I expect
 # TODO: Check that storage grows as expected after multiple multiplication cycles
