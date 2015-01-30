@@ -98,24 +98,44 @@ def shuffle_alphabet(alphabet, RS):
     alphabet['T'] = alphabet['T'][:, RS.permutation(N_cols)]
     return dictslice(alphabet, RS.permutation(N_rows))
 
+def ceil_div(a, b):
+    return a / b + ((a % b) > 0)
+
 def plot():
     import matplotlib.pyplot as plt
     import matplotlib as mpl
     def plot_filters(ax, parser, lims, N_cols=10, L_img=28, padding=2):
+        bg_val = 0
         filters = parser[('weights', 0)]
+        output_weights = parser[('weights', 1)]
+        N_outputs = output_weights.shape[1]
         N_filters = filters.shape[1]
+        N_rows = ceil_div(N_filters, N_cols)
+        L_extra = ceil_div(N_outputs, L_img)
+        output_weights_padded = np.full((N_filters, L_img * L_extra), bg_val)
+        output_weights_padded[:, :N_outputs] = output_weights
+        output_weights_padded = output_weights_padded.reshape((N_filters, L_extra, L_img))
         filters = filters.reshape((L_img, L_img, N_filters))
-        N_rows = N_filters / N_cols + (N_filters % N_cols > 0)
-        image = np.full(((L_img + padding) * N_cols, 
-                         (L_img + padding) * N_rows), 0)
-        def pix_range(i):
-            offset = i * (L_img + padding)
+        row_height = L_img + L_extra + padding * 2
+        col_width  = L_img + padding
+        image = np.full((row_height * N_rows, col_width * N_cols), bg_val)
+        def pix_range_x(i):
+            offset = i * col_width
             return slice(offset, offset + L_img)
-
+        def pix_range_y(i):
+            offset = i * row_height
+            return slice(offset, offset + L_img + L_extra + padding)
         for i_x, i_y in it.product(range(N_rows), range(N_cols)):
             i_filter = i_x + i_y * N_cols
             if i_filter < N_filters:
-                image[pix_range(i_x), pix_range(i_y)] = filters[:, :, i_filter]
+                cur_frame = np.concatenate((filters[:, :, i_filter],
+                                            np.full((padding, L_img), bg_val),
+                                            output_weights_padded[i, :, :]), axis=0)
+                image[pix_range_y(i_y), pix_range_x(i_x)] = cur_frame
+
+        img_min, img_max = lims
+        image = (image - img_min) / (img_max - img_min)
+        image = np.minimum(np.maximum(image, 0.0), 1.0)
         ax.imshow(image, cmap = mpl.cm.binary)
         ax.set_xticks([])
         ax.set_yticks([])
@@ -150,12 +170,12 @@ def plot():
     plt.savefig('Learned regularization.png')
 
     w_parser, _, _, _ = make_nn_funs(layer_sizes)
-    log_scales = w_parser.new_vect(results['log_scale'][-1])
+    log_scales = w_parser.new_vect(np.exp(results['log_scale'])[-1])
     offset     = w_parser.new_vect(results['offset'][-1])
     fig.clf()
     fig.set_size_inches((6,6))
     ax = fig.add_subplot(111)
-    plot_filters(ax, log_scales, [0, 4])
+    plot_filters(ax, log_scales, [5, 10])
     ax.set_title("Scales")
     plt.savefig("L2_scale_filters.png")
     plt.savefig("L2_scale_filters.pdf")
