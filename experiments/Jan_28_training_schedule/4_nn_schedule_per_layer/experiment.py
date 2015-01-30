@@ -107,13 +107,10 @@ def run():
     final_result = adam(hyperloss_grad, hyperparams.vect, meta_callback, N_meta_iter, meta_alpha)
     meta_callback(final_result, N_meta_iter)
     parser.vect = None # No need to pickle zeros
-    return meta_results, parser
+    return meta_results
 
 
 def plot():
-
-    #TODO: store the parser with results so it can't get out of sync.
-    parser, pred_fun, loss_fun, frac_err = make_nn_funs(layer_sizes)
 
     import matplotlib.pyplot as plt
     with open('results.pkl') as f:
