@@ -1,11 +1,12 @@
 import numpy as np
-from funkyyak import grad
+from funkyyak import grad, kylist
 import numpy.random as npr
 import itertools as it
 from copy import copy
 
-from hypergrad.nn_utils import BatchList
-from hypergrad.optimizers import sgd, sgd2, sgd3, simple_sgd, rms_prop, adam
+from hypergrad.nn_utils import BatchList, VectorParser
+from hypergrad.optimizers import sgd, sgd2, sgd3, sgd_parsed
+from hypergrad.optimizers import simple_sgd, rms_prop, adam
 
 npr.seed(0)
 
@@ -158,7 +159,6 @@ def test_sgd3():
     batch_size = 4
     num_epochs = 3
     batch_idxs = BatchList(N_data, batch_size)
-    N_iter = num_epochs * len(batch_idxs)
     alphas = 0.1 * npr.rand(len(batch_idxs) * num_epochs)
     betas = 0.5 + 0.2 * npr.rand(len(batch_idxs) * num_epochs)
     meta = 0.1 * npr.randn(N_weights*2)
@@ -193,5 +193,42 @@ def test_sgd3():
             result['dMd_betas'], result['dMd_meta'])
     d_num = nd(full_loss, W0, V0, alphas, betas, meta )
     for i, (an, num) in enumerate(zip(d_an, d_num)):
+        assert np.allclose(an, num, rtol=1e-3, atol=1e-4), \
+            "Type {0}, diffs are: {1}".format(i, an - num)
+
+
+def test_sgd_parser():
+    N_weights = 6
+    W0 = 0.1 * npr.randn(N_weights)
+    N_data = 12
+    batch_size = 4
+    num_epochs = 4
+    batch_idxs = BatchList(N_data, batch_size)
+
+    parser = VectorParser()
+    parser.add_shape('first',  [2,])
+    parser.add_shape('second', [1,])
+    parser.add_shape('third',  [3,])
+    N_weight_types = 3
+
+    alphas = 0.1 * npr.rand(len(batch_idxs) * num_epochs, N_weight_types)
+    betas = 0.5 + 0.2 * npr.rand(len(batch_idxs) * num_epochs, N_weight_types)
+    meta = 0.1 * npr.randn(N_weights*2)
+
+    A = npr.randn(N_data, N_weights)
+    def loss_fun(W, meta, i=None):
+        idxs = batch_idxs.all_idxs if i is None else batch_idxs[i % len(batch_idxs)]
+        sub_A = A[idxs, :]
+        return np.dot(np.dot(W + meta[:N_weights] + meta[N_weights:], np.dot(sub_A.T, sub_A)), W)
+
+    def full_loss(params):
+        (W0, alphas, betas, meta) = params
+        result = sgd_parsed(grad(loss_fun), kylist(W0, alphas, betas, meta), parser)
+        return loss_fun(result, meta)
+
+    d_num = nd(full_loss, (W0, alphas, betas, meta))
+    d_an_fun = grad(full_loss)
+    d_an = d_an_fun([W0, alphas, betas, meta])
+    for i, (an, num) in enumerate(zip(d_an, d_num[0])):
         assert np.allclose(an, num, rtol=1e-3, atol=1e-4), \
             "Type {0}, diffs are: {1}".format(i, an - num)

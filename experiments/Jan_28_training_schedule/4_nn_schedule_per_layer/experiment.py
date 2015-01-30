@@ -7,7 +7,7 @@ from funkyyak import grad, kylist
 
 from hypergrad.data import load_data_dicts
 from hypergrad.nn_utils import make_nn_funs, VectorParser, logit, inv_logit
-from hypergrad.optimizers import sgd4, rms_prop, adam
+from hypergrad.optimizers import sgd4, rms_prop, adam, sgd_parsed
 from hypergrad.util import RandomState
 
 # ----- Fixed params -----
@@ -45,14 +45,13 @@ def run():
     N_weight_types = len(parser.names)
     hyperparams = VectorParser()
     hyperparams['log_param_scale'] = np.full(N_weight_types, init_log_param_scale)
-    hyperparams['log_alphas']      = np.full(N_iters, init_log_alphas)
-    hyperparams['invlogit_betas']  = np.full(N_iters, init_invlogit_betas)
+    hyperparams['log_alphas']      = np.full((N_iters, N_weight_types), init_log_alphas)
+    hyperparams['invlogit_betas']  = np.full((N_iters, N_weight_types), init_invlogit_betas)
     for name in parser.names:
         hyperparams[('rescale', name)] = np.full(N_iters, init_rescales)
     fixed_hyperparams = VectorParser()
     fixed_hyperparams['log_L2_reg'] = np.full(N_weight_types, init_log_L2_reg)
 
-    # TODO: memoize
     def primal_optimizer(hyperparam_vect, i_hyper):
         def indexed_loss_fun(w, L2_vect, i_iter):
             rs = RandomState((seed, i_hyper, i_iter))  # Deterministic seed needed for backwards pass.
@@ -74,18 +73,8 @@ def run():
         alphas = np.exp(cur_hyperparams['log_alphas'])
         betas  = logit(cur_hyperparams['invlogit_betas'])
         L2_reg = fill_parser(parser, np.exp(fixed_hyperparams['log_L2_reg']))
-
-        grad_indexed = grad(indexed_loss_fun)
-        def indexed_grad_fun(x, meta, t):
-            """Rescales the gradients of each weight type."""
-            unscaled_grads = grad_indexed(x, meta, t)
-            rescaled_grads = []
-            parser2 = parser.new_vect(unscaled_grads)
-            for name in parser2.idxs_and_shapes.keys():
-                 rescaled_grads.append(parser2[name].ravel() * cur_hyperparams[('rescale', name)][t])
-            return np.concatenate(rescaled_grads)
-        W_opt = sgd4(indexed_grad_fun, kylist(W0, alphas, betas, L2_reg), callback)
-        #callback(W_opt, N_iters)
+        W_opt = sgd_parsed(grad(indexed_loss_fun), kylist(W0, alphas, betas, L2_reg),
+                           parser, callback=callback)
         return W_opt, learning_curve_dict
 
     def hyperloss(hyperparam_vect, i_hyper):
@@ -95,7 +84,7 @@ def run():
 
     meta_results = defaultdict(list)
     old_metagrad = [np.ones(hyperparams.vect.size)]
-    def meta_callback(hyperparam_vect, i_hyper, metagrad):
+    def meta_callback(hyperparam_vect, i_hyper, metagrad=None):
         x, learning_curve_dict = primal_optimizer(hyperparam_vect, i_hyper)
         cur_hyperparams = hyperparams.new_vect(hyperparam_vect.copy())
         for field in cur_hyperparams.names:
@@ -105,23 +94,27 @@ def run():
         meta_results['tests_loss'].append(loss_fun(x, **tests_data))
         meta_results['test_err'].append(frac_err(x, **tests_data))
         meta_results['learning_curves'].append(learning_curve_dict)
-        meta_results['meta_grad_magnitude'].append(np.linalg.norm(metagrad))
-        meta_results['meta_grad_angle'].append(np.dot(old_metagrad[0], metagrad) \
-                                               / (np.linalg.norm(metagrad)*
-                                                  np.linalg.norm(old_metagrad[0])))
+        if metagrad is not None:
+            meta_results['meta_grad_magnitude'].append(np.linalg.norm(metagrad))
+            meta_results['meta_grad_angle'].append(np.dot(old_metagrad[0], metagrad) \
+                                                   / (np.linalg.norm(metagrad)*
+                                                      np.linalg.norm(old_metagrad[0])))
         old_metagrad[0] = metagrad
         print "Meta Epoch {0} Train loss {1:2.4f} Valid Loss {2:2.4f}" \
               " Test Loss {3:2.4f} Test Err {4:2.4f}".format(
             i_hyper, meta_results['train_loss'][-1], meta_results['valid_loss'][-1],
             meta_results['train_loss'][-1], meta_results['test_err'][-1])
-    final_result = adam(hyperloss_grad, hyperparams.vect,
-                            meta_callback, N_meta_iter, meta_alpha)
-    meta_callback(final_result, N_meta_iter, np.ones(hyperparams.vect.size))  # Fake final gradient.
+    final_result = adam(hyperloss_grad, hyperparams.vect, meta_callback, N_meta_iter, meta_alpha)
+    meta_callback(final_result, N_meta_iter)
     parser.vect = None # No need to pickle zeros
     return meta_results, parser
 
 
 def plot():
+
+    #TODO: store the parser with results so it can't get out of sync.
+    parser, pred_fun, loss_fun, frac_err = make_nn_funs(layer_sizes)
+
     import matplotlib.pyplot as plt
     with open('results.pkl') as f:
         results, parser = pickle.load(f)
@@ -131,23 +124,25 @@ def plot():
     fig.clf()
     ax = fig.add_subplot(211)
     #ax.set_title('Alpha learning curves')
-    ax.plot(np.exp(results['log_alphas'][-1]), 'o-', label="Step size")
+    for cur_results, name in zip(results['log_alphas'][-1].T, parser.names):
+        ax.plot(np.exp(cur_results), 'o-', label=name)
     #ax.set_xlabel('Learning Iteration', fontproperties='serif')
     low, high = ax.get_ylim()
     ax.set_ylim([0, high])
     ax.set_ylabel('Step size', fontproperties='serif')
     ax.set_xticklabels([])
+    ax.legend(numpoints=1, loc=1, frameon=False, bbox_to_anchor=(1.0, 0.5),
+              prop={'family':'serif', 'size':'12'})
 
     ax = fig.add_subplot(212)
     #ax.set_title('Alpha learning curves')
-    ax.plot(logit(results['invlogit_betas'][-1]), 'go-', label="Momentum")
+    for cur_results, name in zip(results['invlogit_betas'][-1].T, parser.names):
+        ax.plot(logit(cur_results), 'o-', label=name)
     low, high = ax.get_ylim()
-    ax.set_ylim([low, 1])
+    ax.set_ylim([0, 1])
     ax.set_xlabel('Learning Iteration', fontproperties='serif')
     ax.set_ylabel('Momentum', fontproperties='serif')
 
-    #ax.legend(numpoints=1, loc=1, frameon=False, bbox_to_anchor=(1.0, 0.5),
-    #          prop={'family':'serif', 'size':'12'})
     fig.set_size_inches((6,3))
     #plt.show()
     plt.savefig('alpha_beta_paper.png')
@@ -246,7 +241,7 @@ def plot():
     plt.savefig('scale_and_reg.png')
 
 if __name__ == '__main__':
-    results = run()
-    with open('results.pkl', 'w') as f:
-        pickle.dump(results, f)
+    #results = run()
+    #with open('results.pkl', 'w') as f:
+    #    pickle.dump(results, f)
     plot()
