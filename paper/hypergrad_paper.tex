@@ -293,6 +293,8 @@ The step sizes which lead to chaotic behavior are only slightly larger than the 
 
 \subsection{Optimizing Step-size and Momentum Schedules}
 
+Modern neural net training procedures often employ various heuristics to set learning rate schedules, or set their shape using one or two hyperparameters set by cross-validation \citep{dahl2014multi}, \citep{sutskever2013importance}
+
 Having access to gradients allows us to optimize thousands of hyperparameters.
 
 Each primal iteration uses a different set of random initial weights, as well as a random reshuffling of dataset.
@@ -322,6 +324,8 @@ Only one layer needs to be non-zero at initialization in order to break symmetry
 \end{center}
 \vskip -0.2in
 \end{figure} 
+
+It would not be straightforward to learn dropout regularization parameters, or layer widths.
 
 \subsubsection{Overfitting}
 
