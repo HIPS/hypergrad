@@ -9,8 +9,8 @@
 \usepackage{amsmath}
 \usepackage{hyperref}
 \newcommand{\theHalgorithm}{\arabic{algorithm}}
-%\usepackage{icml2015stylefiles/icml2015} 
-\usepackage[accepted]{icml2015stylefiles/icml2015}
+\usepackage{icml2015stylefiles/icml2015} 
+%\usepackage[accepted]{icml2015stylefiles/icml2015}
 
 
 \newcommand{\vx}{\mathbf{x}}
@@ -64,10 +64,11 @@
 ]
 
 \begin{abstract} 
-Tuning more than a small number of hyper parameters remains difficult due to the fact that gradients are typically unavailable.
-We compute gradients of the cross-validation objective with respet to hyperparameters by chaining derivatives through the \emph{entire training procedure}, including hundreds of iterations of back propagation.
-We compute these ``hyper'' gradients efficiently by exactly reversing the dynamics of stochastic gradient descent with momentum.
-These gradients allows us to optimize thousands of hyperparameters, including step-size schedules, weight initialization distributions, richly parameterized regularization schemes, and neural network architectures.
+Tuning hyper-parameters of learning algorithms is hard because gradients are usually unavailable.
+We compute exact gradients of cross-validation performance with respect to hyperparameters by chaining derivatives through the \emph{entire training procedure}.
+% including hundreds of iterations of stochastic gradient descent with momentum.
+We compute these gradients efficiently by exactly reversing the dynamics of stochastic gradient descent with momentum.
+These gradients allow us to optimize thousands of hyperparameters including step-size and momentum schedules, weight initialization strategies, richly parameterized regularization schemes, and neural network architectures.
 
 \end{abstract} 
 
@@ -412,7 +413,7 @@ Even when this is not the case, we hope that the training schedules and initiali
 
 \section*{Acknowledgments} 
 
-We would like to thank Christian Steinruecken for helpful discussions.
+%We would like to thank Christian Steinruecken for helpful discussions.
 
 \bibliography{references.bib}
 \bibliographystyle{icml2015stylefiles/icml2015}
