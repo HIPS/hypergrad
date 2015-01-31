@@ -7,15 +7,15 @@ from funkyyak import grad, kylist
 
 from hypergrad.data import load_data_dicts
 from hypergrad.nn_utils import make_nn_funs, VectorParser, logit, inv_logit
-from hypergrad.optimizers import sgd4, rms_prop, adam, sgd_parsed
+from hypergrad.optimizers import adam, sgd_parsed
 from hypergrad.util import RandomState
 
 # ----- Fixed params -----
-layer_sizes = [784, 50, 10]
+layer_sizes = [784, 500, 150, 10]
 batch_size = 200
-N_iters = 20
+N_iters = 50000/200
 N_classes = 10
-N_train = 10000
+N_train = 50000
 N_valid = 10**3
 N_tests = 10**3
 N_batches = 5
@@ -30,7 +30,7 @@ init_rescales = 1.0
 
 # ----- Superparameters -----
 meta_alpha = 0.04
-N_meta_iter = 50
+N_meta_iter = 20
 
 seed = 0
 
@@ -238,7 +238,7 @@ def plot():
     plt.savefig('scale_and_reg.png')
 
 if __name__ == '__main__':
-    #results = run()
-    #with open('results.pkl', 'w') as f:
-    #    pickle.dump(results, f)
+    results = run()
+    with open('results.pkl', 'w') as f:
+        pickle.dump(results, f)
     plot()

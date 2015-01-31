@@ -1,10 +1,10 @@
-import itertools as it
 import numpy as np
 from functools import partial
 from collections import deque
-from funkyyak import grad, Node, Differentiable
+from funkyyak import grad, Differentiable
 from exact_rep import ExactRep
-from hypergrad.util import memoize
+from scipy.optimize import minimize
+
 
 def sgd(loss_fun, batches, N_iter, x, v, alphas, betas, record_learning_curve=False):
     # TODO: Warp alpha and beta to map from real-valued domains (exp and logistic?)
@@ -390,3 +390,20 @@ def adam(grad, x, callback=None, num_iters=100,
         vhat = v/(1-(1-b2)**(i+1))
         x -= step_size*mhat/(np.sqrt(vhat) + eps)
     return x
+
+def bfgs(obj_and_grad, x, callback=None, num_iters=100):
+    def epoch_counter():
+        epoch = 0
+        while True:
+            yield epoch
+            epoch += 1
+    ec = epoch_counter()
+
+    wrapped_callback=None
+    if callback:
+        def wrapped_callback(x):
+            callback(x, next(ec))
+
+    res =  minimize(fun=obj_and_grad, x0=x, jac =True, callback=wrapped_callback,
+                    options = {'maxiter':num_iters, 'disp':True})
+    return res.x
