@@ -136,22 +136,25 @@ def plot():
     for i, z in zip(results['iter_num'], results['all_learning_curves']):
         x, y = zip(*results['all_param_curves'][i])
         if i == 0:
-            ax.plot([x[1]], [y[1]], [z[1]], '*', color='Black', label="Start", markersize=15)
+            ax.plot([x[1]], [y[1]], [z[1]], '*', color='Black', label="Initial weights", markersize=15)
         ax.plot(x, y, z, '-o', color=colors[i], markersize=2, linewidth=2)
         ax.plot([x[-1]], [y[-1]], [z[-1]], 'o', color=colors[i], label='Meta-iteration {0}'.format(i+1), markersize=9)
 
-    ax.set_xlabel('Weight 2', fontproperties='serif')
-    ax.set_ylabel('Weight 1', fontproperties='serif')
-    ax.set_zlabel('Loss', fontproperties='serif') #, rotation=90)
+    ax.set_xlabel('Weight 1', fontproperties='serif')
+    ax.set_ylabel('Weight 2', fontproperties='serif')
+    #ax.set_zlabel('Training Loss', fontproperties='serif', rotation=90)
     ax.set_xticklabels([])
     ax.set_yticklabels([])
     ax.set_zticklabels([])
     ax.w_xaxis.set_pane_color((1.0, 1.0, 1.0, 1.0))
     ax.w_yaxis.set_pane_color((1.0, 1.0, 1.0, 1.0))
     ax.w_zaxis.set_pane_color((1.0, 1.0, 1.0, 1.0))
-    ax.view_init(elev=46, azim=-120)
-    ax.legend(numpoints=1, loc=0, frameon=True, # bbox_to_anchor=(1.0, 0.5),
+    ax.set_ylim(ax.get_ylim()[::-1])  # Swap y-axis
+    ax.view_init(elev=46, azim=120)
+    fig.tight_layout()
+    ax.legend(numpoints=1, loc=0, frameon=True,  bbox_to_anchor=(0.65, 0.8),
               borderaxespad=0.0, prop={'family':'serif', 'size':'12'})
+
 
     #plt.show()
     plt.savefig('learning_curves.png')
