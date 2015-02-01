@@ -9,6 +9,7 @@ import hypergrad.omniglot as omniglot
 from hypergrad.nn_utils import make_nn_funs, VectorParser
 from hypergrad.optimizers import sgd_meta_only as sgd, rms_prop
 from hypergrad.util import RandomState, dictslice
+from hypergrad.odyssey import omap
 
 # ----- Fixed params -----
 layer_sizes = [784, 300, 55]
@@ -16,7 +17,7 @@ N_layers = len(layer_sizes) - 1
 N_scripts = 50
 batch_size = 200
 N_scripts_per_iter = 5
-N_iters = 10
+N_iters = 1000
 alpha = 1.0
 beta = 0.9
 seed = 2
@@ -107,10 +108,22 @@ def run(script_corr):
     return results['train_loss'][-1], results['valid_loss'][-1]
 
 def plot():
+    # Jobs didn't finish, but here are the results grepped from stdout files (after 600 iterations)
+    train_loss, valid_loss = zip(*[( 1.18981821808,  2.44209621532 ),
+                                   ( 1.32133787107,  2.47207029118 ),
+                                   ( 1.48092102979,  2.51644325327 ),
+                                   ( 1.6721216284,  2.57854067933 ),
+                                   ( 1.88463380972,  2.65262902885 ),
+                                   ( 2.06526062967,  2.70579907853 ),
+                                   ( 2.14729400176,  2.70467654679 ),
+                                   ( 2.1593192532,  2.6762408726 ),
+                                   ( 2.16106019828,  2.65861610487 ),
+                                   ( 2.1636410108,  2.6552748234 )])
+
     import matplotlib.pyplot as plt
     import matplotlib as mpl
-    with open('results.pkl') as f:
-         train_loss, valid_loss = zip(*pickle.load(f))
+    # with open('results.pkl') as f:
+    #      train_loss, valid_loss = zip(*pickle.load(f))
 
     fig = plt.figure(0)
     fig.set_size_inches((6,4))
@@ -123,9 +136,9 @@ def plot():
     ax.legend(loc=1, frameon=False)
     plt.savefig('performance.png')
 
-all_script_corr = np.linspace(0, 1, 5)
+all_script_corr = np.linspace(0, 1, 10)
 if __name__ == '__main__':
-    results = map(run, all_script_corr)
-    with open('results.pkl', 'w') as f:
-        pickle.dump(results, f, 1)
+    # results = omap(run, all_script_corr)
+    # with open('results.pkl', 'w') as f:
+    #     pickle.dump(results, f, 1)
     plot()

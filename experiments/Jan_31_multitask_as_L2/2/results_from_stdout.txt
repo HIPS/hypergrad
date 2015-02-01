@@ -1,0 +1,20 @@
+==> /home/dougal/odyssey/tmp/jobdir_844013998263/stdout_10.txt <==
+Full losses: train: 2.1636410108, valid: 2.6552748234
+==> /home/dougal/odyssey/tmp/jobdir_844013998263/stdout_1.txt <==
+Full losses: train: 1.18981821808, valid: 2.44209621532
+==> /home/dougal/odyssey/tmp/jobdir_844013998263/stdout_2.txt <==
+Full losses: train: 1.32133787107, valid: 2.47207029118
+==> /home/dougal/odyssey/tmp/jobdir_844013998263/stdout_3.txt <==
+Full losses: train: 1.48092102979, valid: 2.51644325327
+==> /home/dougal/odyssey/tmp/jobdir_844013998263/stdout_4.txt <==
+Full losses: train: 1.6721216284, valid: 2.57854067933
+==> /home/dougal/odyssey/tmp/jobdir_844013998263/stdout_5.txt <==
+Full losses: train: 1.88463380972, valid: 2.65262902885
+==> /home/dougal/odyssey/tmp/jobdir_844013998263/stdout_6.txt <==
+Full losses: train: 2.06526062967, valid: 2.70579907853
+==> /home/dougal/odyssey/tmp/jobdir_844013998263/stdout_7.txt <==
+Full losses: train: 2.14729400176, valid: 2.70467654679
+==> /home/dougal/odyssey/tmp/jobdir_844013998263/stdout_8.txt <==
+Full losses: train: 2.1593192532, valid: 2.6762408726
+==> /home/dougal/odyssey/tmp/jobdir_844013998263/stdout_9.txt <==
+Full losses: train: 2.16106019828, valid: 2.65861610487
