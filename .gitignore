@@ -1,4 +1,5 @@
 *.pyc
+*.pyo
 .nfs*
 odyssey_config.py
 *.DS_Store
