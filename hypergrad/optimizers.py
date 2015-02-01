@@ -1,3 +1,5 @@
+import operator as op
+import itertools as it
 import numpy as np
 from functools import partial
 from collections import deque
@@ -268,6 +270,53 @@ def sgd_meta_only(L_grad, meta, x0, alpha, beta, N_iters,
         grad_proj = lambda x, meta, d, i: np.dot(L_grad(x, meta, i), d)
         L_hvp_x    = grad(grad_proj, 0) # Returns a size(x) output.
         L_hvp_meta = grad(grad_proj, 1) # Returns a size(meta) output.
+        for i in range(N_iters)[::-1]:
+            X.sub(alpha * V.val)               # Reverse position update
+            g = L_grad(X.val, meta, i)         # Evaluate gradient
+            V.add((1.0 - beta) * g).div(beta)  # Reverse momentum update
+            d_v += d_x * alpha
+            d_x    -= (1.0 - beta) * L_hvp_x(X.val, meta, d_v, i)
+            d_meta -= (1.0 - beta) * L_hvp_meta(X.val, meta, d_v, i)
+            d_v    *= beta
+        assert np.all(ExactRep(x0).val == X.val)
+        return d_meta
+
+    return x_final, [None, hypergrad]
+
+sgd_meta_only = Differentiable(sgd_meta_only,
+                               partial(sgd_meta_only, forward_pass_only=False))
+
+
+def sum_args(fun, arglist):
+    def sum_fun(*args):
+        partial_fun = lambda i : fun(*(list(args) + [i]))
+        return reduce(op.add, it.imap(partial_fun, arglist))
+    return sum_fun
+
+def sgd_meta_only_sub(L_grad_sub, meta, x0, alpha, beta, N_iters,
+                        N_sub, callback=None, forward_pass_only=True):
+    # Allows adding the gradient of multiple sub-batches (minibatch within a minibatch)
+    # Signature of L_grad_sub is x, meta, i_batch, i_sub
+    X, V = ExactRep(x0), ExactRep(np.zeros(x0.size))
+    L_grad = sum_args(L_grad_sub, range(N_sub))
+    for i in range(N_iters):
+        g = L_grad(X.val, meta, i)
+        if callback: callback(X.val, V.val, g, i)
+        V.mul(beta).sub((1.0 - beta) * g)
+        X.add(alpha * V.val)
+    x_final = X.val
+
+    if forward_pass_only:
+        return x_final
+
+    def hypergrad(outgrad):
+        d_x = outgrad
+        d_v, d_meta = np.zeros(d_x.shape), np.zeros(meta.shape)
+        grad_proj_sub = lambda x, meta, d, i, i_sub: np.dot(L_grad_sub(x, meta, i, i_sub), d)
+        L_hvp_x_sub    = grad(grad_proj_sub, 0) # Returns a size(x) output.
+        L_hvp_meta_sub = grad(grad_proj_sub, 1) # Returns a size(meta) output.
+        L_hvp_x    = sum_args(L_hvp_x_sub, range(N_sub))
+        L_hvp_meta = sum_args(L_hvp_x_sub, range(N_sub))
         for i in range(N_iters)[::-1]:
             X.sub(alpha * V.val)               # Reverse position update
             g = L_grad(X.val, meta, i)         # Evaluate gradient
