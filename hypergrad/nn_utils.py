@@ -25,7 +25,7 @@ class WeightsParser(object):
             vect[idxs] = val  # Can't unravel a float.
 
 class VectorParser(object):
-    def __init__(self,):
+    def __init__(self):
         self.idxs_and_shapes = OrderedDict()
         self.vect = np.zeros((0,))
 
@@ -37,15 +37,15 @@ class VectorParser(object):
 
     def new_vect(self, vect):
         assert vect.size == self.vect.size
-        new_parser = self.copy()
+        new_parser = self.empty_copy()
         new_parser.vect = vect
         return new_parser
 
-    def copy(self):
+    def empty_copy(self):
         """Creates a parser with a blank vector."""
         new_parser = VectorParser()
-        for name, (idxs, shape) in self.idxs_and_shapes.iteritems():
-            new_parser.add_shape(name, shape)
+        new_parser.idxs_and_shapes = self.idxs_and_shapes.copy()
+        new_parser.vect = None
         return new_parser
 
     @property
