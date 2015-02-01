@@ -66,6 +66,13 @@ class VectorParser(object):
         assert val.shape == shape
         self.vect[idxs] = val.ravel()
 
+def fill_parser(parser, items):
+    """Build a vector by assigning each block the corresponding value in
+       the items vector."""
+    partial_vects = [np.full(parser[name].size, items[i])
+                     for i, name in enumerate(parser.names)]
+    return np.concatenate(partial_vects, axis=0)
+
 class BatchList(list):
     def __init__(self, N_total, N_batch):
         start = 0

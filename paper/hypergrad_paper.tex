@@ -9,8 +9,8 @@
 \usepackage{amsmath}
 \usepackage{hyperref}
 \newcommand{\theHalgorithm}{\arabic{algorithm}}
-%\usepackage{icml2015stylefiles/icml2015} 
-\usepackage[accepted]{icml2015stylefiles/icml2015}
+\usepackage{icml2015stylefiles/icml2015} 
+%\usepackage[accepted]{icml2015stylefiles/icml2015}
 
 
 \newcommand{\vx}{\mathbf{x}}
@@ -64,11 +64,12 @@
 ]
 
 \begin{abstract} 
-Tuning more than a small number of hyper parameters remains difficult due to the fact that gradients are typically unavailable.
-We compute gradients of the cross-validation objective w.r.t. hyperparameters by chaining derivatives through the \emph{entire training procedure}, including hundreds of iterations of back propagation.
-These gradients allows us to richly parameterize our learning procedures, optimizing complex learning rate schedules, weight initialization distributions, and neural net architectures.
-We show state-of-the art results?
-Our results also provide examples of optimal learning schedules and initialization strategies for several benchmark problems.
+Tuning hyper-parameters of learning algorithms is hard because gradients are usually unavailable.
+We compute exact gradients of cross-validation performance with respect to hyperparameters by chaining derivatives through the \emph{entire training procedure}.
+% including hundreds of iterations of stochastic gradient descent with momentum.
+We compute these gradients efficiently by exactly reversing the dynamics of stochastic gradient descent with momentum.
+These gradients allow us to optimize thousands of hyperparameters including step-size and momentum schedules, weight initialization strategies, richly parameterized regularization schemes, and neural network architectures.
+
 \end{abstract} 
 
 \section{Introduction}
@@ -86,8 +87,11 @@ Most importantly from our perspective, current hyper parameter optimization sche
 \begin{figure}[ht]
 \vskip 0.2in
 \begin{center}
-\centerline{\includegraphics[width=\columnwidth]{../experiments/Jan_25_Figure_1/2/learning_curves.pdf}}
-\caption{We backpropagate gradients of the final loss through the entire learning procedure in order to update learning and model hyperparameters.}
+\includegraphics[width=\columnwidth]{../experiments/Jan_25_Figure_1/2/learning_curves.pdf}
+\caption{Meta-optimization by gradient descent.
+Each meta-iteration uses stochastic gradient descent to optimize training error, holding hyperparameters fixed.
+We then compute the gradient of the validation loss, evaluated using the optimized weights, with respect to all hyperparameters.
+These hyper-gradients are used to update the hyperparameters.}
 \label{fig:chaos}
 \end{center}
 \vskip -0.2in
@@ -409,7 +413,7 @@ Even when this is not the case, we hope that the training schedules and initiali
 
 \section*{Acknowledgments} 
 
-We would like to thank Christian Steinruecken for helpful discussions.
+%We would like to thank Christian Steinruecken for helpful discussions.
 
 \bibliography{references.bib}
 \bibliographystyle{icml2015stylefiles/icml2015}
