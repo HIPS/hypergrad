@@ -22,7 +22,7 @@ def mat_to_pickle():
     with open(datapath("omniglot_data.pkl"), "w") as f:
         pickle.dump((images, alphabet_labels, char_labels), f, 1)
 
-def load_data():
+def load_data(alphabets_to_load=range(NUM_ALPHABETS)):
     one_hot = lambda x, K : np.array(x[:,None] == np.arange(K)[None, :], dtype=int)
     with open(datapath("omniglot_data.pkl")) as f:
         images, alphabet_labels, char_labels = pickle.load(f)
@@ -30,14 +30,15 @@ def load_data():
     # print np.min(alphabet_labels), np.max(alphabet_labels)
     char_labels = one_hot(char_labels, NUM_CHARS)
     alphabets = []
-    for i_alphabet in range(NUM_ALPHABETS):
+    for i_alphabet in alphabets_to_load:
         cur_alphabet_idxs = np.where(alphabet_labels == i_alphabet)
         alphabets.append({'X' : images[cur_alphabet_idxs],
                           'T' : char_labels[cur_alphabet_idxs]})
     return alphabets
 
-def load_data_split(num_chars, RS):
-    raw_data = load_data()
+def load_data_split(num_chars, RS, num_alphabets=NUM_ALPHABETS):
+    alphabets_to_load = RS.choice(range(NUM_ALPHABETS), size=num_alphabets, replace=False)
+    raw_data = load_data(np.sort(alphabets_to_load))
     shuffled_data = [shuffle(alphabet, RS) for alphabet in raw_data]
     data_split = zip(*[split(alphabet, num_chars) for alphabet in shuffled_data])
     normalized_data = [subtract_mean(data_subset) for data_subset in data_split]
