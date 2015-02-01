@@ -26,7 +26,6 @@ init_log_L2_reg = -100.0
 init_log_alphas = -1.0
 init_invlogit_betas = inv_logit(0.5)
 init_log_param_scale = -3.0
-init_rescales = 1.0
 
 # ----- Superparameters -----
 meta_alpha = 0.04
@@ -47,8 +46,6 @@ def run():
     hyperparams['log_param_scale'] = np.full(N_weight_types, init_log_param_scale)
     hyperparams['log_alphas']      = np.full((N_iters, N_weight_types), init_log_alphas)
     hyperparams['invlogit_betas']  = np.full((N_iters, N_weight_types), init_invlogit_betas)
-    for name in parser.names:
-        hyperparams[('rescale', name)] = np.full(N_iters, init_rescales)
     fixed_hyperparams = VectorParser()
     fixed_hyperparams['log_L2_reg'] = np.full(N_weight_types, init_log_L2_reg)
 

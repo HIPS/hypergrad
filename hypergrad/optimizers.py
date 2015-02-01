@@ -4,6 +4,7 @@ from collections import deque
 from funkyyak import grad, Differentiable
 from exact_rep import ExactRep
 from scipy.optimize import minimize
+from nn_utils import fill_parser
 
 
 def sgd(loss_fun, batches, N_iter, x, v, alphas, betas, record_learning_curve=False):
@@ -293,14 +294,8 @@ def sgd_parsed(L_grad, hypers, parser, callback=None, forward_pass_only=True):
     for i, alpha, beta in iters:
         g = L_grad(X.val, meta, i)
         if callback: callback(X.val, V.val, g, i)
-
-        # build alpha and beta vector
-        cur_alpha_vect = np.zeros(x0.size)
-        cur_beta_vect = np.zeros(x0.size)
-        for j, (_, (ixs, _)) in enumerate(parser.idxs_and_shapes.iteritems()):
-            cur_alpha_vect[ixs] = alpha[j]
-            cur_beta_vect[ixs] = beta[j]
-
+        cur_alpha_vect = fill_parser(parser, alpha)
+        cur_beta_vect  = fill_parser(parser, beta)
         V.mul(cur_beta_vect).sub((1.0 - cur_beta_vect) * g)
         X.add(cur_alpha_vect * V.val)
     x_final = X.val
@@ -318,11 +313,9 @@ def sgd_parsed(L_grad, hypers, parser, callback=None, forward_pass_only=True):
         for i, alpha, beta in iters[::-1]:
 
             # build alpha and beta vector
-            cur_alpha_vect = np.zeros(x0.size)
-            cur_beta_vect = np.zeros(x0.size)
+            cur_alpha_vect = fill_parser(parser, alpha)
+            cur_beta_vect  = fill_parser(parser, beta)
             for j, (_, (ixs, _)) in enumerate(parser.idxs_and_shapes.iteritems()):
-                cur_alpha_vect[ixs] = alpha[j]
-                cur_beta_vect[ixs] = beta[j]
                 d_alphas[i,j] = np.dot(d_x[ixs], V.val[ixs])
 
             X.sub(cur_alpha_vect * V.val)                        # Reverse position update
