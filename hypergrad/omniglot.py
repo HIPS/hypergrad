@@ -3,8 +3,12 @@ import numpy as np
 import pickle
 import os
 
+from hypergrad.util import dictslice
+
+
 NUM_CHARS = 55
 NUM_ALPHABETS = 50
+NUM_EXAMPLES = 15
 
 def datapath(fname):
     datadir = os.path.expanduser('~/repos/hypergrad/data/omniglot')
@@ -30,7 +34,49 @@ def load_data():
         cur_alphabet_idxs = np.where(alphabet_labels == i_alphabet)
         alphabets.append({'X' : images[cur_alphabet_idxs],
                           'T' : char_labels[cur_alphabet_idxs]})
+    return alphabets
 
+def load_data_split(num_chars, RS):
+    raw_data = load_data()
+    shuffled_data = [shuffle(alphabet, RS) for alphabet in raw_data]
+    data_split = zip(*[split(alphabet, num_chars) for alphabet in shuffled_data])
+    normalized_data = [subtract_mean(data_subset) for data_subset in data_split]
+    return normalized_data
+
+def split(alphabet, num_chars):
+    assert sum(num_chars) == NUM_EXAMPLES
+    cum_chars = np.cumsum(num_chars)
+    def select_dataset(count):
+        for i, N in enumerate(cum_chars):
+            if count < N: return i
+
+    labels = np.argmax(alphabet['T'], axis=1)
+    label_counts = [0] * NUM_CHARS
+    split_idxs = [[] for n in num_chars]
+    for i_dpt, label in enumerate(labels):
+        i_dataset = select_dataset(label_counts[label])
+        split_idxs[i_dataset].append(i_dpt)
+        label_counts[label] += 1
+
+    data_splits = []
+    for n, idxs in zip(num_chars, split_idxs):
+        data_splits.append(dictslice(alphabet, idxs))
+        totals = np.sum(data_splits[-1]['T'], axis=0)
+        assert np.all(np.logical_or(totals == 0, totals == n))
+
+    return data_splits
+    
+def shuffle(alphabet, RS):
+    N_rows, N_cols = alphabet['T'].shape
+    alphabet['T'] = alphabet['T'][:, RS.permutation(N_cols)]
+    return dictslice(alphabet, RS.permutation(N_rows))
+
+def subtract_mean(alphabets):
+    all_images = np.concatenate([alphabet['X'] for alphabet in alphabets], axis=0)
+    assert np.all(all_images >= 0) and np.all(all_images <= 1)
+    mean_img = np.mean(all_images, axis=0)
+    for alphabet in alphabets:
+        alphabet['X'] = alphabet['X'] - mean_img
     return alphabets
 
 def show_all_chars():
