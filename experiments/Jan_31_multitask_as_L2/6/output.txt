@@ -1,0 +1,34 @@
+==> /home/dougal/odyssey/tmp/jobdir_415663664991/stdout_1.txt <==
+Iter 0, full losses: train: 4.4539227132, valid: 4.45757829461
+Iter 10, full losses: train: 1.88932072283, valid: 2.96670631131
+Iter 20, full losses: train: 1.1905858228, valid: 2.58306451044
+Iter 30, full losses: train: 1.1820634247, valid: 2.52050440071
+Iter 40, full losses: train: 1.29320115482, valid: 2.51996402066
+
+==> /home/dougal/odyssey/tmp/jobdir_415663664991/stdout_2.txt <==
+Iter 0, full losses: train: 4.40239276643, valid: 4.40485338706
+Iter 10, full losses: train: 2.05136053521, valid: 2.98812783279
+Iter 20, full losses: train: 1.38073641981, valid: 2.601110516
+Iter 30, full losses: train: 1.38857202279, valid: 2.55312794305
+Iter 40, full losses: train: 1.49095626178, valid: 2.55257379606
+
+==> /home/dougal/odyssey/tmp/jobdir_415663664991/stdout_3.txt <==
+Iter 0, full losses: train: 4.31892515841, valid: 4.32015880193
+Iter 10, full losses: train: 2.33250090394, valid: 3.06869454627
+Iter 20, full losses: train: 1.71495269075, valid: 2.67048392162
+Iter 30, full losses: train: 1.72519489926, valid: 2.63047083877
+Iter 40, full losses: train: 1.80706527966, valid: 2.62703771721
+
+==> /home/dougal/odyssey/tmp/jobdir_415663664991/stdout_4.txt <==
+Iter 0, full losses: train: 4.18743473291, valid: 4.18757024945
+Iter 10, full losses: train: 2.88076476119, valid: 3.31058184817
+Iter 20, full losses: train: 2.36370956398, valid: 2.90181086432
+Iter 30, full losses: train: 2.28441986504, valid: 2.79820247429
+Iter 40, full losses: train: 2.23508590702, valid: 2.73752827415
+
+==> /home/dougal/odyssey/tmp/jobdir_415663664991/stdout_5.txt <==
+Iter 0, full losses: train: 4.0859187378, valid: 4.0836085476
+Iter 10, full losses: train: 3.43424584989, valid: 3.6004136932
+Iter 20, full losses: train: 2.9340965199, valid: 3.16405895253
+Iter 30, full losses: train: 2.63681248814, valid: 2.93270147286
+Iter 40, full losses: train: 2.42619858829, valid: 2.81932619082

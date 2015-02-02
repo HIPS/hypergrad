@@ -1,0 +1,6 @@
+Iter 0, full losses: train: 4.98609432981, valid: 4.98000956427, reg: 135.966360954
+Iter 10, full losses: train: 1.0222664803, valid: 2.83840045506, reg: 99.2417295056
+Iter 20, full losses: train: 0.577286636949, valid: 2.55127186996, reg: 50.7198828866
+Iter 30, full losses: train: 0.862128571538, valid: 2.50662482585, reg: 20.7531581452
+Iter 40, full losses: train: 1.16045164936, valid: 2.51493681795, reg: 7.59629378962
+
