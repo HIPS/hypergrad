@@ -7,19 +7,18 @@ from funkyyak import grad, kylist
 
 from hypergrad.data import load_data_dicts
 from hypergrad.nn_utils import make_nn_funs, VectorParser, logit, inv_logit
-from hypergrad.optimizers import adam, sgd_parsed
+from hypergrad.optimizers import bfgs, sgd_parsed
 from hypergrad.util import RandomState
 
 # ----- Fixed params -----
-layer_sizes = [784, 500, 150, 10]
+layer_sizes = [784, 50, 50, 50, 10]
 batch_size = 200
-N_iters = 50000/200
-N_classes = 10
-N_train = 50000
-N_valid = 10**3
-N_tests = 10**3
-N_batches = 5
-thin = np.ceil(N_iters/N_batches)
+N_iters = 100
+N_train = 10000
+N_valid = 10000
+N_tests = 10000
+N_checkpoint = 5
+thin = np.ceil(N_iters/N_checkpoint)
 
 # ----- Initial values of learned hyper-parameters -----
 init_log_L2_reg = -100.0
@@ -29,7 +28,6 @@ init_log_param_scale = -3.0
 init_rescales = 1.0
 
 # ----- Superparameters -----
-meta_alpha = 0.04
 N_meta_iter = 100
 
 seed = 0
@@ -52,9 +50,10 @@ def run():
     fixed_hyperparams = VectorParser()
     fixed_hyperparams['log_L2_reg'] = np.full(N_weight_types, init_log_L2_reg)
 
-    def primal_optimizer(hyperparam_vect, i_hyper):
+    def primal_optimizer(hyperparam_vect):
+        print "Primal optimization..."
         def indexed_loss_fun(w, L2_vect, i_iter):
-            rs = RandomState((seed, i_hyper, i_iter))  # Deterministic seed needed for backwards pass.
+            rs = RandomState((seed, i_iter))  # Deterministic seed needed for backwards pass.
             idxs = rs.randint(N_train, size=batch_size)
             return loss_fun(w, train_data['X'][idxs], train_data['T'][idxs], L2_vect)
 
@@ -67,7 +66,7 @@ def run():
                 learning_curve_dict['velocity_norm'].append(np.linalg.norm(v))
 
         cur_hyperparams = hyperparams.new_vect(hyperparam_vect)
-        rs = RandomState((seed, i_hyper))
+        rs = RandomState((seed))
         W0 = fill_parser(parser, np.exp(cur_hyperparams['log_param_scale']))
         W0 *= rs.randn(W0.size)
         alphas = np.exp(cur_hyperparams['log_alphas'])
@@ -77,15 +76,15 @@ def run():
                            parser, callback=callback)
         return W_opt, learning_curve_dict
 
-    def hyperloss(hyperparam_vect, i_hyper):
-        W_opt, _ = primal_optimizer(hyperparam_vect, i_hyper)
+    def hyperloss(hyperparam_vect):
+        W_opt, _ = primal_optimizer(hyperparam_vect)
         return loss_fun(W_opt, **train_data)
     hyperloss_grad = grad(hyperloss)
 
     meta_results = defaultdict(list)
     old_metagrad = [np.ones(hyperparams.vect.size)]
     def meta_callback(hyperparam_vect, i_hyper, metagrad=None):
-        x, learning_curve_dict = primal_optimizer(hyperparam_vect, i_hyper)
+        x, learning_curve_dict = primal_optimizer(hyperparam_vect)
         cur_hyperparams = hyperparams.new_vect(hyperparam_vect.copy())
         for field in cur_hyperparams.names:
             meta_results[field].append(cur_hyperparams[field])
@@ -104,7 +103,11 @@ def run():
               " Test Loss {3:2.4f} Test Err {4:2.4f}".format(
             i_hyper, meta_results['train_loss'][-1], meta_results['valid_loss'][-1],
             meta_results['train_loss'][-1], meta_results['test_err'][-1])
-    final_result = adam(hyperloss_grad, hyperparams.vect, meta_callback, N_meta_iter, meta_alpha)
+    #final_result = adam(hyperloss_grad, hyperparams.vect, meta_callback, N_meta_iter, meta_alpha)
+    def obj_and_grad(x):
+        return hyperloss(x), hyperloss_grad(x)  # TODO: Make this only make one call to hyperloss.
+    final_result = bfgs(obj_and_grad, hyperparams.vect,
+                        num_iters=N_meta_iter, callback=meta_callback)
     meta_callback(final_result, N_meta_iter)
     parser.vect = None # No need to pickle zeros
     return meta_results, parser
