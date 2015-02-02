@@ -7,7 +7,7 @@ from funkyyak import grad, kylist
 
 from hypergrad.data import load_data_dicts
 from hypergrad.nn_utils import make_nn_funs, VectorParser, logit, inv_logit
-from hypergrad.optimizers import adam, sgd_parsed
+from hypergrad.optimizers import simple_sgd, sgd_parsed
 from hypergrad.util import RandomState
 
 # ----- Fixed params -----
@@ -18,18 +18,17 @@ N_classes = 10
 N_train = 10000
 N_valid = 10000
 N_tests = 10000
-N_batches = 10
-thin = np.ceil(N_iters/N_batches)
+N_learning_checkpoint = 10
+thin = np.ceil(N_iters/N_learning_checkpoint)
 
 # ----- Initial values of learned hyper-parameters -----
 init_log_L2_reg = -100.0
 init_log_alphas = -1.0
 init_invlogit_betas = inv_logit(0.5)
 init_log_param_scale = -3.0
-init_rescales = 1.0
 
 # ----- Superparameters -----
-meta_alpha = 0.04
+meta_alpha = 0.004
 N_meta_iter = 100
 
 seed = 0
@@ -47,8 +46,6 @@ def run():
     hyperparams['log_param_scale'] = np.full(N_weight_types, init_log_param_scale)
     hyperparams['log_alphas']      = np.full((N_iters, N_weight_types), init_log_alphas)
     hyperparams['invlogit_betas']  = np.full((N_iters, N_weight_types), init_invlogit_betas)
-    for name in parser.names:
-        hyperparams[('rescale', name)] = np.full(N_iters, init_rescales)
     fixed_hyperparams = VectorParser()
     fixed_hyperparams['log_L2_reg'] = np.full(N_weight_types, init_log_L2_reg)
 
@@ -107,7 +104,7 @@ def run():
 
     initial_hypergrad = hyperloss_grad( hyperparams.vect, 0)
     parsed_init_hypergrad = hyperparams.new_vect(initial_hypergrad.copy())
-    final_result = adam(hyperloss_grad, hyperparams.vect, meta_callback, N_meta_iter, meta_alpha)
+    final_result = simple_sgd(hyperloss_grad, hyperparams.vect, meta_callback, N_meta_iter, meta_alpha)
     meta_callback(final_result, N_meta_iter)
     parser.vect = None # No need to pickle zeros
     return meta_results, parser, parsed_init_hypergrad
@@ -117,7 +114,48 @@ def plot():
 
     import matplotlib.pyplot as plt
     with open('results.pkl') as f:
-        results, parser, initial_hypergrad = pickle.load(f)
+        results, parser, parsed_init_hypergrad = pickle.load(f)
+
+    # ----- Alpha and beta initial hypergradients -----
+    fig = plt.figure(0)
+    fig.clf()
+    ax = fig.add_subplot(411)
+    for cur_results, name in zip(parsed_init_hypergrad['log_alphas'].T, parser.names):
+        if name[0] == 'weights':
+            ax.plot(cur_results, 'o-', label=name)
+    ax.set_ylabel('Step size Gradient', fontproperties='serif')
+    ax.set_xticklabels([])
+    ax.legend(numpoints=1, loc=1, frameon=False, bbox_to_anchor=(1.0, 0.5),
+              prop={'family':'serif', 'size':'12'})
+
+    ax = fig.add_subplot(412)
+    for cur_results, name in zip(parsed_init_hypergrad['invlogit_betas'].T, parser.names):
+        if name[0] == 'weights':
+            ax.plot(cur_results, 'o-', label=name)
+    ax.set_xlabel('Learning Iteration', fontproperties='serif')
+    ax.set_ylabel('Momentum Gradient', fontproperties='serif')
+
+    ax = fig.add_subplot(413)
+    for cur_results, name in zip(parsed_init_hypergrad['log_alphas'].T, parser.names):
+        if name[0] == 'biases':
+            ax.plot(cur_results, 'o-', label=name)
+    ax.set_ylabel('Step size Gradient', fontproperties='serif')
+    ax.set_xticklabels([])
+    ax.legend(numpoints=1, loc=1, frameon=False, bbox_to_anchor=(1.0, 0.5),
+              prop={'family':'serif', 'size':'12'})
+
+    ax = fig.add_subplot(414)
+    for cur_results, name in zip(parsed_init_hypergrad['invlogit_betas'].T, parser.names):
+        if name[0] == 'biases':
+            ax.plot(logit(cur_results), 'o-', label=name)
+    ax.set_xlabel('Learning Iteration', fontproperties='serif')
+    ax.set_ylabel('Momentum Gradient', fontproperties='serif')
+
+    fig.set_size_inches((6,8))
+    #plt.show()
+    plt.savefig('initial_gradient.png')
+    plt.savefig('initial_gradient.pdf', pad_inches=0.05, bbox_inches='tight')
+
 
     # ----- Nice versions of Alpha and beta schedules for paper -----
     fig = plt.figure(0)
