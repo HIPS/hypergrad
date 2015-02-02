@@ -259,6 +259,12 @@ Gradient-based optimizers can perform poorly when the surface being optimized is
 Small wiggles cause both the direction and size of the gradient to be less correlated with the medium-scale shape of the function.
 When do we expect the training loss of a neural network to be wiggly with respect to hyperparameters?
 
+\textbf{The Vanishing Gradient Problem}
+Training hyperparameters whose dependence on the final objective depends on many hundreds of iterations by gradient descent raises several issues.
+\citet{bengio1994learning} noted that "learning long-term dependencies with gradient descent is difficult."
+
+Exploding-gradient problem~\cite{pascanu2012understanding}
+
 \paragraph{The edge of chaos}
 \citet*[Chapter 4]{pearlmutter1996investigation} discusses the chaotic behavior of gradient descent with momentum when training learning neural networks.
 
@@ -363,48 +369,56 @@ Figure \ref{fig:nn meta-learning curves} shows the difference between training, 
 
 
 
+\section{Limitations}
 
-\section{Related Work}
+Can't take gradients w.r.t. discrete parameters.
 
-\subsection{Gradient-Based Training of Hyperparameters}
-\textbf{Neural Nets}
+Dynamics must be somewhat reversible.
+
+
+\section{Related work}
+
+\subsection{Gradient-based tuning of hyperparameters}
+
+\paragraph{Neural networks}
 \citet{bengio2000gradient, larsen1998adaptive} identified the benefits of using gradients to optimize the cross-validation loss with respect to neural net hyperparameters, and showed several simple proofs-of-concept.
-However, they were only able to compute gradients of hyperparameters controlling fixed, known functions of the weights, and so could not optimize parameters such as step-sizes or initialization distributions.
+However, they were only able to compute gradients of hyperparameters that controlled fixed, known functions of the weights, and so could not optimize parameters such as step-sizes or initialization distributions.
 
-\textbf{Support Vector Machines}
+\paragraph{Support vector machines}
 \citet{chapelle2002choosing} point out that the lack of gradients in the support vector machine (SVM) objective limits the number of kernel parameters, usually to one or two.
 They introduced a differentiable bound on the SVM loss in order to be able to compute derivatives with respect to hundreds of hyperparameters, including weighting parameters for each input dimension in the kernel.
 However, this bound was not tight. [Need to have another read to figure out limitations of their approach]
 
-\textbf{Bayesian Methods}
-for Bayesian methods that have a closed-form marginal likelihood, it is already the case that gradients are available with respect to an many hyperparameters as desired.
+\paragraph{Bayesian methods}
+For Bayesian methods that have a closed-form marginal likelihood, gradients w.r.t. all continuous hyperparameters are usually available.
 for example, this sort of flexibility has been used to construct complex, custom kernels for Gaussian process models~\cite{rasmussen38gaussian}[Chapter 5].
 %or to train the parameters of Markov random fields \cite{samuel2012gradient}
-Variational inference also allow the tuning of hyperparameters in neural-network like models such as deep Gaussian processes~\citep{deepGPVar14}.
+Variational inference also allows gradient-based tuning of hyperparameters in Bayesian neural-network models such as deep Gaussian processes~\citep{deepGPVar14}.
 However, these methods do not enable the tuning of the parameters which themselves tune the marginal likelihood.
 
-\subsection{Reducing the Number of Hyperparameters}
-Several papers have addressed the problem of adapting learning parameters by attempting to set them automatically, or lessen sensitivity to their exact values, such as \cite{schaul2012no, Adam14, Adasecant14, Hotswap14}.
+\subsection{Reducing the number of hyperparameters}
+Several recent papers have attempted to set training hyper-parameters automatically, or lessen sensitivity to their exact values~\cite{schaul2012no, Adam14, Adasecant14, Hotswap14}.
 However, these methods all retain at least a small number of hyperparameters.
 In principle, the method we propose here can tune any remaining parameters.
 More importantly, having access to hyper-gradients might make the introduction of new, difficult-to-tune hyperparameters worthwhile.
 
-\subsection{Gradients of Iterative Procedures}
+\subsection{Gradients with respect to Markov chain parameters}
+\citet{Bridging14} tune the step-size and mass-matrix parameters of Hamiltonian Monte Carlo by chaining gradients from a lower bound on the marginal likelihood through several iterations of leapfrog dynamics.
+Because they used only a small number of steps, all intermediate values could be stored naively.
+Our reversible-dynamics memory-tape approach could be used to dramatically extend the number of HMC iterations used in this approach.
 
-\citet{Bridging14} tune the step-size and mass-matrix parameters of Hamiltonian Monte Carlo by chaining gradients back from a lower bound on the marginal likelihood.
-Because their application required a small, fixed number of steps of relatively few parameters, they did not require the memory-tape approach presented in this paper.
+\section{Extensions and future work}
 
-\textbf{The Vanishing Gradient Problem}
-Training hyperparameters whose dependence on the final objective depends on many hundreds of iterations by gradient descent raises several issues.
-\citet{bengio1994learning} noted that "learning long-term dependencies with gradient descent is difficult."
-
-Exploding-gradient problem~\cite{pascanu2012understanding}
-
-\section{Extensions and Future Work}
-
+\paragraph{Long short-term memory}
 What other types of computation have a similar flavour to gradient descent with momentum?
-Long Short-Term Memory has a similar flavour, as do the computations performed by Neural Turing Machines.
+Long Short-Term Memory[cite] has a similar flavour, as do the computations performed by Neural Turing Machines[cite].
 Reversible Learning might allow gradient (not hyper-gradient) computations with respect to very long computations performed by either architecture.
+
+\paragraph{Model-based meta-optimization with gradients}
+
+\paragraph{Reversible learning using better methods than SGD}
+
+like RMSprop
 
 \section{Conclusion}
 
