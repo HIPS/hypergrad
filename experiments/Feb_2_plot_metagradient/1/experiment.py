@@ -20,15 +20,15 @@ N_valid = 10000
 N_tests = 10000
 N_learning_checkpoint = 1
 thin = np.ceil(N_iters/N_learning_checkpoint)
+init_log_L2_reg = -100.0
 
 # ----- Initial values of learned hyper-parameters -----
-init_log_L2_reg = -100.0
 init_log_alphas = -1.0
 init_invlogit_betas = inv_logit(0.5)
 init_log_param_scale = -3.0
 
 # ----- Superparameters -----
-N_meta_iter = 10
+N_meta_iter = 100
 seed = 0
 
 def fill_parser(parser, items):
@@ -180,7 +180,7 @@ def plot():
 
 
 if __name__ == '__main__':
-    #results = run()
-    #with open('results.pkl', 'w') as f:
-    #    pickle.dump(results, f)
+    results = run()
+    with open('results.pkl', 'w') as f:
+        pickle.dump(results, f)
     plot()

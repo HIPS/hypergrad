@@ -147,7 +147,7 @@ def plot():
     ax = fig.add_subplot(414)
     for cur_results, name in zip(parsed_init_hypergrad['invlogit_betas'].T, parser.names):
         if name[0] == 'biases':
-            ax.plot(logit(cur_results), 'o-', label=name)
+            ax.plot(cur_results, 'o-', label=name)
     ax.set_xlabel('Learning Iteration', fontproperties='serif')
     ax.set_ylabel('Momentum Gradient', fontproperties='serif')
 
@@ -308,7 +308,7 @@ def plot():
     plt.savefig('scale_and_reg.png')
 
 if __name__ == '__main__':
-    results = run()
-    with open('results.pkl', 'w') as f:
-        pickle.dump(results, f)
+    #results = run()
+    #with open('results.pkl', 'w') as f:
+    #    pickle.dump(results, f)
     plot()
