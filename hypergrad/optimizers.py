@@ -255,7 +255,7 @@ def sgd_meta_only(L_grad, meta, x0, alpha, beta, N_iters,
                   callback=None, forward_pass_only=True):
     X, V = ExactRep(x0), ExactRep(np.zeros(x0.size))
     for i in range(N_iters):
-        g = L_grad(X.val, meta, i)
+        g = L_grad(X.val, meta, i, record_results=True)
         if callback: callback(X.val, V.val, g, i)
         V.mul(beta).sub((1.0 - beta) * g)
         X.add(alpha * V.val)
