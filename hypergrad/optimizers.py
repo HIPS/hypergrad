@@ -250,7 +250,6 @@ def sgd4(L_grad, hypers, callback=None, forward_pass_only=True):
 
 sgd4 = Differentiable(sgd4, partial(sgd4, forward_pass_only=False))
 
-
 def sgd_meta_only(L_grad, meta, x0, alpha, beta, N_iters,
                   callback=None, forward_pass_only=True):
     X, V = ExactRep(x0), ExactRep(np.zeros(x0.size))
@@ -260,10 +259,8 @@ def sgd_meta_only(L_grad, meta, x0, alpha, beta, N_iters,
         V.mul(beta).sub((1.0 - beta) * g)
         X.add(alpha * V.val)
     x_final = X.val
-
     if forward_pass_only:
         return x_final
-
     def hypergrad(outgrad):
         d_x = outgrad
         d_v, d_meta = np.zeros(d_x.shape), np.zeros(meta.shape)
@@ -280,12 +277,9 @@ def sgd_meta_only(L_grad, meta, x0, alpha, beta, N_iters,
             d_v    *= beta
         assert np.all(ExactRep(x0).val == X.val)
         return d_meta
-
     return x_final, [None, hypergrad]
-
 sgd_meta_only = Differentiable(sgd_meta_only,
                                partial(sgd_meta_only, forward_pass_only=False))
-
 
 def sum_args(fun, arglist):
     def sum_fun(*args):

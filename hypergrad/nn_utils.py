@@ -48,6 +48,9 @@ class VectorParser(object):
         new_parser.vect = None
         return new_parser
 
+    def as_dict(self):
+        return {k : self[k] for k in self.names}
+
     @property
     def names(self):
         return self.idxs_and_shapes.keys()
