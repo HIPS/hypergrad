@@ -18,7 +18,7 @@ N_classes = 10
 N_train = 10000
 N_valid = 10000
 N_tests = 10000
-N_batches = 1
+N_batches = 10
 thin = np.ceil(N_iters/N_batches)
 
 # ----- Initial values of learned hyper-parameters -----
@@ -30,7 +30,7 @@ init_rescales = 1.0
 
 # ----- Superparameters -----
 meta_alpha = 0.04
-N_meta_iter = 20
+N_meta_iter = 100
 
 seed = 0
 
@@ -104,17 +104,20 @@ def run():
               " Test Loss {3:2.4f} Test Err {4:2.4f}".format(
             i_hyper, meta_results['train_loss'][-1], meta_results['valid_loss'][-1],
             meta_results['train_loss'][-1], meta_results['test_err'][-1])
+
+    initial_hypergrad = hyperloss_grad( hyperparams.vect, 0)
+    parsed_init_hypergrad = hyperparams.new_vect(initial_hypergrad.copy())
     final_result = adam(hyperloss_grad, hyperparams.vect, meta_callback, N_meta_iter, meta_alpha)
     meta_callback(final_result, N_meta_iter)
     parser.vect = None # No need to pickle zeros
-    return meta_results, parser
+    return meta_results, parser, parsed_init_hypergrad
 
 
 def plot():
 
     import matplotlib.pyplot as plt
     with open('results.pkl') as f:
-        results, parser = pickle.load(f)
+        results, parser, initial_hypergrad = pickle.load(f)
 
     # ----- Nice versions of Alpha and beta schedules for paper -----
     fig = plt.figure(0)
@@ -267,7 +270,7 @@ def plot():
     plt.savefig('scale_and_reg.png')
 
 if __name__ == '__main__':
-    #results = run()
-    #with open('results.pkl', 'w') as f:
-    #    pickle.dump(results, f)
+    results = run()
+    with open('results.pkl', 'w') as f:
+        pickle.dump(results, f)
     plot()
