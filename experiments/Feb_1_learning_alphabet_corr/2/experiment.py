@@ -123,6 +123,9 @@ def make_transform(N_scripts, corr):
             transform_parser[i_layer] = transform_mat
     return transform_parser
 
+def T_to_covar(transform_dict):
+    return {i : np.dot(t.T, t) for i, t in transform_dict.iteritems()}
+
 def plot():
     import matplotlib.pyplot as plt
     import matplotlib as mpl
@@ -140,20 +143,28 @@ def plot():
     ax.legend(loc=1, frameon=False)
     plt.savefig('performance.png')
 
+    # Plotting learned transforms
+    step_size = 0.2
+    T_baseline = make_transform(N_scripts, script_corr_init).as_dict()
+    T_learned  = {i : T_baseline[i] + step_size * grad_transform_dict[i] for i in T_baseline.keys()}
+    covar_baseline = T_to_covar(T_baseline)
+    covar_learned  = T_to_covar(T_learned)
+    all_baseline = np.concatenate([covar_baseline[i] for i in range(N_layers)], axis=0)
+    all_learned  = np.concatenate([covar_learned[i]  for i in range(N_layers)], axis=0)
+    all_img = np.concatenate((all_baseline, all_learned), axis=1)
+    all_img = np.minimum(np.maximum(all_img, -0.05), 0.05)
     fig = plt.figure(0)
     fig.clf()
     fig.set_size_inches((6,8))
-    for i in range(3):
-        image = grad_transform_dict[i]
-        img_min, img_max = (-0.5, 0.5)
-        image = np.minimum(np.maximum(image, img_min), img_max)
-        ax = fig.add_subplot(3,1,i)
-        ax.imshow(image, cmap = mpl.cm.binary)
-        ax.set_title('Layer {0}'.format(i))
-        ax.set_xticks([])
-        ax.set_yticks([])
+    ax = fig.add_subplot(111)
+    ax.imshow(all_img, cmap = mpl.cm.binary)
+    ax.set_title('Original / learned')
+    ax.set_ylabel('Layer number')
+    ax.set_xticks([])
+    ax.set_yticks([])
+    plt.savefig('learned_covar.png')
 
-    plt.savefig('Grad_transforms.png')
+
 
 if __name__ == '__main__':
     # results = run()
