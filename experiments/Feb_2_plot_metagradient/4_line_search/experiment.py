@@ -207,7 +207,7 @@ def plot():
     ax.set_xlabel('Meta iter number')
     ax.set_ylabel('Meta-gradient Magnitude')
     ax.legend(loc=1, frameon=False)
-
+    plt.show()
     plt.savefig('learning_curves.png')
 
     # ----- Learning curve info -----
@@ -233,6 +233,7 @@ def plot():
     ax.set_xlabel('Epoch number')
     ax.set_title('Velocity norm')
     ax.legend(loc=1, frameon=False)
+    #plt.show()
     plt.savefig('extra_learning_curves.png')
 
     # ----- Alpha and beta schedules -----
@@ -268,7 +269,7 @@ def plot():
     plt.savefig('scale_and_reg.png')
 
 if __name__ == '__main__':
-    results = run()
-    with open('results.pkl', 'w') as f:
-        pickle.dump(results, f)
+    #results = run()
+    #with open('results.pkl', 'w') as f:
+    #    pickle.dump(results, f)
     plot()
