@@ -127,6 +127,7 @@ def make_nn_funs(layer_sizes):
 
 
 def plot_images(images, ax, ims_per_row=5, padding=5, digit_dimensions=(28,28)):
+    """iamges should be a (N_images x pixels) matrix."""
     N_images = images.shape[0]
     N_rows = np.ceil(float(N_images) / ims_per_row)
     concat_images = np.zeros(((digit_dimensions[0] + padding) * N_rows + padding,

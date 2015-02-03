@@ -13,3 +13,5 @@ paper/*.pdf
 *.tex.swp
 data/omniglot/*
 data/mnist/*
+experiments/Feb_3_nn_ard/2_only_ard/results.pkl
+experiments/Feb_3_nn_ard/1/results.pkl
