@@ -14,7 +14,8 @@ from hypergrad.odyssey import omap
 
 VERBOSE = True
 # ----- Fixed params -----
-layer_sizes = [784, 400, 200, 55]
+layer_sizes = [784, 300, 200, 55]
+# layer_sizes = [784, 400, 200, 55]
 N_layers = len(layer_sizes) - 1
 N_scripts = 50
 N_iters = 50
@@ -28,7 +29,7 @@ log_L2_init = -4.0
 script_corr_init = 0.5
 N_meta_iter = 10
 meta_alpha = 0.01
-line_search_dists = np.linspace(-3, 3, 10)
+line_search_dists = np.linspace(-1, 2, 16)
 
 # # TEST RUN:
 # N_scripts = 5
@@ -123,8 +124,12 @@ def make_transform(N_scripts, corr):
             transform_parser[i_layer] = transform_mat
     return transform_parser
 
-def T_to_covar(transform_dict):
-    return {i : np.dot(t, t.T) for i, t in transform_dict.iteritems()}
+def T_to_covar(t):
+    return np.dot(t, t.T)
+
+def covar_to_corr(A):
+    A_std = np.sqrt(np.diag(A))
+    return (A / (A_std[:, None] * A_std[None, :]))
 
 def plot():
     import matplotlib.pyplot as plt
@@ -147,15 +152,21 @@ def plot():
     # Plotting learned transforms
     step_size = 0.2
     T_baseline = make_transform(N_scripts, script_corr_init).as_dict()
+    print grad_transform_dict[0]
     T_learned  = {i : T_baseline[i] + step_size * grad_transform_dict[i] for i in T_baseline.keys()}
-    covar_baseline = T_to_covar(T_baseline)
-    covar_learned  = T_to_covar(T_learned)
+
+    covar_baseline = dictmap(T_to_covar, T_baseline)
+    covar_learned  = dictmap(T_to_covar, T_learned)
+
+    covar_baseline = dictmap(covar_to_corr, covar_baseline)
+    covar_learned  = dictmap(covar_to_corr, covar_learned)
 
     covar_baseline = dictmap(np.abs, covar_baseline)
     covar_learned  = dictmap(np.abs, covar_learned)
 
     # Blockify:
     perm = find_blockifying_perm(covar_learned[0], 3, 3)
+    print np.diag(covar_baseline[0])
     def permute_array(A):
         return A[np.ix_(perm, perm)]
 
@@ -165,7 +176,7 @@ def plot():
     all_baseline = np.concatenate([covar_baseline[i] for i in range(N_layers)], axis=0)
     all_learned  = np.concatenate([covar_learned[i]  for i in range(N_layers)], axis=0)
     all_img = np.concatenate((all_baseline, all_learned), axis=1)
-    all_img = np.minimum(np.maximum(all_img, 0.0), 0.05)
+    all_img = np.minimum(np.maximum(all_img, 0.0), 0.2)
     fig = plt.figure(0)
     fig.clf()
     fig.set_size_inches((6,8))
