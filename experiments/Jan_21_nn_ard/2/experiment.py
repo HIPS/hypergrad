@@ -5,7 +5,7 @@ import numpy as np
 import numpy.random as npr
 import pickle
 
-from hypergrad.data import one_hot, load_data_subset
+from hypergrad.mnist import load_data_subset
 from hypergrad.nn_utils import make_nn_funs, BatchList, plot_mnist_images, WeightsParser
 from hypergrad.optimizers import sgd2
 
@@ -29,6 +29,7 @@ meta_stepsize = 1000
 N_meta_iter = 50
 meta_L2_reg = 0.01
 
+one_hot = lambda x, K : np.array(x[:,None] == np.arange(K)[None, :], dtype=int)
 
 def run():
     (train_images, train_labels), (val_images, val_labels), (test_images, test_labels) \
@@ -119,12 +120,39 @@ def plot():
     plot_mnist_images(images, ax, ims_per_row=10)
     fig.set_size_inches((8,12))
 
-    plt.savefig("/tmp/fig.png")
     plt.savefig("fig.png")
-    plt.show()
+
+
+    fig = plt.figure(0)
+    fig.clf()
+    N_figs = 1
+
+    ax = fig.add_subplot(N_figs, 1, 1)
+    #ax.set_title("Weights")
+    images = all_weights[-1].T
+    plot_mnist_images(images, ax, ims_per_row=10)
+    fig.set_size_inches((8,12))
+
+    fig.tight_layout()
+    plt.savefig("weights.png")
+    plt.savefig("weights.pdf", pad_inches=0.05, bbox_inches='tight')
+
+    fig = plt.figure(0)
+    fig.clf()
+    N_figs = 1
+
+    ax = fig.add_subplot(N_figs, 1, 1)
+    #ax.set_title("Per-weight L2 penalty")
+    images = all_L2[-1].T
+    plot_mnist_images(images, ax, ims_per_row=10)
+    fig.set_size_inches((8,12))
+
+    fig.tight_layout()
+    plt.savefig("penalties.png")
+    plt.savefig("penalties.pdf", pad_inches=0.05, bbox_inches='tight')
 
 
 if __name__ == '__main__':
-    results = run()
-    with open('results.pkl', 'w') as f: pickle.dump(results, f)
+    #results = run()
+    #with open('results.pkl', 'w') as f: pickle.dump(results, f)
     plot()
