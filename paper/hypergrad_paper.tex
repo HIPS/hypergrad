@@ -279,7 +279,7 @@ Lower learning rates don't reach convergence before training ends.
 \begin{figure}[h!]
 \vskip 0.2in
 \begin{center}
-\centerline{\includegraphics[width=\columnwidth]{../experiments/Jan_14_learning_rate_wiggliness/1/fig.png}}
+%\includegraphics[width=\columnwidth]{../experiments/Jan_14_learning_rate_wiggliness/1/fig.png}
 \caption{When the learning rate is too high, the gradient becomes uninformative about the medium-term behavior of the function.
 The step sizes which lead to chaotic behavior are only slightly larger than the optimal step sizes.}
 \label{fig:chaos}
@@ -301,7 +301,7 @@ The step sizes which lead to chaotic behavior are only slightly larger than the 
 
 \section{Results}
 
-\subsection{Optimizing Step-size and Momentum Schedules}
+\subsection{Optimizing Optimization Parameters}
 
 Modern neural net training procedures often employ various heuristics to set learning rate schedules, or set their shape using one or two hyperparameters set by cross-validation \citep{dahl2014multi}, \citep{sutskever2013importance}
 
@@ -321,7 +321,9 @@ This prevents the learning schedules from depending on quirks of the initial ran
 \vskip -0.2in
 \end{figure} 
 
-
+\paragraph{Weight initialization scales}
+We also optimized the scale of random weight initialization separately for each layer, and separately for weights and biases in each layer.
+Results are shown in figure \ref{fig:nn weight init scales}.
 
 \begin{figure}[h!]
 \vskip 0.2in
@@ -330,12 +332,24 @@ This prevents the learning schedules from depending on quirks of the initial ran
 \caption{\emph{Top:} Meta-training curves for the initialization scales of different types of weights.
 Meta-learning sets the weight distribution of the first layer weights to be very small, and the second layer weights to be large.
 Only one layer needs to be non-zero at initialization in order to break symmetry.}
-\label{fig:nn meta-learning curves}
+\label{fig:nn weight init scales}
 \end{center}
 \vskip -0.2in
 \end{figure} 
 
 It would not be straightforward to learn dropout regularization parameters, or layer widths.
+
+\subsection{Automatic Relevance Determination}
+
+\begin{figure}[h!]
+\begin{center}
+\includegraphics[width=\columnwidth]{../experiments/Jan_21_nn_ard/2/weights.pdf}
+\includegraphics[width=\columnwidth]{../experiments/Jan_21_nn_ard/2/penalties.pdf}
+\caption{\emph{Top:} Filters learned to classify MNIST in logistic regression.
+\emph{Bottom:} L2 regularization hyperparameters for each weight..}
+\label{fig:logistic ard}
+\end{center}
+\end{figure} 
 
 \subsubsection{Overfitting}
 
@@ -343,13 +357,11 @@ How many hyperparameters can we fruitfully optimize?
 The main limitation seems to be overfitting.
 
 \begin{figure}[h!]
-\vskip 0.2in
 \begin{center}
 \centerline{\includegraphics[width=\columnwidth]{../experiments/Jan_28_training_schedule/4_training_loss_nn/learning_curves.png}}
 \caption{\emph{Top:} Learning curves.  \emph{Middle:} Meta-learning curves. }
 \label{fig:nn meta-learning curves}
 \end{center}
-\vskip -0.2in
 \end{figure} 
 
 Figure \ref{fig:nn meta-learning curves} shows the difference between training, validation and test-set error when optimizing 
@@ -358,13 +370,11 @@ Figure \ref{fig:nn meta-learning curves} shows the difference between training, 
 \subsection{Learning to Learn Languages}
 
 \begin{figure}[h!]
-\vskip 0.2in
 \begin{center}
 \centerline{\includegraphics[width=\columnwidth]{../experiments/Jan_27_first_omniglot_expt/random_images.png}}
 \caption{Example languages drawn from the Omniglot dataset.}
 \label{fig:omniglot}
 \end{center}
-\vskip -0.2in
 \end{figure} 
 
 
