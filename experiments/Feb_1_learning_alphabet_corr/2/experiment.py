@@ -124,7 +124,7 @@ def make_transform(N_scripts, corr):
     return transform_parser
 
 def T_to_covar(transform_dict):
-    return {i : np.dot(t.T, t) for i, t in transform_dict.iteritems()}
+    return {i : np.dot(t, t.T) for i, t in transform_dict.iteritems()}
 
 def plot():
     import matplotlib.pyplot as plt
