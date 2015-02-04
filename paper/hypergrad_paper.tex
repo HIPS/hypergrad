@@ -75,7 +75,7 @@ These gradients allow us to optimize thousands of hyperparameters, including ste
 
 
 
-\section{Meta-Optimization}
+\paragraph{Meta-Optimization}
 
 The current state-of-the-art for hyperparameter optimization is achieved by model-based, gradient-free methods~\cite{snoek2012practical, bergstra2011algorithms, BerYamCox13, HutHooLey11}.
 These methods are able to effectively exploit the information learned through evaluations of the objective.
@@ -301,11 +301,13 @@ The step sizes which lead to chaotic behavior are only slightly larger than the 
 
 \section{Experiments}
 
-Because we have access to hyper-gradients, we can optimize
+Typically only a few hyperparameters are optimized - typically 10-20 parameters including a global weight initialization scale, learning rate and momentum, along with various architecture choices [cite Dalh QSAR paper].
+Hyper-gradients allow us to optimize any continuous parameter upon which training depends.
 
 
 
-\subsection{Optimizing Optimization Parameters}
+
+\subsection{Optimizing optimization parameters}
 
 Modern neural net training procedures often employ various heuristics to set learning rate schedules, or set their shape using one or two hyperparameters set by cross-validation \citep{dahl2014multi}, \citep{sutskever2013importance}
 
@@ -315,7 +317,7 @@ Each primal iteration uses a different set of random initial weights, as well as
 This prevents the learning schedules from depending on quirks of the initial random initialization.
 
 We refined Algorithms \ref{alg:sgd} and \ref{alg:reverse-sgd} to allow a separate step-size and momentum schedule for each type of parameter in each layer of layer.
-
+%
 \begin{figure}[h!]
 \vskip 0.2in
 \begin{center}
@@ -327,13 +329,15 @@ The optimized schedule starts by taking large steps only in the topmost layer, t
 \end{center}
 \vskip -0.2in
 \end{figure} 
-
+%
+Figure {fig:optimal schedule} shows the results of optimizing learning rate schedules separately for each layer of a deep neural network.
+The network had 4 layers, of size $[784, 50, 50, 50]$.
 
 \begin{figure}[h!]
 \vskip 0.2in
 \begin{center}
 Initial hyper-gradient\\
-\includegraphics[width=\columnwidth]{../experiments/Feb_2_plot_metagradient/1/schedule_gradients_small.pdf}
+\includegraphics[width=\columnwidth]{../experiments/Feb_3_training_schedules/5_initial_gradient/schedules_small.pdf}
 \caption{The initial gradient of the cross-validation loss with respect to the training schedule, averaged over 100 random weight initializations and mini batches.}
 \label{fig:optimal schedule}
 \end{center}
@@ -362,7 +366,15 @@ Only one layer needs to be non-zero at initialization in order to break symmetry
 
 It would not be straightforward to learn dropout regularization parameters, or layer widths.
 
-\subsection{Automatic Relevance Determination}
+\subsection{Optimizing regularization parameters}
+
+Regularization is often important for generalization performance is .
+Typically, a single parameter controls a single L2 norm or sparsity penalty on the entire parameter vector of a neural network.
+Because different types of parameters in different layers play different roles, it is reasonable to include a separate regularization hyperparameter for each parameter type.
+
+\paragraph{Automatic relevance determination}
+We can take this idea even further, and introduce a separate regularization penalty for each individual parameter in a neural network.
+This
 
 \begin{figure}[h!]
 \begin{center}
@@ -375,7 +387,13 @@ It would not be straightforward to learn dropout regularization parameters, or l
 \end{figure} 
 
 
-\subsection{Optimizing Data}
+\subsection{Optimizing data}
+
+We can use Algorithm \ref{alg:reverse-sgd} to take the gradient with respect to any parameter the training procedure depends on.
+This includes the training data, which can be viewed as just another set of hyper-parameters.
+By chaining gradients through transformations of the data, we can compute gradients of the validation objective with respect to data preprocessing, weighting, or augmentation procedures.
+
+We demonstrate a simple proof-of-concept where the \emph{entire training set} is learned by gradient descent.
 
 \begin{figure}[h!]
 \begin{center}
