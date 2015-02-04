@@ -398,8 +398,21 @@ The main limitation seems to be overfitting.
 
 \begin{figure}[h!]
 \begin{center}
-\centerline{\includegraphics[width=\columnwidth]{../experiments/Jan_27_first_omniglot_expt/random_images.png}}
+\includegraphics[width=\columnwidth, clip, trim=5cm 23cm 5cm 1cm]{../experiments/Feb_1_learning_alphabet_corr/5/all_alphabets.png}
 \caption{Example character sets in the Omniglot dataset.}
+\label{fig:omniglot}
+\end{center}
+\end{figure} 
+
+\begin{figure}[h!]
+\begin{center}
+\begin{tabular}{ccc}
+Independent & Learned & Full \\
+\hspace{-1em}\includegraphics[width=0.31 \columnwidth]{../experiments/Feb_1_learning_alphabet_corr/5/covar_eye.pdf} &
+\hspace{-1em}\includegraphics[width=0.31 \columnwidth]{../experiments/Feb_1_learning_alphabet_corr/5/covar_learned_toplayer.pdf} &
+\hspace{-1em}\includegraphics[width=0.31 \columnwidth]{../experiments/Feb_1_learning_alphabet_corr/5/covar_full.pdf}
+\end{tabular}
+\caption{Learned covariances between neural nets trained on different alphabets.}
 \label{fig:omniglot}
 \end{center}
 \end{figure} 
