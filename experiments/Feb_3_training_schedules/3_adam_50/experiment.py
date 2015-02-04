@@ -294,25 +294,35 @@ def plot():
     # ----- Init scale and L2 reg -----
     print "Plotting initialization distributions and regularization..."
     fig.clf()
-    ax = fig.add_subplot(211)
-    ax.set_title('Init scale learning curves')
+    ax = fig.add_subplot(111)
+    #ax.set_title('Init scale learning curves')
     for i, y in enumerate(zip(*results['log_param_scale'])):
         if parser.names[i][0] == 'weights':
-            ax.plot(y, 'o-', label=nice_layer_name(parser.names[i]))
-    ax.set_xlabel('Meta iter number')
-    ax.set_ylabel('Log param scale')
-    ax.legend(loc=1, frameon=False)
+            ax.plot(np.exp(y), 'o-', label=layer_name(parser.names[i]))
+    ax.set_xlabel('Meta iteration')
+    ax.set_ylabel('Initial scale')
+    #ax.set_yscale('log')
+    #ax.legend(loc=1, frameon=False)
 
-    ax = fig.add_subplot(212)
-    ax.set_title('Init scale learning curves')
+    fig.set_size_inches((2.5,2.5))
+    #ax.legend(numpoints=1, loc=1, frameon=False, prop={'size':'12'})
+    plt.savefig('init_weight_learning_curve.pdf', pad_inches=0.05, bbox_inches='tight')
+
+    fig.clf()
+    ax = fig.add_subplot(111)
+    #ax.set_title('Init scale learning curves')
     for i, y in enumerate(zip(*results['log_param_scale'])):
         if parser.names[i][0] == 'biases':
-            ax.plot(y, 'o-', label=nice_layer_name(parser.names[i]))
-    ax.set_xlabel('Meta iter number')
-    ax.set_ylabel('Log param scale')
-    ax.legend(loc=1, frameon=False)
+            ax.plot(np.exp(y), 'o-', label=layer_name(parser.names[i]))
+    ax.set_xlabel('Meta iteration')
+    #ax.set_ylabel('Scale')
+    #ax.set_yscale('log')
+    #ax.set_ylabel('Log param scale')
+    fig.set_size_inches((2.5,2.5))
+    ax.legend(numpoints=1, loc=0, frameon=False, prop={'size':'10'})
+    plt.savefig('init_bias_learning_curve.pdf', pad_inches=0.05, bbox_inches='tight')
 
-    plt.savefig('scale_and_reg.png')
+
 
 if __name__ == '__main__':
     #results = run()

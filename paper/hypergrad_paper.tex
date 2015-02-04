@@ -329,9 +329,13 @@ Results are shown in figure \ref{fig:nn weight init scales}.
 \begin{figure}[h!]
 \vskip 0.2in
 \begin{center}
-\centerline{\includegraphics[width=\columnwidth]{../experiments/Jan_28_training_schedule/4_training_loss_nn/scale_and_reg.png}}
+\begin{tabular}{cc}
+Weights & Biases \\
+\hspace{-1em}\includegraphics[width=0.5\columnwidth, height=0.5\columnwidth]{../experiments/Feb_3_training_schedules/3_adam_50/init_weight_learning_curve.pdf} &
+\hspace{-1em}\includegraphics[width=0.5\columnwidth, height=0.5\columnwidth]{../experiments/Feb_3_training_schedules/3_adam_50/init_bias_learning_curve.pdf} \\
+\end{tabular}
 \caption{\emph{Top:} Meta-training curves for the initialization scales of different types of weights.
-Meta-learning sets the weight distribution of the first layer weights to be very small, and the second layer weights to be large.
+The meta-optimized weight distributions set the first layer weights to be small, and the second layer weights to be large.
 Only one layer needs to be non-zero at initialization in order to break symmetry.}
 \label{fig:nn weight init scales}
 \end{center}
