@@ -165,21 +165,23 @@ def plot():
     covar_baseline = dictmap(np.abs, covar_baseline)
     covar_learned  = dictmap(np.abs, covar_learned)
 
-    # Blockify:
-    npr.seed(3)
-    perm = find_blockifying_perm(covar_learned[0], 1, 3)
-    show_all_alphabets(perm)
-    print perm
+    # # Blockify:
+    # npr.seed(1)
+    # perm = find_blockifying_perm(covar_learned[0], 10, 3)
+
+    # Sort by magnitude
+    perm = np.argsort(np.sum(covar_learned[0], axis=0))
+
     def permute_array(A):
         return A[np.ix_(perm, perm)]
-
+    show_all_alphabets(perm)
     covar_baseline = dictmap(permute_array, covar_baseline)
     covar_learned  = dictmap(permute_array, covar_learned)
 
     all_baseline = np.concatenate([covar_baseline[i] for i in range(N_layers)], axis=0)
     all_learned  = np.concatenate([covar_learned[i]  for i in range(N_layers)], axis=0)
     all_img = np.concatenate((all_baseline, all_learned), axis=1)
-    all_img = np.minimum(np.maximum(all_img, 0.0), 0.2)
+    all_img = np.minimum(np.maximum(all_img, 0.0), 1)
     fig = plt.figure(0)
     fig.clf()
     fig.set_size_inches((6,8))
@@ -192,7 +194,7 @@ def plot():
     plt.savefig('learned_covar_permuted.png')
 
 if __name__ == '__main__':
-    results = run()
-    with open('results.pkl', 'w') as f:
-        pickle.dump(results, f, 1)
+    # results = run()
+    # with open('results.pkl', 'w') as f:
+    #     pickle.dump(results, f, 1)
     plot()
