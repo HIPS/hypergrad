@@ -2,13 +2,13 @@ import scipy.io
 import numpy as np
 import pickle
 import os
+import numpy.random as npr
 
 from hypergrad.util import dictslice
-
-
 NUM_CHARS = 55
 NUM_ALPHABETS = 50
 NUM_EXAMPLES = 15
+CURATED_ALPHABETS = [6, 10, 23, 38, 39, 8, 9, 21, 22, 41]
 
 def datapath(fname):
     datadir = os.path.expanduser('~/repos/hypergrad/data/omniglot')
@@ -39,6 +39,13 @@ def load_data(alphabets_to_load=range(NUM_ALPHABETS)):
 def load_data_split(num_chars, RS, num_alphabets=NUM_ALPHABETS):
     alphabets_to_load = RS.choice(range(NUM_ALPHABETS), size=num_alphabets, replace=False)
     raw_data = load_data(np.sort(alphabets_to_load))
+    shuffled_data = [shuffle(alphabet, RS) for alphabet in raw_data]
+    data_split = zip(*[split(alphabet, num_chars) for alphabet in shuffled_data])
+    normalized_data = [subtract_mean(data_subset) for data_subset in data_split]
+    return normalized_data
+
+def load_curated_alphabets(num_chars):
+    raw_data = load_data(CURATED_ALPHABETS)
     shuffled_data = [shuffle(alphabet, RS) for alphabet in raw_data]
     data_split = zip(*[split(alphabet, num_chars) for alphabet in shuffled_data])
     normalized_data = [subtract_mean(data_subset) for data_subset in data_split]
@@ -98,15 +105,18 @@ def show_all_chars():
         ax.set_title("Alphabet {0}, chars {1}".format(i_alphabet, char_ids))
     plt.savefig("random_images.png")
 
+def show_curated_alphabets():
+    show_all_alphabets(CURATED_ALPHABETS)
+
 def show_all_alphabets(perm=None):
     if perm is None:
-        perm = range(NUM_ALPHABETS)
+        perm = range(len(alphabets))
     import matplotlib as mpl
     import matplotlib.pyplot as plt
     from nn_utils import plot_images
-    alphabets = load_data()
     n_cols = 20
     full_image = np.zeros((0, n_cols * 28))
+    alphabets = load_data()
     for i_alphabet in perm:
         alphabet = alphabets[i_alphabet]
         char_idxs = np.random.randint(alphabet['X'].shape[0], size=n_cols)
