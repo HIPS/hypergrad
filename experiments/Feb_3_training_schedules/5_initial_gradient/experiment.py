@@ -137,13 +137,13 @@ def plot():
         return "Layer {num}".format(num=weight_key[1] + 1)
     for cur_results, name in zip(parsed_avg_hypergrad['log_alphas'].T, parser.names):
         if name[0] == 'weights':
-            ax.plot(np.exp(cur_results), 'o-', label=layer_name(name))
+            ax.plot(cur_results, 'o-', label=layer_name(name))
     low, high = ax.get_ylim()
     #ax.set_ylim([0, high])
-    ax.set_ylabel('Learning rate')
+    ax.set_ylabel('Step size Gradient')
     ax.set_xlabel('Schedule index')
     fig.set_size_inches((6,2.5))
-    ax.legend(numpoints=1, loc=1, frameon=False, prop={'size':'12'})
+    #ax.legend(numpoints=1, loc=1, frameon=False, prop={'size':'12'})
     plt.savefig('schedules_small.pdf', pad_inches=0.05, bbox_inches='tight')
 
 
@@ -191,7 +191,7 @@ def plot():
 
 
 if __name__ == '__main__':
-    results = run()
-    with open('results.pkl', 'w') as f:
-        pickle.dump(results, f)
+    #results = run()
+    #with open('results.pkl', 'w') as f:
+    #    pickle.dump(results, f)
     plot()

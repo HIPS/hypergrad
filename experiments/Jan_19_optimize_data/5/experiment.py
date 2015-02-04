@@ -46,7 +46,7 @@ def run():
     test_labels = test_labels[:N_test_data, :]
     batch_idxs = BatchList(N_fake_data, batch_size)
     parser, _, loss_fun, frac_err = make_nn_funs(layer_sizes)
-    N_weights = parser.N
+    N_weights = len(parser.vect)
 
     npr.seed(0)
     init_fake_data = npr.randn(*(val_images[:N_fake_data, :].shape)) * init_fake_data_scale
