@@ -65,11 +65,9 @@
 
 \begin{abstract} 
 Tuning hyper-parameters of learning algorithms is hard because gradients are usually unavailable.
-We compute exact gradients of cross-validation performance with respect to hyperparameters by chaining derivatives through the \emph{entire training procedure}.
-% including hundreds of iterations of stochastic gradient descent with momentum.
+We compute exact gradients of cross-validation performance with respect to all hyperparameters by chaining derivatives through the \emph{entire training procedure}.
 We compute these gradients efficiently by exactly reversing the dynamics of stochastic gradient descent with momentum.
-These gradients allow us to optimize thousands of hyperparameters including step-size and momentum schedules, weight initialization strategies, richly parameterized regularization schemes, and neural network architectures.
-
+These gradients allow us to optimize thousands of hyperparameters, including step-size and momentum schedules, weight initialization distributions, richly parameterized regularization schemes, and neural network architectures.
 \end{abstract} 
 
 \section{Introduction}
@@ -314,9 +312,21 @@ This prevents the learning schedules from depending on quirks of the initial ran
 \vskip 0.2in
 \begin{center}
 Optimized training schedule \\
-\includegraphics[width=\columnwidth]{../experiments/Feb_3_training_schedules/3_adam_50/schedules_small.pdf}
+\includegraphics[width=\columnwidth]{../experiments/Feb_3_training_schedules/4_adam_100/schedules_small.pdf}
 \caption{A step-size training schedule optimized by hyper-gradient descent.
 The optimized schedule starts by taking large steps only in the topmost layer, then takes larger steps in the first layer.}
+\label{fig:optimal schedule}
+\end{center}
+\vskip -0.2in
+\end{figure} 
+
+
+\begin{figure}[h!]
+\vskip 0.2in
+\begin{center}
+Initial hyper-gradient\\
+\includegraphics[width=\columnwidth]{../experiments/Feb_2_plot_metagradient/1/schedule_gradients_small.pdf}
+\caption{The initial gradient of the cross-validation loss with respect to the training schedule, averaged over 100 random weight initializations and mini batches.}
 \label{fig:optimal schedule}
 \end{center}
 \vskip -0.2in
@@ -331,8 +341,8 @@ Results are shown in figure \ref{fig:nn weight init scales}.
 \begin{center}
 \begin{tabular}{cc}
 Weights & Biases \\
-\hspace{-1em}\includegraphics[width=0.5\columnwidth, height=0.5\columnwidth]{../experiments/Feb_3_training_schedules/3_adam_50/init_weight_learning_curve.pdf} &
-\hspace{-1em}\includegraphics[width=0.5\columnwidth, height=0.5\columnwidth]{../experiments/Feb_3_training_schedules/3_adam_50/init_bias_learning_curve.pdf} \\
+\hspace{-1em}\includegraphics[width=0.5\columnwidth, height=0.5\columnwidth]{../experiments/Feb_3_training_schedules/4_adam_100/init_weight_learning_curve.pdf} &
+\hspace{-1em}\includegraphics[width=0.5\columnwidth, height=0.5\columnwidth]{../experiments/Feb_3_training_schedules/4_adam_100/init_bias_learning_curve.pdf} \\
 \end{tabular}
 \caption{\emph{Top:} Meta-training curves for the initialization scales of different types of weights.
 The meta-optimized weight distributions set the first layer weights to be small, and the second layer weights to be large.
@@ -355,6 +365,20 @@ It would not be straightforward to learn dropout regularization parameters, or l
 \label{fig:logistic ard}
 \end{center}
 \end{figure} 
+
+
+\subsection{Optimizing Data}
+
+\begin{figure}[h!]
+\begin{center}
+\includegraphics[width=\columnwidth]{../experiments/Jan_21_nn_ard/2/weights.pdf}
+\includegraphics[width=\columnwidth]{../experiments/Jan_21_nn_ard/2/penalties.pdf}
+\caption{\emph{Top:} Filters learned to classify MNIST in logistic regression.
+\emph{Bottom:} L2 regularization hyperparameters for each weight..}
+\label{fig:logistic ard}
+\end{center}
+\end{figure} 
+
 
 \subsubsection{Overfitting}
 
@@ -442,7 +466,7 @@ Even when this is not the case, we hope that the training schedules and initiali
 
 \section*{Acknowledgments} 
 
-%We would like to thank Christian Steinruecken for helpful discussions.
+%We would like to thank Christian Steinruecken and Oren Rippel for helpful discussions.
 
 \bibliography{references.bib}
 \bibliographystyle{icml2015stylefiles/icml2015}

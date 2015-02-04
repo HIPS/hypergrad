@@ -92,8 +92,29 @@ def run():
 def plot():
 
     import matplotlib.pyplot as plt
+    from matplotlib import rc
+    rc('font',**{'family':'serif'})
+
     with open('results.pkl') as f:
         parser, parsed_init_hypergrad, parsed_avg_hypergrad = pickle.load(f)
+
+   # ----- Small versions of stepsize gradient for paper -----
+    fig = plt.figure(0)
+    fig.clf()
+    ax = fig.add_subplot(111)
+    def layer_name(weight_key):
+        return "Layer {num}".format(num=weight_key[1] + 1)
+    for cur_results, name in zip(parsed_avg_hypergrad['log_alphas'].T, parser.names):
+        if name[0] == 'weights':
+            ax.plot(cur_results, 'o-', label=layer_name(name))
+    low, high = ax.get_ylim()
+    #ax.set_ylim([0, high])
+    ax.set_ylabel('Learning rate gradient')
+    ax.set_xlabel('Schedule index')
+    fig.set_size_inches((6,2.5))
+    #ax.legend(numpoints=1, loc=1, frameon=False, prop={'size':'12'})
+    plt.savefig('schedule_gradients_small.pdf', pad_inches=0.05, bbox_inches='tight')
+
 
     # ----- Alpha and beta initial hypergradients -----
     fig = plt.figure(0)
@@ -180,7 +201,7 @@ def plot():
 
 
 if __name__ == '__main__':
-    results = run()
-    with open('results.pkl', 'w') as f:
-        pickle.dump(results, f)
+    #results = run()
+    #with open('results.pkl', 'w') as f:
+    #    pickle.dump(results, f)
     plot()

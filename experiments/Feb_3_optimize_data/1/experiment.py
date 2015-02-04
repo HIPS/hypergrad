@@ -29,7 +29,7 @@ init_log_param_scale = -1.0
 
 # ----- Superparameters -----
 meta_alpha = 0.1
-N_meta_iter = 5
+N_meta_iter = 15
 init_fake_data_scale = 0.0
 
 seed = 0
@@ -60,11 +60,12 @@ def run():
 
     cur_primal_results = {}
 
-    def primal_optimizer(hyperparam_vect):
+    def primal_optimizer(hyperparam_vect, i_hyper):
+        cur_hyperparams = hyperparams.new_vect(hyperparam_vect)
+        fake_data = cur_hyperparams['fake_data']
         def indexed_loss_fun(w, L2_vect, i_iter):
-            ch = hyperparams.new_vect(hyperparam_vect)
-            return loss_fun(w, ch['fake_data'], fake_labels, L2_vect)
-
+            #return loss_fun(w, fake_data, train_data['T'], L2_vect)
+            return loss_fun(w, train_data['X'], train_data['T'], L2_vect + np.sum(fake_data.ravel()))
 
         learning_curve_dict = defaultdict(list)
         def callback(x, v, g, i_iter):
@@ -74,8 +75,7 @@ def run():
                 learning_curve_dict['weight_norm'].append(np.linalg.norm(x))
                 learning_curve_dict['velocity_norm'].append(np.linalg.norm(v))
 
-        cur_hyperparams = hyperparams.new_vect(hyperparam_vect)
-        rs = RandomState((seed))
+        rs = RandomState((seed, i_hyper))
         W0 = fill_parser(parser, np.exp(fixed_hyperparams['log_param_scale']))
         W0 *= rs.randn(W0.size)
         alphas = np.exp(fixed_hyperparams['log_alphas'])
@@ -88,7 +88,7 @@ def run():
         return W_opt, learning_curve_dict
 
     def hyperloss(hyperparam_vect, i_hyper):
-        W_opt, _ = primal_optimizer(hyperparam_vect)
+        W_opt, _ = primal_optimizer(hyperparam_vect, i_hyper)
         return loss_fun(W_opt, **valid_data)
     hyperloss_grad = grad(hyperloss)
 
@@ -107,6 +107,7 @@ def run():
         meta_results['learning_curves'].append(learning_curve_dict)
         meta_results['example_weights'] = x
         if metagrad is not None:
+            print metagrad
             meta_results['meta_grad_magnitude'].append(np.linalg.norm(metagrad))
             meta_results['meta_grad_angle'].append(np.dot(old_metagrad[0], metagrad) \
                                                    / (np.linalg.norm(metagrad)*
