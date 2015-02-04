@@ -299,6 +299,11 @@ def plot():
     for i, y in enumerate(zip(*results['log_param_scale'])):
         if parser.names[i][0] == 'weights':
             ax.plot(np.exp(y), 'o-', label=layer_name(parser.names[i]))
+    # Show lines for theoretical optimum.
+    y1 = 1.0/np.sqrt(layer_sizes[0])
+    y2 = 1.0/np.sqrt(layer_sizes[1])
+    ax.plot(ax.get_xlim(), (y1, y1), 'b--')
+    ax.plot(ax.get_xlim(), (y2, y2), 'k--')
     ax.set_xlabel('Meta iteration')
     ax.set_ylabel('Initial scale')
     #ax.set_yscale('log')
@@ -325,7 +330,7 @@ def plot():
 
 
 if __name__ == '__main__':
-    results = run()
-    with open('results.pkl', 'w') as f:
-        pickle.dump(results, f)
+    #results = run()
+    #with open('results.pkl', 'w') as f:
+    #    pickle.dump(results, f)
     plot()
