@@ -19,7 +19,7 @@ VERBOSE = True
 layer_sizes = [784, 300, 200, 55]
 # layer_sizes = [784, 400, 200, 55]
 N_layers = len(layer_sizes) - 1
-N_scripts = 50
+N_scripts = 10
 N_iters = 50
 N_thin = 10
 alpha = 1.0
@@ -31,7 +31,7 @@ log_initialization_scale = -2.0
 log_L2_init = -4.0
 script_corr_init = 0.5
 N_meta_iter = 10
-meta_alpha = 0.1
+meta_alpha = 0.2
 
 # TEST RUN:
 # N_scripts = 5
@@ -44,8 +44,7 @@ def run():
     script_parser[i_script]       : weights vector for each script
     transform_parser[i_layer]     : transform matrix (scripts x scripts) for each alphabet"""
     RS = RandomState((seed, "top_rs"))
-    train_data, valid_data, tests_data = omniglot.load_data_split(
-        [11, 2, 2], RS, num_alphabets=N_scripts)
+    train_data, valid_data, tests_data = omniglot.load_curated_alphabets([11, 2, 2], RS)
     w_parser, pred_fun, loss_fun, frac_err = make_nn_funs(layer_sizes)
     N_weights = w_parser.vect.size
     transform_parser = make_transform(N_scripts, script_corr_init)
@@ -134,10 +133,10 @@ def covar_to_corr(A):
     return (A / (A_std[:, None] * A_std[None, :]))
 
 def plot():
-    from hypergrad.omniglot import show_all_alphabets
+    from hypergrad.omniglot import show_all_alphabets, show_curated_alphabets
     import matplotlib.pyplot as plt
     import matplotlib as mpl
-    #from spectral_clustering.spclust import find_blockifying_perm
+    from spectral_clustering.spclust import find_blockifying_perm
     with open('results.pkl') as f:
         results, all_transforms = pickle.load(f)
     fig = plt.figure(0)
@@ -159,8 +158,8 @@ def plot():
     covar_baseline = dictmap(T_to_covar, T_baseline)
     covar_learned  = dictmap(T_to_covar, T_learned)
 
-    # covar_baseline = dictmap(covar_to_corr, covar_baseline)
-    # covar_learned  = dictmap(covar_to_corr, covar_learned)
+    covar_baseline = dictmap(covar_to_corr, covar_baseline)
+    covar_learned  = dictmap(covar_to_corr, covar_learned)
 
     covar_baseline = dictmap(np.abs, covar_baseline)
     covar_learned  = dictmap(np.abs, covar_learned)
@@ -169,14 +168,18 @@ def plot():
     # npr.seed(1)
     # perm = find_blockifying_perm(covar_learned[0], 10, 3)
 
-    # Sort by magnitude
-    perm = np.argsort(np.sum(covar_learned[0], axis=0))
+    # # Sort by magnitude
+    # perm = np.argsort(np.sum(covar_learned[0], axis=0))
 
-    def permute_array(A):
-        return A[np.ix_(perm, perm)]
-    show_all_alphabets(perm)
-    covar_baseline = dictmap(permute_array, covar_baseline)
-    covar_learned  = dictmap(permute_array, covar_learned)
+    # Don't sort
+    perm = range(N_scripts)
+
+    show_curated_alphabets()
+    # def permute_array(A):
+    #     return A[np.ix_(perm, perm)]
+    # show_all_alphabets(perm)
+    # covar_baseline = dictmap(permute_array, covar_baseline)
+    # covar_learned  = dictmap(permute_array, covar_learned)
 
     all_baseline = np.concatenate([covar_baseline[i] for i in range(N_layers)], axis=0)
     all_learned  = np.concatenate([covar_learned[i]  for i in range(N_layers)], axis=0)
@@ -192,23 +195,6 @@ def plot():
     ax.set_xticks([])
     ax.set_yticks([])
     plt.savefig('learned_covar_permuted.png')
-
-
-    # Plot various covariance matrices.
-    def boxplot( matrix, cmap, name):
-        fig = plt.figure(0)
-        fig.clf()
-        fig.set_size_inches((3,3))
-        ax = fig.add_subplot(111)
-        ax.matshow(matrix, cmap=cmap)
-        plt.xticks(np.array([]))
-        plt.yticks(np.array([]))
-        plt.savefig(name, bbox_inches='tight')
-
-    boxplot(covar_learned[0],                  mpl.cm.binary, 'covar_learned_toplayer.pdf')
-    boxplot(np.eye(covar_learned[0].shape[0]), mpl.cm.binary, 'covar_eye.pdf')
-    boxplot(np.ones(covar_learned[0].shape),   mpl.cm.hot,    'covar_full.pdf')
-
 
 if __name__ == '__main__':
     # results = run()
