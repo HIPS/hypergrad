@@ -236,18 +236,18 @@ Addition and subtraction are exactly reversible operations on fixed-precision nu
 [TODO: Explain fractional bits, and break up the following algorithm into multiply and divide steps.]
 
 \begin{algorithm}
-   \caption{Reversible Multiplication by a Ratio}
+   \caption{Exactly reversible multiplication by a ratio}
    \label{alg:reversible-mult}
 \begin{algorithmic}[1]
-   \State {\bfseries Input:} Giant integer $i$, Current value $c$, Numerator $n$, Denominator $d$
-   \State $i = id$ \Comment{make room for new bits from the division}
-   \State $i = i + (c \mod d)$ \Comment{store leftover bits from division}
-   \State $c = c / d$ \Comment{divide by denomenator}
-   \State $c = cn$ \Comment{multiply by numerator}
-   \State $b = i \mod n$ \Comment{extract bits to add after multiplication}
-   \State $i = i / n$ \Comment{get rid of extra room}
-   \State $c = c + b$ \Comment{insert extra bits from tape}
-   \State \textbf{return} new integer $i$, new value $c$
+   \State {\bfseries Input:} Information buffer $i$, value $c$, ratio $n / d$
+   \State $i = i \times d$ \Comment{make room for new digit}
+   \State $i = i + (c \mod d)$ \Comment{store digit lost from division}
+   \State $c = c \div d$ \Comment{divide by denominator}
+   \State $c = c \times n$ \Comment{multiply by numerator}
+   \State $b = i \mod n$ \Comment{extract digit from buffer}
+   \State $i = i \div n$ \Comment{shorten information buffer}
+   \State $c = c + b$ \Comment{append digit to value}
+   \State \textbf{return} updated buffer $i$, updated value $c$
 \end{algorithmic}
 \end{algorithm}
 %
@@ -288,23 +288,13 @@ The step sizes which lead to chaotic behavior are only slightly larger than the 
 \end{figure} 
 
 
-%\begin{figure}[ht]
-%\vskip 0.2in
-%\begin{center}
-%\centerline{\includegraphics[width=\columnwidth]{../experiments/Jan_15_optimize_learning_rate_schedule/2/fig.png}}
-%\caption{Gradients with respect to step size as a function of training epoch.}
-%\label{fig:chaos}
-%\end{center}
-%\vskip -0.2in
-%\end{figure} 
+
 
 
 \section{Experiments}
 
 Typically only a few hyperparameters are optimized - typically 10-20 parameters including a global weight initialization scale, learning rate and momentum, along with various architecture choices [cite Dalh QSAR paper].
 Hyper-gradients allow us to optimize any continuous parameter upon which training depends.
-
-
 
 
 \subsection{Gradient-based optimization of gradient-based optimization}
