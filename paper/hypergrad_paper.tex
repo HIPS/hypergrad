@@ -95,19 +95,21 @@ These hyper-gradients are used to update the hyperparameters.}
 \vskip -0.2in
 \end{figure} 
 
+
 \section{Automatic Differentiation}
 
 Automatic differentiation (AD) software packages such as Theano~\cite{Bastien-Theano-2012, bergstra2010scipy} are a workhorse of deep learning, significantly speeding up development time by providing gradients automatically.
 However, these methods are typically only used to train parameters with respect to some loss.
 \citet{Autodiff14} suggest using automatic differentiation to compute gradients with respect to hyperparameters.
+However, naively applying automatic differentiation through hundreds of iterations of most learning procedures would either be prohibitively slow, or take prohibitive amounts of memory.
 
 \subsection{Forward vs. Reverse-Mode Differentiation}
-
-By the chain rule, the gradient of a set of nested functions is a product of the individual derivatives:
+By the chain rule, the gradient of a set of nested functions is given by the product of the individual derivatives of each function:
 %
 \begin{align*}
 \pderiv{f_4(f_3(f_2(f_1(x))))}{x} = \pderiv{f_4}{f_3} \cdot \pderiv{f_3}{f_2} \cdot \pderiv{f_2}{f_1} \cdot \pderiv{f_1}{x}
 \end{align*}
+If each function has multivariate inputs and outputs, the gradients can be replaced with Jacobian matrices.
 %
 Forward-mode AD works by multiplying gradients in the same order as the functions are evaluated:
 %
@@ -115,29 +117,28 @@ Forward-mode AD works by multiplying gradients in the same order as the function
 \pderiv{f_4(f_3(f_2(f_1(x))))}{x} = \pderiv{f_4}{f_3} \cdot \left( \pderiv{f_3}{f_2} \cdot \left( \pderiv{f_2}{f_1} \cdot \pderiv{f_1}{x} \right) \right)
 \end{align*}
 %
+In forward-mode, gradients can be computed at the same time as the original function, keeping track of the directional gradient.
+This method has only twice the memory cost of simply computing the function of interest, but in general requires a separate forward pass for each input parameter, resulting in an $\mathcal{O}(\numhypers)$ slowdown, where $\numhypers$ is the number of input parameters.~\cite{pearlmutter2008reverse}
+
 Reverse-mode AD works by maintaining a tape of computations performed, and computing the gradient in a backwards pass, starting from the final result:
 %
 \begin{align*}
 \pderiv{f_4(f_3(f_2(f_1(x))))}{x} = \left(  \left(  \pderiv{f_4}{f_3} \cdot \pderiv{f_3}{f_2} \right) \cdot \pderiv{f_2}{f_1} \right) \cdot \pderiv{f_1}{x} 
 \end{align*}
 %
-If each function has multivariate inputs and outputs, the gradients can be replaced with Jacobian matrices, but the order or operations remains the same.
+Naive reverse-mode AD typically only requires approximately twice the time as computing the original function, but can require up to $\mathcal{O}(\numsteps\numhypers)$ memory, where $\numsteps$ is the number of nested functions.
+In sections \ref{sec:reversible learning} and \ref{sec:reversible computation}, we show how to drastically reduce the memory requirements of reverse-mode AD for differentiating through the entire learning procedure.
 
-\textbf{Computational Complexity}
-In forward-mode, gradients can be computed at the same time as the original function, keeping track of the directional gradient.
-This method has only twice the memory cost of simply computing the function of interest, but in general requires a separate forward pass for each input parameter, resulting in an $\mathcal{O}(\numhypers)$ slowdown~\cite{pearlmutter2008reverse}.
-Naive reverse-mode AD typically only requires approximately twice the time as computing the original function, but can require up to $\mathcal{O}(\numsteps\numhypers)$ memory.
-In the next sections, we show how to drastically reduce the memory requirements of reverse-mode AD for differentiating through the entire learning procedure.
+\section{Reversible learning}
+\label{sec:reversible learning}
 
-\section{Reversible Learning}
-
-In the case of large neural networks, the amount of memory required to store the millions of parameters being trained is typically close to the amount of physical RAM availabe~\cite{sequence2014}.
-Thus storing every parameter value throughout training in order to perform reverse-mode differentiation is completely impractical.
-If storing the parameter vector takes $\sim$1GB, and the parameter vector is updated tens of thousands of times (equal to the number of mini batches times the number of epochs) then storing the learning history becomes unmanageable even in physical storage.
+In the case of large neural networks, the amount of memory required to store the millions of parameters being trained is typically close to the amount of physical RAM available~\cite{sequence2014}.
+Thus storing every intermediate parameter value throughout training in order to perform reverse-mode differentiation is completely impractical.
+If storing the parameter vector takes $\sim$1GB, and the parameter vector is updated tens of thousands of times (equal to the number of mini batches times the number of epochs) then storing the learning history becomes unmanageable even with physical storage.
 
 This section discusses how we overcome the technical difficulty of recovering the history of parameter vectors in order to perform reverse-mode AD, when performing stochastic gradient descent with momentum.
 
-\subsection{Reversible Dynamics}
+\subsection{Reversible dynamics}
 
 Stochastic gradient descent with momentum (Algorithm \ref{alg:sgd}) can be seen as a physical simulation of a system moving through a fixed force field.
 %
@@ -149,8 +150,8 @@ Stochastic gradient descent with momentum (Algorithm \ref{alg:sgd}) can be seen 
    \State initialize $\vv_1 = \vzero$
    \For{$t=1$ {\bfseries to} $T$}
    \State $g_t = \gradparamst$ \Comment{evaluate gradient}
-   \State $\vv_{t+1} = \decay_t \vv_t + (1 - \decay_t) \vg_t$ \Comment{update velocity}
-   \State $\vx_{t+1} = \vx_t + \stepsize_t \vv_t$ \Comment{update position}
+   \State $\vv_{t+1} = \decay_t \vv_t - (1 - \decay_t) \vg_t$ \Comment{update velocity}  \label{step:update velocity}
+   \State $\vx_{t+1} = \vx_t + \stepsize_t \vv_t$ \Comment{update position} \label{step:update position}
    \EndFor
    \State \textbf{output} trained parameters $\vx_T$
 \end{algorithmic}
@@ -168,7 +169,7 @@ Even if the decay were less than one, if one could somehow simulate having exact
 This procedure is given by Algorithm \ref{alg:reverse-sgd}.
 It is obtained by simply reversing the steps in Algorithm \ref{alg:sgd}, interleaved with computations of gradients w.r.t. the parameters of SGD, namely the initial parameters $\vx_1$, and the stepsize and momentum schedules.
 %
-\begin{algorithm}
+\begin{algorithm}[t]
    \caption{Memory-efficient Reverse-Mode \\ Differentiation through Gradient Descent with Momentum}
    \label{alg:reverse-sgd}
 \begin{algorithmic}[1]
@@ -177,15 +178,15 @@ It is obtained by simply reversing the steps in Algorithm \ref{alg:sgd}, interle
    \State initialize $d\vx = \nabla_\params f(\params_T)$
    \For{$t=T$ {\bfseries counting down to} $1$}
    \State $d\stepsize_t = d\vv\tra \vv_t$
-   \State $\vx_{t+1} = \vx_t - \stepsize \vv_t$
+   \State $\vx_{t-1} = \vx_t - \stepsize \vv_t$
    \vspace{-0.95\baselineskip}
    \State $\vg_t = \gradparamst$
-   \hfill \scalebox{1.1}{\Bigg\}} \vspace{-\baselineskip} \begin{minipage}{2.5cm} exactly reverse \\ SGD operations \\ using bit-stores \strut \end{minipage}
-   \State $\vv_{t+1} = [\vv_t - (1 - \decay) \vg_t] / \decay$
+   \hfill \scalebox{1.1}{\Bigg\}} \vspace{-\baselineskip} \begin{minipage}{2.5cm} exactly reverse \\ gradient descent \\ operations \strut \end{minipage}
+   \State $\vv_{t-1} = [\vv_t - (1 - \decay) \vg_t] / \decay_t$
    \State $d\vv = d\vv + \stepsize d\vx$
    \State $d\decay_t = d\vx\tra (\vv_t + \vg_t)$
-   \State $d\vx = d\vx - (1 - \decay) d\vv \nabla_\params \gradparamst$ \label{line:hvp1}
-   \State $d\hypers = d\hypers - (1 - \decay) d\vv \nabla_\hypers \gradparamst$ \label{line:hvp2}
+   \State $d\vx = d\vx - (1 - \decay_t) d\vv \nabla_\params \gradparamst$ \label{line:hvp1}
+   \State $d\hypers = d\hypers - (1 - \decay_t) d\vv \nabla_\hypers \gradparamst$ \label{line:hvp2}
    \State $d\vv = \decay d\vv$
    \EndFor
    \State \textbf{output} gradient of $f(\vx_T)$ w.r.t $\vx_1$, $\vv_1$, $\decays$, $\stepsizes$ and $\hypers$
@@ -212,7 +213,7 @@ Even if double-precision floating point numbers are used, errors accumulate expo
 This means that naively applying Algorithm \ref{alg:reverse-sgd} will not provide accurate gradients if the decay term is less than one.
 
 \section{Reversible computation even with non-reversible dynamics}
-
+\label{sec:reversible computation}
 To get around the problem of information loss caused by decay, we need to somehow store that information.
 We could easily do so by storing the weight vector at each iteration, but this would require too much memory to be practical for large neural nets trained for thousands of minibatches.
 Luckily, when the decay factor is close to 1, the amount of information lost at each iteration is small.
@@ -232,8 +233,11 @@ Each time an information-destroying operation (such as division by an integer) i
 During the reverse pass, when the inverse operation is performed (multiplication by that same integer), this extra information is extracted from the tape.
 
 Addition and subtraction are exactly reversible operations on fixed-precision numbers, except when overflow occurs.
+However, division or multiplication by a value less than one, in a fixed-point number system, causes information to be lost.
 
-[TODO: Explain fractional bits, and break up the following algorithm into multiply and divide steps.]
+step \ref{step:update velocity} and \ref{step:update position} in Algorithm \ref{alg:sgd}
+
+[TODO: Explain fractional bits]
 
 \begin{algorithm}
    \caption{Exactly reversible multiplication by a ratio}
@@ -241,53 +245,15 @@ Addition and subtraction are exactly reversible operations on fixed-precision nu
 \begin{algorithmic}[1]
    \State {\bfseries Input:} Information buffer $i$, value $c$, ratio $n / d$
    \State $i = i \times d$ \Comment{make room for new digit}
-   \State $i = i + (c \mod d)$ \Comment{store digit lost from division}
+   \State $i = i + (c \! \mod d)$ \Comment{store digit lost from division}
    \State $c = c \div d$ \Comment{divide by denominator}
    \State $c = c \times n$ \Comment{multiply by numerator}
-   \State $b = i \mod n$ \Comment{extract digit from buffer}
+   \State $c = c +  (i \! \mod n)$ \Comment{add digit from buffer}
    \State $i = i \div n$ \Comment{shorten information buffer}
-   \State $c = c + b$ \Comment{append digit to value}
    \State \textbf{return} updated buffer $i$, updated value $c$
 \end{algorithmic}
 \end{algorithm}
 %
-
-
-\section{When are gradients meaningful?}
-
-Gradient-based optimizers can perform poorly when the surface being optimized is locally ``wiggly''.
-Small wiggles cause both the direction and size of the gradient to be less correlated with the medium-scale shape of the function.
-When do we expect the training loss of a neural network to be wiggly with respect to hyperparameters?
-
-\textbf{The Vanishing Gradient Problem}
-Training hyperparameters whose dependence on the final objective depends on many hundreds of iterations by gradient descent raises several issues.
-\citet{bengio1994learning} noted that "learning long-term dependencies with gradient descent is difficult."
-
-Exploding-gradient problem~\cite{pascanu2012understanding}
-
-\paragraph{The edge of chaos}
-\citet*[Chapter 4]{pearlmutter1996investigation} discusses the chaotic behavior of gradient descent with momentum when training learning neural networks.
-
-One problem with training these networks is that when the learning rate is too high, the gradient becomes uninformative about the medium-term behavior of the function.
-Figure \ref{fig:chaos} illustrates this problem.
-
-\cite{pearlmutter2009sleep} argues that biological neural networks tune themselves so as to be at the "edge of chaos".
-Empirically, it seems like the best learning rates for training neural networks are just small enough to avoid this chaotic behavior.
-Lower learning rates don't reach convergence before training ends.
-
-
-\begin{figure}[h!]
-\vskip 0.2in
-\begin{center}
-%\includegraphics[width=\columnwidth]{../experiments/Jan_14_learning_rate_wiggliness/1/fig.png}
-\caption{When the learning rate is too high, the gradient becomes uninformative about the medium-term behavior of the function.
-The step sizes which lead to chaotic behavior are only slightly larger than the optimal step sizes.}
-\label{fig:chaos}
-\end{center}
-\vskip -0.2in
-\end{figure} 
-
-
 
 
 
@@ -423,6 +389,42 @@ Independent & Learned & Full \\
 \caption{Learned covariances between neural nets trained on different alphabets.}
 \label{fig:omniglot}
 \end{center}
+\end{figure} 
+
+
+
+\section{When are gradients meaningful?}
+
+Gradient-based optimizers can perform poorly when the surface being optimized is locally ``wiggly''.
+Small wiggles cause both the direction and size of the gradient to be less correlated with the medium-scale shape of the function.
+When do we expect the training loss of a neural network to be wiggly with respect to hyperparameters?
+
+\textbf{The Vanishing Gradient Problem}
+Training hyperparameters whose dependence on the final objective depends on many hundreds of iterations by gradient descent raises several issues.
+\citet{bengio1994learning} noted that "learning long-term dependencies with gradient descent is difficult."
+
+Exploding-gradient problem~\cite{pascanu2012understanding}
+
+\paragraph{The edge of chaos}
+\citet*[Chapter 4]{pearlmutter1996investigation} discusses the chaotic behavior of gradient descent with momentum when training learning neural networks.
+
+One problem with training these networks is that when the learning rate is too high, the gradient becomes uninformative about the medium-term behavior of the function.
+Figure \ref{fig:chaos} illustrates this problem.
+
+\cite{pearlmutter2009sleep} argues that biological neural networks tune themselves so as to be at the "edge of chaos".
+Empirically, it seems like the best learning rates for training neural networks are just small enough to avoid this chaotic behavior.
+Lower learning rates don't reach convergence before training ends.
+
+
+\begin{figure}[h!]
+\vskip 0.2in
+\begin{center}
+%\includegraphics[width=\columnwidth]{../experiments/Jan_14_learning_rate_wiggliness/1/fig.png}
+\caption{When the learning rate is too high, the gradient becomes uninformative about the medium-term behavior of the function.
+The step sizes which lead to chaotic behavior are only slightly larger than the optimal step sizes.}
+\label{fig:chaos}
+\end{center}
+\vskip -0.2in
 \end{figure} 
 
 
