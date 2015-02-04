@@ -6,7 +6,7 @@ from collections import defaultdict
 from funkyyak import grad, kylist, getval
 
 from hypergrad.data import load_data_dicts
-from hypergrad.nn_utils import make_nn_funs, VectorParser, logit, inv_logit
+from hypergrad.nn_utils import make_nn_funs, VectorParser, logit, inv_logit, nice_layer_name
 from hypergrad.optimizers import adam, sgd_parsed
 from hypergrad.util import RandomState
 
@@ -118,16 +118,40 @@ def run():
 def plot():
 
     import matplotlib.pyplot as plt
+    from matplotlib import rc
+    rc('font',**{'family':'serif'})
+
     with open('results.pkl') as f:
         results, parser, parsed_init_hypergrad = pickle.load(f)
 
+    #rc('text', usetex=True)
+
+   # ----- Small versions of stepsize schedules for paper -----
+    fig = plt.figure(0)
+    fig.clf()
+    ax = fig.add_subplot(111)
+    def layer_name(weight_key):
+        return "Layer {num}".format(num=weight_key[1] + 1)
+    for cur_results, name in zip(results['log_alphas'][-1].T, parser.names):
+        if name[0] == 'weights':
+            ax.plot(np.exp(cur_results), 'o-', label=layer_name(name))
+    low, high = ax.get_ylim()
+    ax.set_ylim([0, high])
+    ax.set_ylabel('Learning rate')
+    ax.set_xlabel('Schedule index')
+    fig.set_size_inches((6,2.5))
+    ax.legend(numpoints=1, loc=1, frameon=False, prop={'size':'12'})
+    plt.savefig('schedules_small.pdf', pad_inches=0.05, bbox_inches='tight')
+
+
     # ----- Alpha and beta initial hypergradients -----
+    print "Plotting initial gradients..."
     fig = plt.figure(0)
     fig.clf()
     ax = fig.add_subplot(411)
     for cur_results, name in zip(parsed_init_hypergrad['log_alphas'].T, parser.names):
         if name[0] == 'weights':
-            ax.plot(cur_results, 'o-', label=name)
+            ax.plot(cur_results, 'o-', label=nice_layer_name(name))
     ax.set_ylabel('Step size Gradient', fontproperties='serif')
     ax.set_xticklabels([])
     ax.legend(numpoints=1, loc=1, frameon=False, bbox_to_anchor=(1.0, 0.5),
@@ -136,14 +160,14 @@ def plot():
     ax = fig.add_subplot(412)
     for cur_results, name in zip(parsed_init_hypergrad['invlogit_betas'].T, parser.names):
         if name[0] == 'weights':
-            ax.plot(cur_results, 'o-', label=name)
+            ax.plot(cur_results, 'o-', label=nice_layer_name(name))
     ax.set_xlabel('Learning Iteration', fontproperties='serif')
     ax.set_ylabel('Momentum Gradient', fontproperties='serif')
 
     ax = fig.add_subplot(413)
     for cur_results, name in zip(parsed_init_hypergrad['log_alphas'].T, parser.names):
         if name[0] == 'biases':
-            ax.plot(cur_results, 'o-', label=name)
+            ax.plot(cur_results, 'o-', label=nice_layer_name(name))
     ax.set_ylabel('Step size Gradient', fontproperties='serif')
     ax.set_xticklabels([])
     ax.legend(numpoints=1, loc=1, frameon=False, bbox_to_anchor=(1.0, 0.5),
@@ -152,7 +176,7 @@ def plot():
     ax = fig.add_subplot(414)
     for cur_results, name in zip(parsed_init_hypergrad['invlogit_betas'].T, parser.names):
         if name[0] == 'biases':
-            ax.plot(cur_results, 'o-', label=name)
+            ax.plot(cur_results, 'o-', label=nice_layer_name(name))
     ax.set_xlabel('Learning Iteration', fontproperties='serif')
     ax.set_ylabel('Momentum Gradient', fontproperties='serif')
 
@@ -163,14 +187,13 @@ def plot():
 
 
     # ----- Nice versions of Alpha and beta schedules for paper -----
+    print "Plotting full alpha and beta schedules curves..."
     fig = plt.figure(0)
     fig.clf()
     ax = fig.add_subplot(411)
-    #ax.set_title('Alpha learning curves')
     for cur_results, name in zip(results['log_alphas'][-1].T, parser.names):
         if name[0] == 'weights':
-            ax.plot(np.exp(cur_results), 'o-', label=name)
-    #ax.set_xlabel('Learning Iteration', fontproperties='serif')
+            ax.plot(np.exp(cur_results), 'o-', label=nice_layer_name(name))
     low, high = ax.get_ylim()
     ax.set_ylim([0, high])
     ax.set_ylabel('Step size', fontproperties='serif')
@@ -179,21 +202,17 @@ def plot():
               prop={'family':'serif', 'size':'12'})
 
     ax = fig.add_subplot(412)
-    #ax.set_title('Alpha learning curves')
     for cur_results, name in zip(results['invlogit_betas'][-1].T, parser.names):
         if name[0] == 'weights':
-            ax.plot(logit(cur_results), 'o-', label=name)
-    low, high = ax.get_ylim()
+            ax.plot(logit(cur_results), 'o-', label=nice_layer_name(name))
     ax.set_ylim([0, 1])
     ax.set_xlabel('Learning Iteration', fontproperties='serif')
     ax.set_ylabel('Momentum', fontproperties='serif')
 
     ax = fig.add_subplot(413)
-    #ax.set_title('Alpha learning curves')
     for cur_results, name in zip(results['log_alphas'][-1].T, parser.names):
         if name[0] == 'biases':
-            ax.plot(np.exp(cur_results), 'o-', label=name)
-    #ax.set_xlabel('Learning Iteration', fontproperties='serif')
+            ax.plot(np.exp(cur_results), 'o-', label=nice_layer_name(name))
     low, high = ax.get_ylim()
     ax.set_ylim([0, high])
     ax.set_ylabel('Step size', fontproperties='serif')
@@ -202,21 +221,20 @@ def plot():
               prop={'family':'serif', 'size':'12'})
 
     ax = fig.add_subplot(414)
-    #ax.set_title('Alpha learning curves')
     for cur_results, name in zip(results['invlogit_betas'][-1].T, parser.names):
         if name[0] == 'biases':
-            ax.plot(logit(cur_results), 'o-', label=name)
-    low, high = ax.get_ylim()
+            ax.plot(logit(cur_results), 'o-', label=nice_layer_name(name))
     ax.set_ylim([0, 1])
     ax.set_xlabel('Learning Iteration', fontproperties='serif')
     ax.set_ylabel('Momentum', fontproperties='serif')
-
-
     fig.set_size_inches((6,8))
     #plt.show()
     plt.savefig('alpha_beta_paper.png')
     plt.savefig('alpha_beta_paper.pdf', pad_inches=0.05, bbox_inches='tight')
 
+
+
+    print "Plotting learning curves..."
     fig.clf()
     fig.set_size_inches((6,8))
     # ----- Primal learning curves -----
@@ -248,6 +266,7 @@ def plot():
     plt.savefig('learning_curves.png')
 
     # ----- Learning curve info -----
+    print "Plotting extra learning curves..."
     fig.clf()
     ax = fig.add_subplot(311)
     ax.set_title('Primal learning curves')
@@ -272,31 +291,14 @@ def plot():
     ax.legend(loc=1, frameon=False)
     plt.savefig('extra_learning_curves.png')
 
-    # ----- Alpha and beta schedules -----
-    fig.clf()
-    ax = fig.add_subplot(211)
-    ax.set_title('Alpha learning curves')
-    for i, y in enumerate(results['log_alphas']):
-        ax.plot(y, 'o-', label="Meta iter {0}".format(i))
-    ax.set_xlabel('Primal iter number')
-    #ax.set_ylabel('Log alpha')
-    ax.legend(loc=1, frameon=False)
-
-    ax = fig.add_subplot(212)
-    ax.set_title('Beta learning curves')
-    for y in results['invlogit_betas']:
-        ax.plot(y, 'o-')
-    ax.set_xlabel('Primal iter number')
-    ax.set_ylabel('Inv logit beta')
-    plt.savefig('alpha_beta_curves.png')
-
     # ----- Init scale and L2 reg -----
+    print "Plotting initialization distributions and regularization..."
     fig.clf()
     ax = fig.add_subplot(211)
     ax.set_title('Init scale learning curves')
     for i, y in enumerate(zip(*results['log_param_scale'])):
         if parser.names[i][0] == 'weights':
-            ax.plot(y, 'o-', label=parser.names[i])
+            ax.plot(y, 'o-', label=nice_layer_name(parser.names[i]))
     ax.set_xlabel('Meta iter number')
     ax.set_ylabel('Log param scale')
     ax.legend(loc=1, frameon=False)
@@ -305,7 +307,7 @@ def plot():
     ax.set_title('Init scale learning curves')
     for i, y in enumerate(zip(*results['log_param_scale'])):
         if parser.names[i][0] == 'biases':
-            ax.plot(y, 'o-', label=parser.names[i])
+            ax.plot(y, 'o-', label=nice_layer_name(parser.names[i]))
     ax.set_xlabel('Meta iter number')
     ax.set_ylabel('Log param scale')
     ax.legend(loc=1, frameon=False)
@@ -313,7 +315,7 @@ def plot():
     plt.savefig('scale_and_reg.png')
 
 if __name__ == '__main__':
-    results = run()
-    with open('results.pkl', 'w') as f:
-        pickle.dump(results, f)
+    #results = run()
+    #with open('results.pkl', 'w') as f:
+    #    pickle.dump(results, f)
     plot()

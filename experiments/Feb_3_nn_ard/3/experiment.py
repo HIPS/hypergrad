@@ -126,16 +126,16 @@ def plot():
         results, parser, parsed_init_hypergrad = pickle.load(f)
 
     # Show final ARD in the first layer filters.
-    L2s = results['log_L2_reg'][-1]
+    L2s = results['log_L2_reg']
     L2parser = parser.empty_copy()
     L2parser.vect = L2s
-    images = L2parser[('weights', 0)].T
+    l2_images = L2parser[('weights', 0)].T
 
     fig = plt.figure(0)
     fig.clf()
     fig.set_size_inches((6,8))
     ax = fig.add_subplot(111)
-    plot_mnist_images(images, ax, ims_per_row=10, padding=0)
+    plot_mnist_images(l2_images, ax, ims_per_row=30, padding=0)
     fig.set_size_inches((8,12))
 
     #fig.tight_layout()
@@ -143,32 +143,30 @@ def plot():
     plt.savefig("penalties.pdf", pad_inches=0.05, bbox_inches='tight')
 
 
+    fig = plt.figure(0)
+    fig.clf()
+    fig.set_size_inches((6,8))
+    ax = fig.add_subplot(111)
+    plt.hist(l2_images.ravel(), 100)
+    plt.savefig("penalty_histogram.png")
+
 
 
     # Show first layer filters from the last meta-iteration.
     weights = results['example_weights']
     parser.vect = weights
-    images = parser[('weights', 0)].T
+    weight_images = parser[('weights', 0)].T
 
     fig = plt.figure(0)
     fig.clf()
     fig.set_size_inches((6,8))
     ax = fig.add_subplot(111)
-    plot_mnist_images(images, ax, ims_per_row=10, padding=0)
+    plot_mnist_images(weight_images, ax, ims_per_row=30, padding=0)
     fig.set_size_inches((8,12))
 
     #fig.tight_layout()
     plt.savefig("weights.png")
     plt.savefig("weights.pdf", pad_inches=0.05, bbox_inches='tight')
-
-
-
-    fig = plt.figure(0)
-    fig.clf()
-    fig.set_size_inches((6,8))
-    ax = fig.add_subplot(111)
-    plt.hist(images.ravel())
-    plt.savefig("penalty_histogram.png")
 
 
 
@@ -233,7 +231,7 @@ def plot():
 
 
 if __name__ == '__main__':
-    results = run()
-    with open('results.pkl', 'w') as f:
-        pickle.dump(results, f)
+    #results = run()
+    #with open('results.pkl', 'w') as f:
+    #    pickle.dump(results, f)
     plot()

@@ -125,6 +125,10 @@ def make_nn_funs(layer_sizes):
 
     return parser, predictions, loss, frac_err
 
+def nice_layer_name(weight_key):
+    """Takes a tuple like ('weights', 2) and returns a nice string like "2nd layer weights"
+       for use in plots and legends."""
+    return "Layer {num} {name}".format(num=weight_key[1] + 1, name=weight_key[0])
 
 def plot_images(images, ax, ims_per_row=5, padding=5, digit_dimensions=(28,28)):
     """iamges should be a (N_images x pixels) matrix."""
