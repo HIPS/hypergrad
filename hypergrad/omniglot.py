@@ -3,12 +3,12 @@ import numpy as np
 import pickle
 import os
 import numpy.random as npr
-
-from hypergrad.util import dictslice
+from hypergrad.util import dictslice, RandomState
 NUM_CHARS = 55
 NUM_ALPHABETS = 50
 NUM_EXAMPLES = 15
 CURATED_ALPHABETS = [6, 10, 23, 38, 39, 8, 9, 21, 22, 41]
+ROTATED_ALPHABETS = [6, 10, 23, 38, 39]
 
 def datapath(fname):
     datadir = os.path.expanduser('~/repos/hypergrad/data/omniglot')
@@ -50,6 +50,20 @@ def load_curated_alphabets(num_chars, RS):
     data_split = zip(*[split(alphabet, num_chars) for alphabet in shuffled_data])
     normalized_data = [subtract_mean(data_subset) for data_subset in data_split]
     return normalized_data
+
+def load_rotated_alphabets(num_chars, RS):
+    raw_data = load_data(ROTATED_ALPHABETS)
+    shuffled_data = [shuffle(alphabet, RS) for alphabet in raw_data]
+    rotated_data = [do_rotation(alphabet) for alphabet in shuffled_data]
+    all_data = shuffled_data + rotated_data
+    data_split = zip(*[split(alphabet, num_chars) for alphabet in all_data])
+    normalized_data = [subtract_mean(data_subset) for data_subset in data_split]
+    return normalized_data
+
+def do_rotation(alphabet):
+    new_alphabet = alphabet.copy()
+    new_alphabet['X'] = alphabet['X'][:, ::-1]
+    return new_alphabet
 
 def split(alphabet, num_chars):
     assert sum(num_chars) == NUM_EXAMPLES
@@ -108,7 +122,12 @@ def show_all_chars():
 def show_curated_alphabets():
     show_all_alphabets(CURATED_ALPHABETS)
 
-def show_all_alphabets(perm=None):
+def show_rotated_alphabets():
+    show_all_alphabets(ROTATED_ALPHABETS, rotate=True)
+
+def show_all_alphabets(perm=None, rotate=False):
+    seed = 1
+    RS = RandomState(seed)
     if perm is None:
         perm = range(len(alphabets))
     import matplotlib as mpl
@@ -119,12 +138,22 @@ def show_all_alphabets(perm=None):
     alphabets = load_data()
     for i_alphabet in perm:
         alphabet = alphabets[i_alphabet]
-        char_idxs = np.random.randint(alphabet['X'].shape[0], size=n_cols)
+        char_idxs = RS.randint(alphabet['X'].shape[0], size=n_cols)
         char_ids = np.argmax(alphabet['T'][char_idxs], axis=1)
         image = alphabet['X'][char_idxs].reshape((n_cols, 28, 28))
         image = np.transpose(image, axes=[1, 0, 2]).reshape((28, n_cols * 28))
         full_image = np.concatenate((full_image, image))
 
+    RS = RandomState(seed)
+    if rotate:
+        for i_alphabet in perm:
+            alphabet = do_rotation(alphabets[i_alphabet])
+            char_idxs = RS.randint(alphabet['X'].shape[0], size=n_cols)
+            char_ids = np.argmax(alphabet['T'][char_idxs], axis=1)
+            image = alphabet['X'][char_idxs].reshape((n_cols, 28, 28))
+            image = np.transpose(image, axes=[1, 0, 2]).reshape((28, n_cols * 28))
+            full_image = np.concatenate((full_image, image))
+        
     fig = plt.figure()
     fig.set_size_inches((8,12))
     ax = fig.add_subplot(111)
