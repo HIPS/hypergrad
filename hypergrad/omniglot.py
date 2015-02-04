@@ -44,7 +44,7 @@ def load_data_split(num_chars, RS, num_alphabets=NUM_ALPHABETS):
     normalized_data = [subtract_mean(data_subset) for data_subset in data_split]
     return normalized_data
 
-def load_curated_alphabets(num_chars):
+def load_curated_alphabets(num_chars, RS):
     raw_data = load_data(CURATED_ALPHABETS)
     shuffled_data = [shuffle(alphabet, RS) for alphabet in raw_data]
     data_split = zip(*[split(alphabet, num_chars) for alphabet in shuffled_data])
