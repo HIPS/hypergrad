@@ -231,6 +231,8 @@ for each parameter being updated during learning, we keep a tape of bits.
 Each time an information-destroying operation (such as division by an integer) is performed, we store the information that would be needed to reverse the operation exactly.  In the case of division by an integer, this information is simply the remainder.
 During the reverse pass, when the inverse operation is performed (multiplication by that same integer), this extra information is extracted from the tape.
 
+Addition and subtraction are exactly reversible operations on fixed-precision numbers, except when overflow occurs.
+
 [TODO: Explain fractional bits, and break up the following algorithm into multiply and divide steps.]
 
 \begin{algorithm}
@@ -297,7 +299,11 @@ The step sizes which lead to chaotic behavior are only slightly larger than the 
 %\end{figure} 
 
 
-\section{Results}
+\section{Experiments}
+
+Because we have access to hyper-gradients, we can optimize
+
+
 
 \subsection{Optimizing Optimization Parameters}
 
@@ -307,6 +313,8 @@ Having access to gradients allows us to optimize thousands of hyperparameters.
 
 Each primal iteration uses a different set of random initial weights, as well as a random reshuffling of dataset.
 This prevents the learning schedules from depending on quirks of the initial random initialization.
+
+We refined Algorithms \ref{alg:sgd} and \ref{alg:reverse-sgd} to allow a separate step-size and momentum schedule for each type of parameter in each layer of layer.
 
 \begin{figure}[h!]
 \vskip 0.2in
@@ -371,10 +379,8 @@ It would not be straightforward to learn dropout regularization parameters, or l
 
 \begin{figure}[h!]
 \begin{center}
-\includegraphics[width=\columnwidth]{../experiments/Jan_21_nn_ard/2/weights.pdf}
-\includegraphics[width=\columnwidth]{../experiments/Jan_21_nn_ard/2/penalties.pdf}
-\caption{\emph{Top:} Filters learned to classify MNIST in logistic regression.
-\emph{Bottom:} L2 regularization hyperparameters for each weight..}
+\includegraphics[width=\columnwidth]{../experiments/Jan_19_optimize_data/4/fake_data.pdf}
+\caption{Fake data}
 \label{fig:logistic ard}
 \end{center}
 \end{figure} 
@@ -385,15 +391,7 @@ It would not be straightforward to learn dropout regularization parameters, or l
 How many hyperparameters can we fruitfully optimize?
 The main limitation seems to be overfitting.
 
-\begin{figure}[h!]
-\begin{center}
-\centerline{\includegraphics[width=\columnwidth]{../experiments/Jan_28_training_schedule/4_training_loss_nn/learning_curves.png}}
-\caption{\emph{Top:} Learning curves.  \emph{Middle:} Meta-learning curves. }
-\label{fig:nn meta-learning curves}
-\end{center}
-\end{figure} 
-
-Figure \ref{fig:nn meta-learning curves} shows the difference between training, validation and test-set error when optimizing 
+[TODO: show the difference between training, validation and test-set error when optimizing]
 
 
 \subsection{Learning to Learn Languages}
@@ -401,7 +399,7 @@ Figure \ref{fig:nn meta-learning curves} shows the difference between training, 
 \begin{figure}[h!]
 \begin{center}
 \centerline{\includegraphics[width=\columnwidth]{../experiments/Jan_27_first_omniglot_expt/random_images.png}}
-\caption{Example languages drawn from the Omniglot dataset.}
+\caption{Example character sets in the Omniglot dataset.}
 \label{fig:omniglot}
 \end{center}
 \end{figure} 

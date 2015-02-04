@@ -27,13 +27,13 @@ N_iters = 20
 N_classes = 10
 
 # ----- Variables for meta-optimization -----
-N_fake_data = 10
+N_fake_data = 30
 fake_data_L2_reg = 0.0
 N_val_data = 10000
-N_test_data = 1000
-meta_stepsize = 1
-N_meta_iter = 40
-init_fake_data_scale = 0.01
+N_test_data = 10000
+meta_stepsize = 0.4
+N_meta_iter = 200
+init_fake_data_scale = 0.1
 
 
 def run():
@@ -50,6 +50,7 @@ def run():
 
     npr.seed(0)
     init_fake_data = npr.randn(*(val_images[:N_fake_data, :].shape)) * init_fake_data_scale
+    one_hot = lambda x, K : np.array(x[:,None] == np.arange(K)[None, :], dtype=int)
     fake_labels = one_hot(np.array(range(N_fake_data)) % N_classes, N_classes)  # One of each.
 
     hyperparser = WeightsParser()
@@ -110,7 +111,7 @@ def plot():
     fig.clf()
     ax = fig.add_subplot(1, 1, 1)
     images = all_fakedata[-1]
-    plot_mnist_images(images, ax, ims_per_row=10)
+    plot_mnist_images(images, ax, ims_per_row=5)
     fig.set_size_inches((8,12))
     plt.savefig('fake_data.pdf', pad_inches=0.05, bbox_inches='tight')
 
@@ -151,6 +152,6 @@ def plot():
 
 
 if __name__ == '__main__':
-    #results = run()
-    #with open('results.pkl', 'w') as f: pickle.dump(results, f)
+    results = run()
+    with open('results.pkl', 'w') as f: pickle.dump(results, f)
     plot()
