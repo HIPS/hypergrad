@@ -301,6 +301,11 @@ def plot():
             ax.plot(np.exp(y), 'o-', label=layer_name(parser.names[i]))
     ax.set_xlabel('Meta iteration')
     ax.set_ylabel('Initial scale')
+    # Show lines for theoretical optimum.
+    y1 = 1.0/np.sqrt(layer_sizes[0])
+    y2 = 1.0/np.sqrt(layer_sizes[1])
+    ax.plot(ax.get_xlim(), (y1, y1), 'b--')
+    ax.plot(ax.get_xlim(), (y2, y2), 'k--')
     #ax.set_yscale('log')
     #ax.legend(loc=1, frameon=False)
 

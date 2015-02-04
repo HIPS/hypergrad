@@ -5,7 +5,7 @@ import numpy as np
 import numpy.random as npr
 import pickle
 
-from hypergrad.data import load_data, one_hot
+from hypergrad.data import load_data
 from hypergrad.nn_utils import make_nn_funs, BatchList, plot_mnist_images, WeightsParser
 from hypergrad.optimizers import sgd2
 
@@ -104,6 +104,17 @@ def plot():
         all_learning_curves, all_val_loss, all_test_loss,\
         all_fakedata, all_fakedatasize, all_L2 = zip(*pickle.load(f))
 
+
+    # Fake data
+    fig = plt.figure(0)
+    fig.clf()
+    ax = fig.add_subplot(1, 1, 1)
+    images = all_fakedata[-1]
+    plot_mnist_images(images, ax, ims_per_row=10)
+    fig.set_size_inches((8,12))
+    plt.savefig('fake_data.pdf', pad_inches=0.05, bbox_inches='tight')
+
+
     fig = plt.figure(0)
     fig.clf()
     N_figs = 3
@@ -134,14 +145,12 @@ def plot():
     images = all_fakedata[-1]
     plot_mnist_images(images, ax, ims_per_row=10)
     fig.set_size_inches((8,12))
-
-    plt.savefig("/tmp/fig.png")
     plt.savefig("fig.png")
 
-    plt.show()
+
 
 
 if __name__ == '__main__':
-    results = run()
-    with open('results.pkl', 'w') as f: pickle.dump(results, f)
+    #results = run()
+    #with open('results.pkl', 'w') as f: pickle.dump(results, f)
     plot()

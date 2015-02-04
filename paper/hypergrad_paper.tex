@@ -65,11 +65,9 @@
 
 \begin{abstract} 
 Tuning hyper-parameters of learning algorithms is hard because gradients are usually unavailable.
-We compute exact gradients of cross-validation performance with respect to hyperparameters by chaining derivatives through the \emph{entire training procedure}.
-% including hundreds of iterations of stochastic gradient descent with momentum.
+We compute exact gradients of cross-validation performance with respect to all hyperparameters by chaining derivatives through the \emph{entire training procedure}.
 We compute these gradients efficiently by exactly reversing the dynamics of stochastic gradient descent with momentum.
-These gradients allow us to optimize thousands of hyperparameters including step-size and momentum schedules, weight initialization strategies, richly parameterized regularization schemes, and neural network architectures.
-
+These gradients allow us to optimize thousands of hyperparameters, including step-size and momentum schedules, weight initialization distributions, richly parameterized regularization schemes, and neural network architectures.
 \end{abstract} 
 
 \section{Introduction}
@@ -77,7 +75,7 @@ These gradients allow us to optimize thousands of hyperparameters including step
 
 
 
-\section{Meta-Optimization}
+\paragraph{Meta-Optimization}
 
 The current state-of-the-art for hyperparameter optimization is achieved by model-based, gradient-free methods~\cite{snoek2012practical, bergstra2011algorithms, BerYamCox13, HutHooLey11}.
 These methods are able to effectively exploit the information learned through evaluations of the objective.
@@ -233,6 +231,8 @@ for each parameter being updated during learning, we keep a tape of bits.
 Each time an information-destroying operation (such as division by an integer) is performed, we store the information that would be needed to reverse the operation exactly.  In the case of division by an integer, this information is simply the remainder.
 During the reverse pass, when the inverse operation is performed (multiplication by that same integer), this extra information is extracted from the tape.
 
+Addition and subtraction are exactly reversible operations on fixed-precision numbers, except when overflow occurs.
+
 [TODO: Explain fractional bits, and break up the following algorithm into multiply and divide steps.]
 
 \begin{algorithm}
@@ -299,9 +299,15 @@ The step sizes which lead to chaotic behavior are only slightly larger than the 
 %\end{figure} 
 
 
-\section{Results}
+\section{Experiments}
 
-\subsection{Optimizing Optimization Parameters}
+Typically only a few hyperparameters are optimized - typically 10-20 parameters including a global weight initialization scale, learning rate and momentum, along with various architecture choices [cite Dalh QSAR paper].
+Hyper-gradients allow us to optimize any continuous parameter upon which training depends.
+
+
+
+
+\subsection{Optimizing optimization parameters}
 
 Modern neural net training procedures often employ various heuristics to set learning rate schedules, or set their shape using one or two hyperparameters set by cross-validation \citep{dahl2014multi}, \citep{sutskever2013importance}
 
@@ -310,13 +316,29 @@ Having access to gradients allows us to optimize thousands of hyperparameters.
 Each primal iteration uses a different set of random initial weights, as well as a random reshuffling of dataset.
 This prevents the learning schedules from depending on quirks of the initial random initialization.
 
+We refined Algorithms \ref{alg:sgd} and \ref{alg:reverse-sgd} to allow a separate step-size and momentum schedule for each type of parameter in each layer of layer.
+%
 \begin{figure}[h!]
 \vskip 0.2in
 \begin{center}
 Optimized training schedule \\
-\includegraphics[width=\columnwidth]{../experiments/Feb_3_training_schedules/3_adam_50/schedules_small.pdf}
+\includegraphics[width=\columnwidth]{../experiments/Feb_3_training_schedules/4_adam_100/schedules_small.pdf}
 \caption{A step-size training schedule optimized by hyper-gradient descent.
 The optimized schedule starts by taking large steps only in the topmost layer, then takes larger steps in the first layer.}
+\label{fig:optimal schedule}
+\end{center}
+\vskip -0.2in
+\end{figure} 
+%
+Figure {fig:optimal schedule} shows the results of optimizing learning rate schedules separately for each layer of a deep neural network.
+The network had 4 layers, of size $[784, 50, 50, 50]$.
+
+\begin{figure}[h!]
+\vskip 0.2in
+\begin{center}
+Initial hyper-gradient\\
+\includegraphics[width=\columnwidth]{../experiments/Feb_3_training_schedules/5_initial_gradient/schedules_small.pdf}
+\caption{The initial gradient of the cross-validation loss with respect to the training schedule, averaged over 100 random weight initializations and mini batches.}
 \label{fig:optimal schedule}
 \end{center}
 \vskip -0.2in
@@ -330,9 +352,9 @@ Results are shown in figure \ref{fig:nn weight init scales}.
 \vskip 0.2in
 \begin{center}
 \begin{tabular}{cc}
-Weights & Biases \\
-\hspace{-1em}\includegraphics[width=0.5\columnwidth, height=0.5\columnwidth]{../experiments/Feb_3_training_schedules/3_adam_50/init_weight_learning_curve.pdf} &
-\hspace{-1em}\includegraphics[width=0.5\columnwidth, height=0.5\columnwidth]{../experiments/Feb_3_training_schedules/3_adam_50/init_bias_learning_curve.pdf} \\
+ Biases & Weights \\
+\hspace{-1em}\includegraphics[width=0.5\columnwidth, height=0.5\columnwidth]{../experiments/Feb_3_training_schedules/4_adam_100/init_bias_learning_curve.pdf} &
+\hspace{-1em}\includegraphics[width=0.5\columnwidth, height=0.5\columnwidth]{../experiments/Feb_3_training_schedules/4_adam_100/init_weight_learning_curve.pdf}
 \end{tabular}
 \caption{\emph{Top:} Meta-training curves for the initialization scales of different types of weights.
 The meta-optimized weight distributions set the first layer weights to be small, and the second layer weights to be large.
@@ -344,7 +366,15 @@ Only one layer needs to be non-zero at initialization in order to break symmetry
 
 It would not be straightforward to learn dropout regularization parameters, or layer widths.
 
-\subsection{Automatic Relevance Determination}
+\subsection{Optimizing regularization parameters}
+
+Regularization is often important for generalization performance is .
+Typically, a single parameter controls a single L2 norm or sparsity penalty on the entire parameter vector of a neural network.
+Because different types of parameters in different layers play different roles, it is reasonable to include a separate regularization hyperparameter for each parameter type.
+
+\paragraph{Automatic relevance determination}
+We can take this idea even further, and introduce a separate regularization penalty for each individual parameter in a neural network.
+This
 
 \begin{figure}[h!]
 \begin{center}
@@ -356,28 +386,51 @@ It would not be straightforward to learn dropout regularization parameters, or l
 \end{center}
 \end{figure} 
 
+
+\subsection{Optimizing data}
+
+We can use Algorithm \ref{alg:reverse-sgd} to take the gradient with respect to any parameter the training procedure depends on.
+This includes the training data, which can be viewed as just another set of hyper-parameters.
+By chaining gradients through transformations of the data, we can compute gradients of the validation objective with respect to data preprocessing, weighting, or augmentation procedures.
+
+We demonstrate a simple proof-of-concept where the \emph{entire training set} is learned by gradient descent.
+
+\begin{figure}[h!]
+\begin{center}
+\includegraphics[width=\columnwidth]{../experiments/Jan_19_optimize_data/4/fake_data.pdf}
+\caption{Fake data}
+\label{fig:logistic ard}
+\end{center}
+\end{figure} 
+
+
 \subsubsection{Overfitting}
 
 How many hyperparameters can we fruitfully optimize?
 The main limitation seems to be overfitting.
 
-\begin{figure}[h!]
-\begin{center}
-\centerline{\includegraphics[width=\columnwidth]{../experiments/Jan_28_training_schedule/4_training_loss_nn/learning_curves.png}}
-\caption{\emph{Top:} Learning curves.  \emph{Middle:} Meta-learning curves. }
-\label{fig:nn meta-learning curves}
-\end{center}
-\end{figure} 
-
-Figure \ref{fig:nn meta-learning curves} shows the difference between training, validation and test-set error when optimizing 
+[TODO: show the difference between training, validation and test-set error when optimizing]
 
 
 \subsection{Learning to Learn Languages}
 
 \begin{figure}[h!]
 \begin{center}
-\centerline{\includegraphics[width=\columnwidth]{../experiments/Jan_27_first_omniglot_expt/random_images.png}}
-\caption{Example languages drawn from the Omniglot dataset.}
+\includegraphics[width=\columnwidth, clip, trim=5cm 23cm 5cm 1cm]{../experiments/Feb_1_learning_alphabet_corr/5/all_alphabets.png}
+\caption{Example character sets in the Omniglot dataset.}
+\label{fig:omniglot}
+\end{center}
+\end{figure} 
+
+\begin{figure}[h!]
+\begin{center}
+\begin{tabular}{ccc}
+Independent & Learned & Full \\
+\hspace{-1em}\includegraphics[width=0.31 \columnwidth]{../experiments/Feb_1_learning_alphabet_corr/5/covar_eye.pdf} &
+\hspace{-1em}\includegraphics[width=0.31 \columnwidth]{../experiments/Feb_1_learning_alphabet_corr/5/covar_learned_toplayer.pdf} &
+\hspace{-1em}\includegraphics[width=0.31 \columnwidth]{../experiments/Feb_1_learning_alphabet_corr/5/covar_full.pdf}
+\end{tabular}
+\caption{Learned covariances between neural nets trained on different alphabets.}
 \label{fig:omniglot}
 \end{center}
 \end{figure} 
@@ -442,7 +495,7 @@ Even when this is not the case, we hope that the training schedules and initiali
 
 \section*{Acknowledgments} 
 
-%We would like to thank Christian Steinruecken for helpful discussions.
+%We would like to thank Christian Steinruecken and Oren Rippel for helpful discussions.
 
 \bibliography{references.bib}
 \bibliographystyle{icml2015stylefiles/icml2015}

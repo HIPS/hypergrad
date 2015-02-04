@@ -137,7 +137,7 @@ def plot():
     from hypergrad.omniglot import show_all_alphabets
     import matplotlib.pyplot as plt
     import matplotlib as mpl
-    from spectral_clustering.spclust import find_blockifying_perm
+    #from spectral_clustering.spclust import find_blockifying_perm
     with open('results.pkl') as f:
         results, all_transforms = pickle.load(f)
     fig = plt.figure(0)
@@ -192,6 +192,23 @@ def plot():
     ax.set_xticks([])
     ax.set_yticks([])
     plt.savefig('learned_covar_permuted.png')
+
+
+    # Plot various covariance matrices.
+    def boxplot( matrix, cmap, name):
+        fig = plt.figure(0)
+        fig.clf()
+        fig.set_size_inches((3,3))
+        ax = fig.add_subplot(111)
+        ax.matshow(matrix, cmap=cmap)
+        plt.xticks(np.array([]))
+        plt.yticks(np.array([]))
+        plt.savefig(name, bbox_inches='tight')
+
+    boxplot(covar_learned[0],                  mpl.cm.binary, 'covar_learned_toplayer.pdf')
+    boxplot(np.eye(covar_learned[0].shape[0]), mpl.cm.binary, 'covar_eye.pdf')
+    boxplot(np.ones(covar_learned[0].shape),   mpl.cm.hot,    'covar_full.pdf')
+
 
 if __name__ == '__main__':
     # results = run()
