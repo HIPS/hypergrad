@@ -28,7 +28,7 @@ init_invlogit_betas = inv_logit(0.5)
 init_log_param_scale = -3.0
 
 # ----- Superparameters -----
-N_meta_iter = 100
+N_meta_iter = 50
 seed = 0
 
 def fill_parser(parser, items):
@@ -191,7 +191,7 @@ def plot():
 
 
 if __name__ == '__main__':
-    #results = run()
-    #with open('results.pkl', 'w') as f:
-    #    pickle.dump(results, f)
+    results = run()
+    with open('results.pkl', 'w') as f:
+        pickle.dump(results, f)
     plot()

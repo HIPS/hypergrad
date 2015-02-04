@@ -11,7 +11,7 @@ from hypergrad.optimizers import adam, sgd_parsed
 from hypergrad.util import RandomState
 
 # ----- Fixed params -----
-layer_sizes = [784, 10]
+layer_sizes = [784, 20,10]
 batch_size = 10
 N_iters = 20
 N_classes = 10
@@ -64,8 +64,8 @@ def run():
         cur_hyperparams = hyperparams.new_vect(hyperparam_vect)
         fake_data = cur_hyperparams['fake_data']
         def indexed_loss_fun(w, L2_vect, i_iter):
-            #return loss_fun(w, fake_data, train_data['T'], L2_vect)
-            return loss_fun(w, train_data['X'], train_data['T'], L2_vect + np.sum(fake_data.ravel()))
+            return loss_fun(w, fake_data, train_data['T'], L2_vect)
+            #return loss_fun(w, train_data['X'], train_data['T'], L2_vect + np.sum(fake_data.ravel()))
 
         learning_curve_dict = defaultdict(list)
         def callback(x, v, g, i_iter):

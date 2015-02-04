@@ -295,31 +295,37 @@ def plot():
     print "Plotting initialization distributions and regularization..."
     fig.clf()
     ax = fig.add_subplot(111)
-    #ax.set_title('Init scale learning curves')
     for i, y in enumerate(zip(*results['log_param_scale'])):
         if parser.names[i][0] == 'weights':
-            ax.plot(np.exp(y), 'o-', label=layer_name(parser.names[i]))
+            ax.plot(np.exp(y), 'o-', label='')#layer_name(parser.names[i]))
     ax.set_xlabel('Meta iteration')
-    ax.set_ylabel('Initial scale')
+    #ax.set_ylabel('Initial scale')
     # Show lines for theoretical optimum.
     y1 = 1.0/np.sqrt(layer_sizes[0])
     y2 = 1.0/np.sqrt(layer_sizes[1])
-    ax.plot(ax.get_xlim(), (y1, y1), 'b--')
-    ax.plot(ax.get_xlim(), (y2, y2), 'k--')
-    #ax.set_yscale('log')
-    #ax.legend(loc=1, frameon=False)
+    ax.plot(ax.get_xlim(), (y2, y2), 'k--', label=r'$1/\sqrt{50}$')
+    ax.plot(ax.get_xlim(), (y1, y1), 'b--', label=r'$1/\sqrt{784}$')
+    #plt.axhline(y = y1, color='b--')
+    #plt.axhline(y = y2, color='k--')
+    #ax.legend(loc=0, frameon=False, prop={'size':'11'})
+
+    ax.set_yticks([0.00, 1.0/np.sqrt(784), 0.10, 1.0/np.sqrt(50), 0.20, 0.25])
+    ax.set_yticklabels(['0.00', r"$1 / \sqrt{784}$", "0.10",
+                        r"$1 / \sqrt{50}$", "0.20", "0.25"])
+
 
     fig.set_size_inches((2.5,2.5))
+
     #ax.legend(numpoints=1, loc=1, frameon=False, prop={'size':'12'})
     plt.savefig('init_weight_learning_curve.pdf', pad_inches=0.05, bbox_inches='tight')
 
     fig.clf()
     ax = fig.add_subplot(111)
-    #ax.set_title('Init scale learning curves')
     for i, y in enumerate(zip(*results['log_param_scale'])):
         if parser.names[i][0] == 'biases':
             ax.plot(np.exp(y), 'o-', label=layer_name(parser.names[i]))
     ax.set_xlabel('Meta iteration')
+    ax.set_ylabel('Initial scale')
     #ax.set_ylabel('Scale')
     #ax.set_yscale('log')
     #ax.set_ylabel('Log param scale')
