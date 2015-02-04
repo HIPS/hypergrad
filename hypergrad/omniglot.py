@@ -98,5 +98,31 @@ def show_all_chars():
         ax.set_title("Alphabet {0}, chars {1}".format(i_alphabet, char_ids))
     plt.savefig("random_images.png")
 
+def show_all_alphabets(perm=None):
+    if perm is None:
+        perm = range(NUM_ALPHABETS)
+    import matplotlib as mpl
+    import matplotlib.pyplot as plt
+    from nn_utils import plot_images
+    alphabets = load_data()
+    n_cols = 20
+    full_image = np.zeros((0, n_cols * 28))
+    for i_alphabet in perm:
+        alphabet = alphabets[i_alphabet]
+        char_idxs = np.random.randint(alphabet['X'].shape[0], size=n_cols)
+        char_ids = np.argmax(alphabet['T'][char_idxs], axis=1)
+        image = alphabet['X'][char_idxs].reshape((n_cols, 28, 28))
+        image = np.transpose(image, axes=[1, 0, 2]).reshape((28, n_cols * 28))
+        full_image = np.concatenate((full_image, image))
+
+    fig = plt.figure()
+    fig.set_size_inches((8,12))
+    ax = fig.add_subplot(111)
+    ax.imshow(full_image, cmap=mpl.cm.binary)
+    ax.set_xticks(np.array([]))
+    ax.set_yticks(np.array([]))
+    plt.tight_layout()
+    plt.savefig("all_alphabets.png")
+
 if __name__ == "__main__":
     mat_to_pickle()
