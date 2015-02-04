@@ -109,7 +109,7 @@ def run():
         print "Meta Epoch {0} Train loss {1:2.4f} Valid Loss {2:2.4f}" \
               " Test Loss {3:2.4f} Test Err {4:2.4f}".format(
             i_hyper, meta_results['train_loss'][-1], meta_results['valid_loss'][-1],
-            meta_results['train_loss'][-1], meta_results['test_err'][-1])
+            meta_results['tests_loss'][-1], meta_results['test_err'][-1])
 
     initial_hypergrad = hyperloss_grad( hyperparams.vect, 0)
     parsed_init_hypergrad = hyperparams.new_vect(initial_hypergrad.copy())

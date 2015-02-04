@@ -6,7 +6,7 @@ from collections import defaultdict
 from funkyyak import grad, kylist, getval
 
 from hypergrad.data import load_data_dicts
-from hypergrad.nn_utils import make_nn_funs, VectorParser, logit, inv_logit
+from hypergrad.nn_utils import make_nn_funs, VectorParser, logit, inv_logit, plot_mnist_images
 from hypergrad.optimizers import adam, sgd_parsed
 from hypergrad.util import RandomState
 
@@ -22,14 +22,15 @@ N_learning_checkpoint = 5
 thin = np.ceil(N_iters/N_learning_checkpoint)
 
 # ----- Initial values of learned hyper-parameters -----
-init_log_L2_reg = -100.0
+init_log_L2_reg = -2.0
 init_log_alphas = -1.0
 init_invlogit_betas = inv_logit(0.5)
-init_log_param_scale = -3.0
+init_log_param_scale = -1.0
 
 # ----- Superparameters -----
-meta_alpha = 0.04
-N_meta_iter = 50
+meta_alpha = 0.1
+N_meta_iter = 5
+init_fake_data_scale = 0.0
 
 seed = 0
 
@@ -42,35 +43,43 @@ def run():
     train_data, valid_data, tests_data = load_data_dicts(N_train, N_valid, N_tests)
     parser, pred_fun, loss_fun, frac_err = make_nn_funs(layer_sizes)
     N_weight_types = len(parser.names)
+
+    #rs = RandomState((seed))
+    #init_fake_data = rs.randn(*(train_data['X'].shape)) * init_fake_data_scale
+    init_fake_data = np.zeros(train_data['X'].shape)
+    one_hot = lambda x, K : np.array(x[:,None] == np.arange(K)[None, :], dtype=int)
+    fake_labels = one_hot(np.array(range(N_train)) % N_classes, N_classes)  # One of each.
+
     hyperparams = VectorParser()
-    hyperparams['log_param_scale'] = np.full(N_weight_types, init_log_param_scale)
-    hyperparams['log_alphas']      = np.full((N_iters, N_weight_types), init_log_alphas)
-    hyperparams['invlogit_betas']  = np.full((N_iters, N_weight_types), init_invlogit_betas)
+    hyperparams['fake_data']  = init_fake_data
     fixed_hyperparams = VectorParser()
+    fixed_hyperparams['log_param_scale'] = np.full(N_weight_types, init_log_param_scale)
+    fixed_hyperparams['log_alphas']      = np.full((N_iters, N_weight_types), init_log_alphas)
+    fixed_hyperparams['invlogit_betas']  = np.full((N_iters, N_weight_types), init_invlogit_betas)
     fixed_hyperparams['log_L2_reg'] = np.full(N_weight_types, init_log_L2_reg)
 
     cur_primal_results = {}
 
-    def primal_optimizer(hyperparam_vect, i_hyper):
+    def primal_optimizer(hyperparam_vect):
         def indexed_loss_fun(w, L2_vect, i_iter):
-            rs = RandomState((seed, i_hyper, i_iter))  # Deterministic seed needed for backwards pass.
-            idxs = rs.randint(N_train, size=batch_size)
-            return loss_fun(w, train_data['X'][idxs], train_data['T'][idxs], L2_vect)
+            ch = hyperparams.new_vect(hyperparam_vect)
+            return loss_fun(w, ch['fake_data'], fake_labels, L2_vect)
+
 
         learning_curve_dict = defaultdict(list)
         def callback(x, v, g, i_iter):
             if i_iter % thin == 0:
-                learning_curve_dict['learning_curve'].append(loss_fun(x, **train_data))
+        #        learning_curve_dict['learning_curve'].append(loss_fun(x, getval(cur_hyperparams['fake_data']), fake_labels))
                 learning_curve_dict['grad_norm'].append(np.linalg.norm(g))
                 learning_curve_dict['weight_norm'].append(np.linalg.norm(x))
                 learning_curve_dict['velocity_norm'].append(np.linalg.norm(v))
 
         cur_hyperparams = hyperparams.new_vect(hyperparam_vect)
-        rs = RandomState((seed, i_hyper))
-        W0 = fill_parser(parser, np.exp(cur_hyperparams['log_param_scale']))
+        rs = RandomState((seed))
+        W0 = fill_parser(parser, np.exp(fixed_hyperparams['log_param_scale']))
         W0 *= rs.randn(W0.size)
-        alphas = np.exp(cur_hyperparams['log_alphas'])
-        betas  = logit(cur_hyperparams['invlogit_betas'])
+        alphas = np.exp(fixed_hyperparams['log_alphas'])
+        betas  = logit(fixed_hyperparams['invlogit_betas'])
         L2_reg = fill_parser(parser, np.exp(fixed_hyperparams['log_L2_reg']))
         W_opt = sgd_parsed(grad(indexed_loss_fun), kylist(W0, alphas, betas, L2_reg),
                            parser, callback=callback)
@@ -79,8 +88,8 @@ def run():
         return W_opt, learning_curve_dict
 
     def hyperloss(hyperparam_vect, i_hyper):
-        W_opt, _ = primal_optimizer(hyperparam_vect, i_hyper)
-        return loss_fun(W_opt, **train_data)
+        W_opt, _ = primal_optimizer(hyperparam_vect)
+        return loss_fun(W_opt, **valid_data)
     hyperloss_grad = grad(hyperloss)
 
     meta_results = defaultdict(list)
@@ -90,7 +99,8 @@ def run():
         cur_hyperparams = hyperparams.new_vect(hyperparam_vect.copy())
         for field in cur_hyperparams.names:
             meta_results[field].append(cur_hyperparams[field])
-        meta_results['train_loss'].append(loss_fun(x, **train_data))
+        #meta_results['train_loss'].append(loss_fun(x, getval(cur_hyperparams['fake_data']), fake_labels))
+        meta_results['train_loss'].append(0)
         meta_results['valid_loss'].append(loss_fun(x, **valid_data))
         meta_results['tests_loss'].append(loss_fun(x, **tests_data))
         meta_results['test_err'].append(frac_err(x, **tests_data))
@@ -105,61 +115,44 @@ def run():
         print "Meta Epoch {0} Train loss {1:2.4f} Valid Loss {2:2.4f}" \
               " Test Loss {3:2.4f} Test Err {4:2.4f}".format(
             i_hyper, meta_results['train_loss'][-1], meta_results['valid_loss'][-1],
-            meta_results['train_loss'][-1], meta_results['test_err'][-1])
+            meta_results['tests_loss'][-1], meta_results['test_err'][-1])
 
-    initial_hypergrad = hyperloss_grad( hyperparams.vect, 0)
-    parsed_init_hypergrad = hyperparams.new_vect(initial_hypergrad.copy())
     final_result = adam(hyperloss_grad, hyperparams.vect, meta_callback, N_meta_iter, meta_alpha)
     meta_callback(final_result, N_meta_iter)
     parser.vect = None # No need to pickle zeros
-    return meta_results, parser, parsed_init_hypergrad
+    return meta_results, parser
+
 
 
 def plot():
 
     import matplotlib.pyplot as plt
     with open('results.pkl') as f:
-        results, parser, parsed_init_hypergrad = pickle.load(f)
+        results, parser = pickle.load(f)
 
-    # ----- Alpha and beta initial hypergradients -----
+    # Fake data
     fig = plt.figure(0)
     fig.clf()
-    ax = fig.add_subplot(411)
-    for cur_results, name in zip(parsed_init_hypergrad['log_alphas'].T, parser.names):
-        if name[0] == 'weights':
-            ax.plot(cur_results, 'o-', label=name)
-    ax.set_ylabel('Step size Gradient', fontproperties='serif')
-    ax.set_xticklabels([])
-    ax.legend(numpoints=1, loc=1, frameon=False, bbox_to_anchor=(1.0, 0.5),
-              prop={'family':'serif', 'size':'12'})
+    ax = fig.add_subplot(1, 1, 1)
+    ax.set_title("Fake Data")
+    images = results['fake_data'][-1]
+    plot_mnist_images(images, ax, ims_per_row=10)
+    fig.set_size_inches((8,12))
+    plt.savefig('fake_data.pdf', pad_inches=0.05, bbox_inches='tight')
 
-    ax = fig.add_subplot(412)
-    for cur_results, name in zip(parsed_init_hypergrad['invlogit_betas'].T, parser.names):
-        if name[0] == 'weights':
-            ax.plot(cur_results, 'o-', label=name)
-    ax.set_xlabel('Learning Iteration', fontproperties='serif')
-    ax.set_ylabel('Momentum Gradient', fontproperties='serif')
 
-    ax = fig.add_subplot(413)
-    for cur_results, name in zip(parsed_init_hypergrad['log_alphas'].T, parser.names):
-        if name[0] == 'biases':
-            ax.plot(cur_results, 'o-', label=name)
-    ax.set_ylabel('Step size Gradient', fontproperties='serif')
-    ax.set_xticklabels([])
-    ax.legend(numpoints=1, loc=1, frameon=False, bbox_to_anchor=(1.0, 0.5),
-              prop={'family':'serif', 'size':'12'})
+    # Show first layer filters from the last meta-iteration.
+    fig = plt.figure(0)
+    fig.clf()
+    ax = fig.add_subplot(1, 1, 1)
+    ax.set_title("Weights")
+    weights = results['example_weights']
+    parser.vect = weights
+    weight_images = parser[('weights', 0)].T
+    plot_mnist_images(weight_images, ax, ims_per_row=10)
+    fig.set_size_inches((8,12))
+    plt.savefig('first_layer_weights.pdf', pad_inches=0.05, bbox_inches='tight')
 
-    ax = fig.add_subplot(414)
-    for cur_results, name in zip(parsed_init_hypergrad['invlogit_betas'].T, parser.names):
-        if name[0] == 'biases':
-            ax.plot(cur_results, 'o-', label=name)
-    ax.set_xlabel('Learning Iteration', fontproperties='serif')
-    ax.set_ylabel('Momentum Gradient', fontproperties='serif')
-
-    fig.set_size_inches((6,8))
-    #plt.show()
-    plt.savefig('initial_gradient.png')
-    plt.savefig('initial_gradient.pdf', pad_inches=0.05, bbox_inches='tight')
 
 
     # ----- Nice versions of Alpha and beta schedules for paper -----
@@ -221,11 +214,11 @@ def plot():
     fig.set_size_inches((6,8))
     # ----- Primal learning curves -----
     ax = fig.add_subplot(311)
-    ax.set_title('Primal learning curves')
-    for i, y in enumerate(results['learning_curves']):
-        ax.plot(y['learning_curve'], 'o-', label='Meta iter {0}'.format(i))
-    ax.set_xlabel('Epoch number')
-    ax.set_ylabel('Negative log prob')
+    #ax.set_title('Primal learning curves')
+    #for i, y in enumerate(results['learning_curves']):
+    #    ax.plot(y['learning_curve'], 'o-', label='Meta iter {0}'.format(i))
+    #ax.set_xlabel('Epoch number')
+    #ax.set_ylabel('Negative log prob')
     #ax.legend(loc=1, frameon=False)
 
     ax = fig.add_subplot(312)
