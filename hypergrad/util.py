@@ -36,6 +36,9 @@ class RandomState(npr.RandomState):
 def dictslice(d, idxs):
     return {k : v[idxs] for k, v in d.iteritems()}
 
+def listslice(L, idxs):
+    return [x[idxs] for x in L]
+
 def dictmap(f, d):
     return {k : f(v) for k, v in d.iteritems()}
     
