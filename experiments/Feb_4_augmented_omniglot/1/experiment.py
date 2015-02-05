@@ -127,26 +127,39 @@ def build_covar_image(transform_vect, corr=True, use_abs=False):
 def plot():
     import matplotlib.pyplot as plt
     import matplotlib as mpl
+    mpl.rcParams['font.family'] = 'serif'
+
     with open('results.pkl') as f:
         transform_parser, transform_vects, train_losses, tests_losses = pickle.load(f)
 
     omniglot.show_alphabets(omniglot.load_flipped_alphabets(normalize=False))
 
     # Plotting transformations
-    all_img = np.zeros((N_scripts * N_layers, 0))
-    for name in ['no_sharing', 'learned_sharing', 'full_sharing']:
-        all_img = np.concatenate((all_img, build_covar_image(transform_vects[name])), axis=1)
+    names = ['no_sharing', 'full_sharing', 'learned_sharing']
+    title_strings = {'no_sharing'      : 'Independent nets',
+                     'full_sharing'    : 'Shared bottom layer',
+                     'learned_sharing' : 'Learned sharing'}
+    covar_imgs = {name : build_covar_image(transform_vects[name]) for name in names}
 
-    # all_img = np.minimum(np.maximum(all_img, 0.0), 1)
+    prop={'family':'serif', 'size':'12'}
+
     fig = plt.figure(0)
     fig.clf()
-    fig.set_size_inches((6,8))
-    ax = fig.add_subplot(111)
-    ax.imshow(all_img, cmap = mpl.cm.binary)
-    ax.set_ylabel('Layer number')
-    ax.set_xticks([])
-    ax.set_yticks([])
+    fig.set_size_inches((6,6))
+    for i, name in enumerate(names):
+        ax = fig.add_subplot(1, 3, i + 1)
+        ax.imshow(covar_imgs[name], cmap = mpl.cm.binary)
+        ax.set_title(title_strings[name])
+        ax.set_xticks([])
+        ax.set_yticks([])
+        if i == 0:
+            labels = ["Layer {0}".format(layer) for layer in [3, 2, 1]]            
+            ypos   = [5, 15, 25]
+            for s, y in zip(labels, ypos):
+                ax.text(-2, y, s, rotation='vertical')
+    plt.tight_layout()
     plt.savefig('learned_corr.png')
+    plt.savefig('learned_corr.pdf')
 
 if __name__ == '__main__':
     # results = run()
