@@ -9,6 +9,7 @@ NUM_ALPHABETS = 50
 NUM_EXAMPLES = 15
 CURATED_ALPHABETS = [6, 10, 23, 38, 39, 8, 9, 21, 22, 41]
 ROTATED_ALPHABETS = [6, 10, 23, 38, 39]
+FLIPPED_ALPHABETS = [6, 10, 23, 38, 39]
 
 def datapath(fname):
     datadir = os.path.expanduser('~/repos/hypergrad/data/omniglot')
@@ -60,13 +61,28 @@ def load_rotated_alphabets(num_chars, RS):
     normalized_data = [subtract_mean(data_subset) for data_subset in data_split]
     return normalized_data
 
+def load_flipped_alphabets(RS, normalize=True):
+    raw_data = load_data(FLIPPED_ALPHABETS)
+    shuffled_data = [shuffle(alphabet, RS) for alphabet in raw_data]
+    flipped_data  = [do_flip(alphabet) for alphabet in shuffled_data]
+    all_data = raw_data + flipped_data[::-1]
+    if normalize:
+        all_data = subtract_mean(all_data)
+    return all_data
+
 def do_rotation(alphabet):
     new_alphabet = alphabet.copy()
     new_alphabet['X'] = alphabet['X'][:, ::-1]
     return new_alphabet
 
+def do_flip(alphabet):
+    new_alphabet = alphabet.copy()
+    orig_shape = alphabet['X'].shape
+    num_dpts = orig_shape[0]
+    new_alphabet['X'] = alphabet['X'].reshape((num_dpts, 28, 28))[:, ::-1, :].reshape(orig_shape)
+    return new_alphabet
+
 def split(alphabet, num_chars):
-    assert sum(num_chars) == NUM_EXAMPLES
     cum_chars = np.cumsum(num_chars)
     def select_dataset(count):
         for i, N in enumerate(cum_chars):
@@ -87,10 +103,18 @@ def split(alphabet, num_chars):
         assert np.all(np.logical_or(totals == 0, totals == n))
 
     return data_splits
+
+def random_partition(data, RS, num_chars):
+    shuffled_data = [shuffle_rows(alphabet, RS) for alphabet in data]
+    return zip(*[split(alphabet, num_chars) for alphabet in shuffled_data])
     
 def shuffle(alphabet, RS):
     N_rows, N_cols = alphabet['T'].shape
     alphabet['T'] = alphabet['T'][:, RS.permutation(N_cols)]
+    return dictslice(alphabet, RS.permutation(N_rows))
+
+def shuffle_rows(alphabet, RS):
+    N_rows, N_cols = alphabet['T'].shape
     return dictslice(alphabet, RS.permutation(N_rows))
 
 def subtract_mean(alphabets):
@@ -101,67 +125,33 @@ def subtract_mean(alphabets):
         alphabet['X'] = alphabet['X'] - mean_img
     return alphabets
 
-def show_all_chars():
-    import matplotlib.pyplot as plt
-    from nn_utils import plot_images
-    alphabets = load_data()
-    fig = plt.figure()
-    fig.set_size_inches((12,8))
-    n_rows = 8
-    n_cols = 20
-    for i in range(n_rows):
-        i_alphabet = np.random.randint(NUM_ALPHABETS)
-        alphabet = alphabets[i_alphabet]
-        char_idxs = np.random.randint(alphabet['X'].shape[0], size=n_cols)
-        char_ids = np.argmax(alphabet['T'][char_idxs], axis=1)
-        ax = fig.add_subplot(n_rows, 1, i)
-        plot_images(alphabet['X'][char_idxs], ax, ims_per_row=n_cols)
-        ax.set_title("Alphabet {0}, chars {1}".format(i_alphabet, char_ids))
-    plt.savefig("random_images.png")
-
-def show_curated_alphabets():
-    show_all_alphabets(CURATED_ALPHABETS)
-
-def show_rotated_alphabets():
-    show_all_alphabets(ROTATED_ALPHABETS, rotate=True)
-
-def show_all_alphabets(perm=None, rotate=False):
-    seed = 1
-    RS = RandomState(seed)
-    if perm is None:
-        perm = range(len(alphabets))
+def show_alphabets(alphabets):
     import matplotlib as mpl
     import matplotlib.pyplot as plt
     from nn_utils import plot_images
+    seed = 1
     n_cols = 20
+    n_rows = len(alphabets)
     full_image = np.zeros((0, n_cols * 28))
-    alphabets = load_data()
-    for i_alphabet in perm:
-        alphabet = alphabets[i_alphabet]
+    for alphabet in alphabets:
+        RS = RandomState(seed)
         char_idxs = RS.randint(alphabet['X'].shape[0], size=n_cols)
         char_ids = np.argmax(alphabet['T'][char_idxs], axis=1)
         image = alphabet['X'][char_idxs].reshape((n_cols, 28, 28))
         image = np.transpose(image, axes=[1, 0, 2]).reshape((28, n_cols * 28))
         full_image = np.concatenate((full_image, image))
-
-    RS = RandomState(seed)
-    if rotate:
-        for i_alphabet in perm:
-            alphabet = do_rotation(alphabets[i_alphabet])
-            char_idxs = RS.randint(alphabet['X'].shape[0], size=n_cols)
-            char_ids = np.argmax(alphabet['T'][char_idxs], axis=1)
-            image = alphabet['X'][char_idxs].reshape((n_cols, 28, 28))
-            image = np.transpose(image, axes=[1, 0, 2]).reshape((28, n_cols * 28))
-            full_image = np.concatenate((full_image, image))
         
     fig = plt.figure()
-    fig.set_size_inches((8,12))
+    fig.set_size_inches((8, 8 * n_rows/n_cols))
     ax = fig.add_subplot(111)
     ax.imshow(full_image, cmap=mpl.cm.binary)
     ax.set_xticks(np.array([]))
     ax.set_yticks(np.array([]))
     plt.tight_layout()
     plt.savefig("all_alphabets.png")
+
+def show_all_alphabets(perm=None, rotate=False):
+    show_alphabets(load_data)
 
 if __name__ == "__main__":
     mat_to_pickle()
