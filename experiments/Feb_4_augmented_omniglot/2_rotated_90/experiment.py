@@ -136,10 +136,14 @@ def plot():
     fig = plt.figure(0)
     fig.clf()
     ax = fig.add_subplot(111)
-    omniglot.show_alphabets(omniglot.load_rotated_alphabets(RS, normalize=False, angle=90), ax=ax)
-    ax.plot([0, 20 * 28], [5 * 28, 5 * 28], '--k')
-    ax.text(-15, 5 * 28 * 3 / 2 - 60, "Rotated alphabets", rotation='vertical')
-    plt.savefig("all_alphabets.png")
+    alphabets = omniglot.load_rotated_alphabets(RS, normalize=False, angle=90)
+    num_cols = 15
+    num_rows = 5
+    omniglot.show_alphabets(alphabets, ax=ax, n_cols=num_cols)
+    ax.plot([0, num_cols * 28], [num_rows * 28, num_rows * 28], '--k')
+    #ax.text(-15, 5 * 28 * 3 / 2 - 60, "Rotated alphabets", rotation='vertical')
+    plt.savefig("all_alphabets.png", bbox_inches='tight')
+
     # Plotting transformations
     names = ['no_sharing', 'full_sharing', 'learned_sharing']
     title_strings = {'no_sharing'      : 'Independent nets',

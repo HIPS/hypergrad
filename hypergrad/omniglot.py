@@ -142,12 +142,11 @@ def subtract_mean(alphabets):
         alphabet['X'] = alphabet['X'] - mean_img
     return alphabets
 
-def show_alphabets(alphabets, ax=None):
+def show_alphabets(alphabets, ax=None, n_cols=20):
     import matplotlib as mpl
     import matplotlib.pyplot as plt
     from nn_utils import plot_images
     seed = 1
-    n_cols = 20
     n_rows = len(alphabets)
     full_image = np.zeros((0, n_cols * 28))
     for alphabet in alphabets:
