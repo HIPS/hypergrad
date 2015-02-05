@@ -287,61 +287,67 @@ Algorithm \ref{alg:reversible-mult} is analogous to using arithmetic coding to s
 \section{Experiments}
 
 In typical machine learning applications, only a few hyperparameters (less than 20) are optimized.
-Since each experiment only yields a single number, the search rapidly becomes more difficult as the dimension of the hyper parameter vector increases.
+Since each experiment only yields a single number (the validation loss), the search rapidly becomes more difficult as the dimension of the hyperparameter vector increases.
 %For a neural network, these usually include a global weight initialization scale, learning rate and momentum, along with various architecture choices [cite Dalh QSAR paper].
-In contrast, when hyper-gradients are available, the amount of information gained from each training run grows along with the number of hyperparameters, allowing us to optimize thousands of hyperparameters.%allow us to optimize any continuous parameter upon which training depends.
+In contrast, when hyper-gradients are available, the amount of information gained from each training run grows along with the number of hyperparameters, allowing us to optimize thousands of hyperparameters. %allow us to optimize any continuous parameter upon which training depends.
 How can we take advantage of this new ability?
 
-This section shows some proof-of-concept experiments in which we can more richly parameterize our training and regularization schemes in ways that would have been previously impractical to optimize.
+This section shows several proof-of-concept experiments in which we can more richly parameterize training and regularization schemes in ways that would have been previously impractical to optimize.
 
 
 
 \subsection{Gradient-based optimization of gradient-based optimization}
 
-Modern neural net training procedures often employ various heuristics to set learning rate schedules, or set their shape using one or two hyperparameters set by cross-validation \cite{lecun1989backpropagation}, \citep{dahl2014multi}, \citep{sutskever2013importance}.
+Modern neural net training procedures often employ various heuristics to set learning rate schedules, or set their shape using one or two hyperparameters set by cross-validation \cite{lecun1989backpropagation, dahl2014multi, sutskever2013importance}.
 These schedule choices are supported by a mixture of intuition, arguments about the shape of the objective function, and empirical tuning.
 
-To more directly shed light on good learning rate schedules, we jointly optimized separate learning rates for \emph{every single learning iteration} of training of a deep neural network.
-The network was trained on 10,000 trainined examples of MNIST, and had 4 layers, of sizes 784, 50, 50, and 50.
-We also refined Algorithms \ref{alg:sgd} and \ref{alg:reverse-sgd} to allow a separate step-size and momentum schedules for each type of parameter and each layer.
-
-To avoid learning an optimization schedule that depended on the quirks of a particular random initialization, we evaluation of hyper-gradients used a different random seed.
+To more directly shed light on good learning rate schedules, we jointly optimized separate learning rates for \emph{every single learning iteration} of training of a deep neural network, as well as separately for weights and biases in each layer.
+Each meta-iteration trained a network for 100 iterations of SGD, meaning that the learning rate schedules were specified by 800 hyperparameters (100 iterations $\times$ 4 layers $\times$ 2 types of parameters).
+To avoid learning an optimization schedule that depended on the quirks of a particular random initialization, each evaluation of hyper-gradients used a different random seed.
 These random seeds were used both to initialize network weights and to choose mini batches.
 
-We optimized the learning rate schedules on the training
+The network was trained on 10,000 trainined examples of MNIST, and had 4 layers, of sizes 784, 50, 50, and 50.
+%We also refined Algorithms \ref{alg:sgd} and \ref{alg:reverse-sgd} to allow a separate step-size and momentum schedules for each type of parameter and each layer.
 
-Because learning schedules can implicitly regularize networks~\ref{erhan2010does}, in early stopping, 
+Because learning schedules can implicitly regularize networks~\cite{erhan2010does}, for example by enforcing early stopping, for this experiment we optimized the learning rate schedules on the training error rather than on the validation set error.
 %
 \begin{figure}[h!]
 \vskip 0.2in
 \begin{center}
-Optimized training schedule \\
+Optimized learning rate schedule \\
 \includegraphics[width=\columnwidth]{../experiments/Feb_3_training_schedules/3_adam_50/schedules_small.pdf}
-\caption{A step-size training schedule optimized by hyper-gradient descent.
-The optimized schedule starts by taking large steps only in the topmost layer, then takes larger steps in the first layer.}
+\caption{A learning-rate training schedule for the weights in each layer of a neural network, optimized by hyper-gradient descent.
+The optimized schedule starts by taking large steps only in the topmost layer, then takes larger steps in the first layer.
+All layers take smaller step sizes in the last 10 iterations.
+Not shown are the schedules for the biases or the momentum, which showed less structure.}
 \label{fig:optimal schedule}
 \end{center}
 \vskip -0.2in
 \end{figure} 
 %
-Figure {fig:optimal schedule} shows the results of optimizing learning rate schedules separately for each layer of a deep neural network.
+Figure \ref{fig:optimal schedule} shows the results of optimizing learning rate schedules separately for each layer of a deep neural network.
+When Bayesian optimization was used to choose a fixed learning rate for all layers and iterations, it chose a learning rate of 2.4.
 
 
+%
 \begin{figure}[h!]
 \vskip 0.2in
 \begin{center}
-Initial hyper-gradient\\
+Hyper-gradient at first meta-iteration\\
 \includegraphics[width=\columnwidth]{../experiments/Feb_3_training_schedules/5_initial_gradient/schedules_small.pdf}
-\caption{The initial gradient of the cross-validation loss with respect to the training schedule, averaged over 100 random weight initializations and mini batches.}
-\label{fig:optimal schedule}
+\caption{The initial gradient of the cross-validation loss with respect to the training schedule, averaged over 100 random weight initializations and mini batches.
+Lines correspond to the same layers as in Figure \ref{fig:optimal schedule}.}
+\label{fig:smoothed gradient}
 \end{center}
 \vskip -0.2in
 \end{figure} 
+%
+To demonstrate that the hyper-gradients are smooth with respect to time steps in the training schedule, Figure \ref{fig:smoothed gradient} shows the hyper-gradient with respect to the step size training schedule at the beginning of training, averaged over 100 random seeds.
 
 \paragraph{Weight initialization scales}
-We also optimized a separate weight initialization scale hyperparameter for each type of parameter (weights and biases) in each layer.
+We also optimized a separate weight initialization scale hyperparameter for each type of parameter (weights and biases) in each layer - a total of 8 hyperparameters.
 Results are shown in Figure \ref{fig:nn weight init scales}.
-
+%
 \begin{figure}[h!]
 \vskip 0.2in
 \begin{center}
@@ -350,13 +356,15 @@ Results are shown in Figure \ref{fig:nn weight init scales}.
 \hspace{-1em}\includegraphics[width=0.5\columnwidth, height=0.5\columnwidth]{../experiments/Feb_3_training_schedules/3_adam_50/init_bias_learning_curve.pdf} &
 \hspace{-1em}\includegraphics[width=0.5\columnwidth, height=0.5\columnwidth]{../experiments/Feb_3_training_schedules/3_adam_50/init_weight_learning_curve.pdf}
 \end{tabular}
-\caption{\emph{Top:} Meta-training curves for the initialization scales of different types of weights.
-The meta-optimized weight distributions set the first layer weights to be small, and the second layer weights to be large.
-Only one layer needs to be non-zero at initialization in order to break symmetry.}
+\caption{Meta-learning curves for the initialization scales of each layer in a 4-layer deep neural network.
+\emph{Left:} Initialization scales for biases.
+\emph{Right:} Initialization scales for weights.
+Dashed lines show a heuristic scale which gives an average total activation of 1 for the first layer ($1/\sqrt{784}$) as well as subsequent layers ($1/\sqrt{50}$).}
 \label{fig:nn weight init scales}
 \end{center}
 \vskip -0.2in
-\end{figure} 
+\end{figure}
+
 
 \subsection{Optimizing regularization parameters}
 
@@ -385,7 +393,7 @@ We can use Algorithm \ref{alg:reverse-sgd} to take the gradient with respect to 
 This includes the training data, which can be viewed as just another set of hyper-parameters.
 By chaining gradients through transformations of the data, we can compute gradients of the validation objective with respect to data preprocessing, weighting, or augmentation procedures.
 
-We demonstrate a simple proof-of-concept where the \emph{entire training set} is learned by gradient descent.
+We demonstrate a simple proof-of-concept where an \emph{entire training set} is learned by gradient descent, starting from blank images.
 %
 \begin{figure}[h!]
 \begin{center}
@@ -396,7 +404,8 @@ We demonstrate a simple proof-of-concept where the \emph{entire training set} is
 \end{figure} 
 %
 Figure \ref{fig:fake data} shows a training set, the pixels of which were optimized to improve performance on a validation set of 10,000 examples from MNIST.
-
+We optimized 10 training examples, each having a different fixed label.
+Learning the labels of a larger training set might shed light on which classes are difficult to distinguish and so require more examples.
 
 \subsection{Learning to Learn Languages}
 
@@ -434,6 +443,9 @@ Independent & Full & Learned \\
 \section{Limitations}
 
 \subsection{When are gradients meaningful?}
+
+As shown in Figure \ref{fig:nn weight init scales}, the meta-optimization did not completely converge after 50 meta-iterations.
+We stopped meta-learning at this point to avoid
 
 \paragraph{Discrete parameters}
 Of course gradients are not necessarily useful for optimizing discrete hyperparameters such as the number of layers, or hyperparameters that affect discrete changes such as dropout regularization parameters.
