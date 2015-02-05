@@ -158,6 +158,11 @@ def plot():
         plt.savefig('learned_corr_{0}.png'.format(i))
         plt.savefig('learned_corr_{0}.pdf'.format(i))
 
+    # Write results to a nice latex table for paper.
+    table_mat = np.array([[train_losses['no_sharing'], train_losses['full_sharing'], train_losses['learned_sharing']],
+                          [tests_losses['no_sharing'], tests_losses['full_sharing'], tests_losses['learned_sharing']]])
+    np.savetxt("results_table.tex", table_mat, delimiter=' & ', fmt='%2.2f', newline=' \\\\\n')
+
 if __name__ == '__main__':
     # results = run()
     # with open('results.pkl', 'w') as f:
