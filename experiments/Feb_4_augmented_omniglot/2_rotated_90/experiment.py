@@ -147,26 +147,19 @@ def plot():
                      'learned_sharing' : 'Learned sharing'}
     covar_imgs = {name : build_covar_image(transform_vects[name]) for name in names}
 
-    fig = plt.figure(0)
-    fig.clf()
-    fig.set_size_inches((6,6))
     for i, name in enumerate(names):
-        ax = fig.add_subplot(1, 3, i + 1)
-        ax.imshow(covar_imgs[name], cmap = mpl.cm.binary)
-        ax.set_title(title_strings[name])
+        fig = plt.figure(0)
+        fig.clf()
+        fig.set_size_inches((2, 6))
+        ax = fig.add_subplot(111)
+        ax.matshow(covar_imgs[name], cmap = mpl.cm.binary)
         ax.set_xticks([])
         ax.set_yticks([])
-        if i == 0:
-            labels = ["Layer {0}".format(layer) for layer in [3, 2, 1]]            
-            ypos   = [5, 15, 25]
-            for s, y in zip(labels, ypos):
-                ax.text(-2, y, s, rotation='vertical')
-    plt.tight_layout()
-    plt.savefig('learned_corr.png')
-    plt.savefig('learned_corr.pdf')
+        plt.savefig('learned_corr_{0}.png'.format(i))
+        plt.savefig('learned_corr_{0}.pdf'.format(i))
 
 if __name__ == '__main__':
-    results = run()
-    with open('results.pkl', 'w') as f:
-        pickle.dump(results, f, 1)
+    # results = run()
+    # with open('results.pkl', 'w') as f:
+    #     pickle.dump(results, f, 1)
     plot()
