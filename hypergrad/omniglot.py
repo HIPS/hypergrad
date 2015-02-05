@@ -61,9 +61,10 @@ def load_rotated_alphabets(num_chars, RS):
     normalized_data = [subtract_mean(data_subset) for data_subset in data_split]
     return normalized_data
 
-def load_flipped_alphabets(normalize=True):
+def load_flipped_alphabets(RS, normalize=True):
     raw_data = load_data(FLIPPED_ALPHABETS)
-    flipped_data  = [do_flip(alphabet) for alphabet in raw_data]
+    shuffled_data = [shuffle(alphabet, RS) for alphabet in raw_data]
+    flipped_data  = [do_flip(alphabet) for alphabet in shuffled_data]
     all_data = raw_data + flipped_data[::-1]
     if normalize:
         all_data = subtract_mean(all_data)

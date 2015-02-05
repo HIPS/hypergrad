@@ -11,7 +11,7 @@ from hypergrad.optimizers import sgd_meta_only as sgd
 from hypergrad.util import RandomState, dictslice, dictmap
 from hypergrad.odyssey import omap
 
-layer_sizes = [784, 300, 200, 55]
+layer_sizes = [784, 400, 200, 55]
 N_layers = len(layer_sizes) - 1
 N_iters = 50
 alpha = 1.0
@@ -27,7 +27,7 @@ init_script_corr = 0.5
 
 def run():
     RS = RandomState((seed, "top_rs"))
-    all_data = omniglot.load_flipped_alphabets(RS)
+    all_data = omniglot.load_flipped_alphabets()
     train_data, tests_data = random_partition(all_data, RS, [12, 3])
     w_parser, pred_fun, loss_fun, frac_err = make_nn_funs(layer_sizes)
     N_weights = w_parser.vect.size
@@ -131,21 +131,21 @@ def plot():
 
     with open('results.pkl') as f:
         transform_parser, transform_vects, train_losses, tests_losses = pickle.load(f)
-    RS = RandomState((seed, "top_rs"))
-    omniglot.show_alphabets(omniglot.load_flipped_alphabets(RS, normalize=False))
+
+    omniglot.show_alphabets(omniglot.load_flipped_alphabets(normalize=False))
 
     # Plotting transformations
     names = ['no_sharing', 'full_sharing', 'learned_sharing']
-    title_strings = {'no_sharing'      : 'Independent\nnets',
-                     'full_sharing'    : 'Shared\nbottom layer',
-                     'learned_sharing' : 'Learned\nsharing'}
+    title_strings = {'no_sharing'      : 'Independent nets',
+                     'full_sharing'    : 'Shared bottom layer',
+                     'learned_sharing' : 'Learned sharing'}
     covar_imgs = {name : build_covar_image(transform_vects[name]) for name in names}
 
     prop={'family':'serif', 'size':'12'}
 
     fig = plt.figure(0)
     fig.clf()
-    fig.set_size_inches((4,4))
+    fig.set_size_inches((6,6))
     for i, name in enumerate(names):
         ax = fig.add_subplot(1, 3, i + 1)
         ax.imshow(covar_imgs[name], cmap = mpl.cm.binary)
@@ -156,13 +156,13 @@ def plot():
             labels = ["Layer {0}".format(layer) for layer in [3, 2, 1]]            
             ypos   = [5, 15, 25]
             for s, y in zip(labels, ypos):
-                ax.text(-3, y, s, rotation='vertical')
+                ax.text(-2, y, s, rotation='vertical')
     plt.tight_layout()
     plt.savefig('learned_corr.png')
     plt.savefig('learned_corr.pdf')
 
 if __name__ == '__main__':
-    # results = run()
-    # with open('results.pkl', 'w') as f:
-    #     pickle.dump(results, f, 1)
+    results = run()
+    with open('results.pkl', 'w') as f:
+        pickle.dump(results, f, 1)
     plot()
