@@ -233,8 +233,9 @@ This means that naively applying Algorithm \ref{alg:reverse-sgd} will not provid
 
 \section{Reversible computation even with non-reversible dynamics}
 \label{sec:reversible computation}
-To get around the problem of information loss caused by decay, we need to somehow store that information.
-We could easily do so by storing the weight vector at each iteration, but this would require too much memory to be practical for large neural nets trained for thousands of minibatches.
+To get around the problem of information loss caused by decay, we need to store the information lost in each iteration.
+One approach, known as checkpointing, simply stores the entire weight vector every few iterations. [Cite James Martens and RNNs]
+However, this would require too much memory to be practical for large neural nets trained for thousands of minibatches.
 Luckily, when the decay factor is close to 1, the amount of information lost at each iteration is small.
 
 \textbf{Quantifying the Savings}
@@ -370,9 +371,6 @@ This
 \end{center}
 \end{figure} 
 
-\paragraph{Discrete parameters}
-Of course gradients are not necessarily useful for optimizing discrete hyperparameters such as the number of layers, or hyperparameters that affect discrete changes such as dropout regularization parameters.
-Some of these difficulties could be addressed by 
 
 \subsection{Optimizing data}
 
@@ -391,14 +389,6 @@ We demonstrate a simple proof-of-concept where the \emph{entire training set} is
 \end{figure} 
 %
 Figure \ref{fig:fake data} shows a training set, the pixels of which were optimized to improve performance on a validation set of 10,000 examples from MNIST.
-
-
-\subsubsection{Overfitting}
-
-How many hyperparameters can we fruitfully optimize?
-The main limitation seems to be overfitting.
-
-[TODO: show the difference between training, validation and test-set error when optimizing]
 
 
 \subsection{Learning to Learn Languages}
@@ -427,7 +417,21 @@ The main limitation seems to be overfitting.
 
 
 
-\section{When are gradients meaningful?}
+\section{Limitations}
+
+\subsection{When are gradients meaningful?}
+
+\paragraph{Discrete parameters}
+Of course gradients are not necessarily useful for optimizing discrete hyperparameters such as the number of layers, or hyperparameters that affect discrete changes such as dropout regularization parameters.
+Some of these difficulties could be addressed by 
+
+\subsubsection{Overfitting}
+
+How many hyperparameters can we fruitfully optimize?
+The main limitation seems to be overfitting.
+
+[TODO: show the difference between training, validation and test-set error when optimizing]
+
 
 Gradient-based optimizers can perform poorly when the surface being optimized is locally ``wiggly''.
 Small wiggles cause both the direction and size of the gradient to be less correlated with the medium-scale shape of the function.
@@ -461,13 +465,6 @@ The step sizes which lead to chaotic behavior are only slightly larger than the 
 \vskip -0.2in
 \end{figure} 
 
-
-
-\section{Limitations}
-
-Can't take gradients w.r.t. discrete parameters.
-
-Dynamics must be somewhat reversible.
 
 
 \section{Related work}
@@ -504,19 +501,18 @@ Our reversible-dynamics memory-tape approach could be used to dramatically exten
 \section{Extensions and future work}
 
 \paragraph{Long short-term memory}
-What other types of computation have a similar flavour to gradient descent with momentum?
-Long Short-Term Memory~\citep{hochreiter1997long} has a similar flavour, as do the computations performed by Neural Turing Machines~\citep{graves2014neural}.
+Several other types of computation performed in machine learning have a similar structure to the reversible dynamics of SGD.
+For example, Long Short-Term Memory~\citep{hochreiter1997long} has a similar flavour, as do the computations performed by Neural Turing Machines~\citep{graves2014neural}.
 Reversible Learning might allow gradient (not hyper-gradient) computations with respect to very long computations performed by either architecture.
 
 \paragraph{Model-based meta-optimization with gradients}
 
+Current hyper parameter optimization schemes do not usually have access to gradients with respect to these hyperparameters, although Gaussian process-based optimization methods could incorporate this information if it were available~\cite{solak2003derivative}.
+
+
 \paragraph{Reversible learning using better methods than SGD}
 
 like RMSprop
-
-
-Implementing reversible learning as presented in this paper requires either that the learning algorithm is a form of (stochastic) gradient descent with momentum, and that Hessian-vector products are available.
-Even when this is not the case, we hope that the training schedules and initialization schemes demonstrated in this paper can be a guide to practitioners for training tasks that aren't amenable to this sort of procedure.
 
 
 \section{Conclusion}
