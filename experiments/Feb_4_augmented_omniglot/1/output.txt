@@ -1,0 +1,138 @@
+Hyper iter 0
+Iter 0: train: 4.15420754656
+Iter 10: train: 2.61650988762
+Iter 20: train: 1.88481699712
+Iter 30: train: 1.80737306671
+Iter 40: train: 1.81530789282
+Hyper iter 1
+Iter 0: train: 4.15304490739
+Iter 10: train: 2.21843306296
+Iter 20: train: 1.39902513705
+Iter 30: train: 1.29437845395
+Iter 40: train: 1.27554500948
+Hyper iter 2
+Iter 0: train: 4.16841933308
+Iter 10: train: 1.99437961929
+Iter 20: train: 1.18501578181
+Iter 30: train: 1.09942479599
+Iter 40: train: 1.08952053422
+Hyper iter 3
+Iter 0: train: 4.15782421428
+Iter 10: train: 1.82857711471
+Iter 20: train: 1.04547331436
+Iter 30: train: 0.965071613967
+Iter 40: train: 0.960277191166
+Hyper iter 4
+Iter 0: train: 4.21962716396
+Iter 10: train: 1.71595252372
+Iter 20: train: 0.941744859551
+Iter 30: train: 0.87782405621
+Iter 40: train: 0.891497234334
+Hyper iter 5
+Iter 0: train: 4.20868477146
+Iter 10: train: 1.65088080261
+Iter 20: train: 0.895273446345
+Iter 30: train: 0.847225797941
+Iter 40: train: 0.869204527018
+Hyper iter 6
+Iter 0: train: 4.2818647849
+Iter 10: train: 1.57202674822
+Iter 20: train: 0.820953276438
+Iter 30: train: 0.783569698734
+Iter 40: train: 0.815902929351
+Hyper iter 7
+Iter 0: train: 4.21409722484
+Iter 10: train: 1.47136285504
+Iter 20: train: 0.774579689787
+Iter 30: train: 0.750112569317
+Iter 40: train: 0.784280497424
+Hyper iter 8
+Iter 0: train: 4.27671643768
+Iter 10: train: 1.41189631646
+Iter 20: train: 0.72837838077
+Iter 30: train: 0.713042983573
+Iter 40: train: 0.752390825042
+Hyper iter 9
+Iter 0: train: 4.33557385306
+Iter 10: train: 1.38069646338
+Iter 20: train: 0.693690576276
+Iter 30: train: 0.684003973487
+Iter 40: train: 0.723565600705
+Hyper iter 10
+Iter 0: train: 4.29319338955
+Iter 10: train: 1.31154730347
+Iter 20: train: 0.663642231841
+Iter 30: train: 0.667917354715
+Iter 40: train: 0.711213030489
+Hyper iter 11
+Iter 0: train: 4.28756601057
+Iter 10: train: 1.28996746988
+Iter 20: train: 0.645912842904
+Iter 30: train: 0.646219410876
+Iter 40: train: 0.69037362092
+Hyper iter 12
+Iter 0: train: 4.32832101334
+Iter 10: train: 1.2419699458
+Iter 20: train: 0.604731803651
+Iter 30: train: 0.617019247099
+Iter 40: train: 0.66807878908
+Hyper iter 13
+Iter 0: train: 4.34062113628
+Iter 10: train: 1.2063272409
+Iter 20: train: 0.5876990264
+Iter 30: train: 0.602523518576
+Iter 40: train: 0.657324636416
+Hyper iter 14
+Iter 0: train: 4.36091894471
+Iter 10: train: 1.18533736742
+Iter 20: train: 0.577929052514
+Iter 30: train: 0.596901272131
+Iter 40: train: 0.648491774926
+Hyper iter 15
+Iter 0: train: 4.38044626386
+Iter 10: train: 1.14052774767
+Iter 20: train: 0.557181962929
+Iter 30: train: 0.583220786569
+Iter 40: train: 0.6327857209
+Hyper iter 16
+Iter 0: train: 4.35742599807
+Iter 10: train: 1.12379404863
+Iter 20: train: 0.536277737705
+Iter 30: train: 0.56610284772
+Iter 40: train: 0.62663498222
+Hyper iter 17
+Iter 0: train: 4.41802643779
+Iter 10: train: 1.09958647115
+Iter 20: train: 0.523224389225
+Iter 30: train: 0.560994463956
+Iter 40: train: 0.618226486502
+Hyper iter 18
+Iter 0: train: 4.43351061317
+Iter 10: train: 1.08452141901
+Iter 20: train: 0.518581307871
+Iter 30: train: 0.551198785752
+Iter 40: train: 0.604639137094
+Hyper iter 19
+Iter 0: train: 4.32169012283
+Iter 10: train: 1.00792577814
+Iter 20: train: 0.484199835789
+Iter 30: train: 0.531067457237
+Iter 40: train: 0.587558048263
+Iter 0: train: 4.38789439741
+Iter 10: train: 1.10141226559
+Iter 20: train: 0.551575607557
+Iter 30: train: 0.581768061571
+Iter 40: train: 0.632471096756
+learned_sharing : train: 0.563230172707, test: 1.16782880759
+Iter 0: train: 4.4097080922
+Iter 10: train: 1.29920682551
+Iter 20: train: 0.76081440671
+Iter 30: train: 0.840502492629
+Iter 40: train: 0.93272524059
+full_sharing : train: 0.899875585729, test: 1.29986119522
+Iter 0: train: 4.85395185603
+Iter 10: train: 0.48167567355
+Iter 20: train: 0.273858916165
+Iter 30: train: 0.545822446238
+Iter 40: train: 0.705645110984
+no_sharing : train: 0.596982761169, test: 1.3928787786
