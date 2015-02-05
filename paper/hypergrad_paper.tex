@@ -86,13 +86,26 @@ Most importantly from our perspective, current hyper parameter optimization sche
 \begin{center}
 \includegraphics[width=\columnwidth]{../experiments/Jan_25_Figure_1/2/learning_curves.pdf}
 \caption{Meta-optimization by gradient descent.
-Each meta-iteration uses stochastic gradient descent to optimize training error, holding hyperparameters fixed.
-We then compute the gradient of the validation loss, evaluated using the optimized weights, with respect to all hyperparameters.
-These hyper-gradients are used to update the hyperparameters.}
+Each meta-iteration uses stochastic gradient descent to optimize parameters with respect to training error, holding hyperparameters fixed.
+We then compute the gradient of the validation loss with respect to all hyperparameters.
+These ``hyper-gradients'' are used to update the hyperparameters.}
 \label{fig:chaos}
 \end{center}
 \vskip -0.2in
-\end{figure} 
+\end{figure}
+
+
+\subsection{Contributions}
+
+\begin{itemize}
+\item We give an algorithm that exactly reversing stochastic gradient descent with momentum to compute gradients with respect to all continuous training parameters.
+\item We show how to efficiently store only the information needed to exactly reverse learning dynamics.
+For example, when the momentum term is 0.9, this method reduces the memory requirements of reverse-mode differentiation by factor of 200.
+\item We show how these gradients allow the optimization of validation loss with respect to thousands of hyperparameters.
+For example, we optimize fine-grained learning-rate schedules, per-layer initialization distributions, per-input regularization schemes, and even per-pixel data preprocessing.
+\item We provide insight into learning procedures by examining optimized learning-rate schedules and initialization procedures, comparing them to standard advice in the literature.
+\end{itemize}
+
 
 
 \section{Automatic differentiation}
