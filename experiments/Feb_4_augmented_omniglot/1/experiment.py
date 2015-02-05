@@ -148,7 +148,7 @@ def plot():
     fig.set_size_inches((4,4))
     for i, name in enumerate(names):
         ax = fig.add_subplot(1, 3, i + 1)
-        ax.imshow(covar_imgs[name], cmap = mpl.cm.binary)
+        ax.matshow(covar_imgs[name], cmap = mpl.cm.binary)
         ax.set_title(title_strings[name])
         ax.set_xticks([])
         ax.set_yticks([])

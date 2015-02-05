@@ -30,7 +30,7 @@ init_log_param_scale = -1.0
 # ----- Superparameters -----
 meta_alpha = 0.1
 N_meta_iter = 15
-init_fake_data_scale = 0.0
+init_fake_data_scale = 0.1
 
 seed = 0
 
@@ -44,9 +44,8 @@ def run():
     parser, pred_fun, loss_fun, frac_err = make_nn_funs(layer_sizes)
     N_weight_types = len(parser.names)
 
-    #rs = RandomState((seed))
-    #init_fake_data = rs.randn(*(train_data['X'].shape)) * init_fake_data_scale
-    init_fake_data = np.zeros(train_data['X'].shape)
+    rs = RandomState((seed))
+    init_fake_data = rs.randn(*(train_data['X'].shape)) * init_fake_data_scale
     one_hot = lambda x, K : np.array(x[:,None] == np.arange(K)[None, :], dtype=int)
     fake_labels = one_hot(np.array(range(N_train)) % N_classes, N_classes)  # One of each.
 
@@ -60,11 +59,13 @@ def run():
 
     cur_primal_results = {}
 
+    loss_meta_parser = VectorParser()
+    loss_meta_parser['']
+
     def primal_optimizer(hyperparam_vect, i_hyper):
-        cur_hyperparams = hyperparams.new_vect(hyperparam_vect)
-        fake_data = cur_hyperparams['fake_data']
-        def indexed_loss_fun(w, L2_vect, i_iter):
-            return loss_fun(w, fake_data, train_data['T'], L2_vect)
+        def indexed_loss_fun(w, meta_vect, i_iter):
+            (train_data, train_labels, L2_vect) = meta
+            return loss_fun(w, train_data, train_labels, L2_vect)
             #return loss_fun(w, train_data['X'], train_data['T'], L2_vect + np.sum(fake_data.ravel()))
 
         learning_curve_dict = defaultdict(list)
@@ -75,13 +76,17 @@ def run():
                 learning_curve_dict['weight_norm'].append(np.linalg.norm(x))
                 learning_curve_dict['velocity_norm'].append(np.linalg.norm(v))
 
+
+        cur_hyperparams = hyperparams.new_vect(hyperparam_vect)
+        fake_data = cur_hyperparams['fake_data']
         rs = RandomState((seed, i_hyper))
         W0 = fill_parser(parser, np.exp(fixed_hyperparams['log_param_scale']))
         W0 *= rs.randn(W0.size)
         alphas = np.exp(fixed_hyperparams['log_alphas'])
         betas  = logit(fixed_hyperparams['invlogit_betas'])
         L2_reg = fill_parser(parser, np.exp(fixed_hyperparams['log_L2_reg']))
-        W_opt = sgd_parsed(grad(indexed_loss_fun), kylist(W0, alphas, betas, L2_reg),
+        meta = kylist(fake_data, fake_labels, L2_reg)
+        W_opt = sgd_parsed(grad(indexed_loss_fun), kylist(W0, alphas, betas, meta),
                            parser, callback=callback)
         cur_primal_results['weights'] = getval(W_opt).copy()
         cur_primal_results['learning_curve'] = getval(learning_curve_dict)

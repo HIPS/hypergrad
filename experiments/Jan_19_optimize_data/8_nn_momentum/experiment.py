@@ -18,7 +18,7 @@ init_log_L2_reg = np.log(0.01)
 velocity_scale = 0.0
 log_alpha_0 = np.log(1.0)
 beta_0 = 0.5
-log_param_scale = -1
+log_param_scale = -3
 
 # ----- Discrete training hyper-parameters -----
 layer_sizes = [784, 20, 10]
@@ -28,11 +28,12 @@ N_classes = 10
 
 # ----- Variables for meta-optimization -----
 N_fake_data = 30
-fake_data_L2_reg = 0.01
+fake_data_L2_reg = 0.1
 N_val_data = 10000
 N_test_data = 10000
 meta_stepsize = 1.0
-N_meta_iter = 1000
+meta_momentum = 0.9
+N_meta_iter = 100
 init_fake_data_scale = 0.5
 
 
@@ -76,6 +77,7 @@ def run():
     betas      = np.full(N_iters, beta_0)
 
     output = []
+    velocity = np.zeros(hyperparser.N)
     for i in range(N_meta_iter):
         print "L2 reg is ", np.exp(hyperparser.get(metas, 'log_L2_reg')[0]), "| ",
 
@@ -94,7 +96,10 @@ def run():
         output.append((learning_curve, validation_loss, test_loss, fake_data_scale,
                        np.exp(hyperparser.get(metas, 'log_L2_reg')[0]), test_err))
 
-        metas -= results['dMd_meta'] * meta_stepsize
+        # Do meta-SGD with momentum
+        g = results['dMd_meta']
+        velocity = meta_momentum * velocity - (1.0 - meta_momentum) * g
+        metas += velocity * meta_stepsize
         print "Meta iteration {0} Validation loss {1} Test loss {2} Test err {3}"\
             .format(i, validation_loss, test_loss, test_err)
     return output, hyperparser.get(metas, 'fake_data')
