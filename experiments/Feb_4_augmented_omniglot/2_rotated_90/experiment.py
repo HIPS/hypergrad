@@ -159,9 +159,12 @@ def plot():
         plt.savefig('learned_corr_{0}.pdf'.format(i))
 
     # Write results to a nice latex table for paper.
-    table_mat = np.array([[train_losses['no_sharing'], train_losses['full_sharing'], train_losses['learned_sharing']],
-                          [tests_losses['no_sharing'], tests_losses['full_sharing'], tests_losses['learned_sharing']]])
-    np.savetxt("results_table.tex", table_mat, delimiter=' & ', fmt='%2.2f', newline=' \\\\\n')
+    with open('results_table.tex', 'w') as f:
+        f.write(" & No Sharing & Full Sharing & Learned \\\\\n")
+        f.write("Training loss & {:2.2f} & {:2.2f} & {:2.2f} \\\\\n".format(
+            train_losses['no_sharing'], train_losses['full_sharing'], train_losses['learned_sharing']))
+        f.write("Test loss & {:2.2f} & {:2.2f} & \\bf {:2.2f} ".format(
+            tests_losses['no_sharing'], tests_losses['full_sharing'], tests_losses['learned_sharing']))
 
 if __name__ == '__main__':
     # results = run()
