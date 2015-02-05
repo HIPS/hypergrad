@@ -263,7 +263,7 @@ This same information is retrieved in reverse order in steps \ref{step:reverse-p
 \end{algorithm}
 %
 
-Notice that steps \ref{step:f1}, \ref{step:f2}, and \ref{step:f3} are the same as steps \ref{step:b1}, \ref{step:b2}, and \ref{step:b3}, but with the two variables switched.
+%Notice that steps \ref{step:f1}, \ref{step:f2}, and \ref{step:f3} are the same as steps \ref{step:b1}, \ref{step:b2}, and \ref{step:b3}, but with the two variables switched.
 %
 %\paragraph{How to store less than one bit?}
 %In the case where $\decay$ is close to one, typically less than a single bit will be s
@@ -500,10 +500,19 @@ Reversible Learning might allow gradient (not hyper-gradient) computations with 
 
 like RMSprop
 
-\section{Conclusion}
 
 Implementing reversible learning as presented in this paper requires either that the learning algorithm is a form of (stochastic) gradient descent with momentum, and that Hessian-vector products are available.
 Even when this is not the case, we hope that the training schedules and initialization schemes demonstrated in this paper can be a guide to practitioners for training tasks that aren't amenable to this sort of procedure.
+
+
+\section{Conclusion}
+
+In this paper, we derived a computationally efficient procedure for computing gradients through stochastic gradient descent with momentum.
+We showed how the approximate reversibility of learning dynamics can be used to drastically reduce the memory requirement for exactly back-propagating gradients through hundreds of training iterations.
+
+We showed how these gradients allow the optimization of validation loss with respect to thousands of hyperparameters, something which was previously infeasible.
+This new ability allows the automatic tuning of most details of training neural networks.
+We demonstrated the tuning of detailed training schedules, regularization schedules, and neural network architectures.
 
 \section*{Acknowledgments} 
 
