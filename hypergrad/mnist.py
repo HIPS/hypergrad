@@ -5,12 +5,13 @@ import array
 import numpy as np
 import pickle
 
+from hypergrad.util import dictslice
+
 def datapath(fname):
     datadir = os.path.expanduser('~/repos/hypergrad/data/mnist')
     return os.path.join(datadir, fname)
 
 def mnist():
-
     def parse_labels(filename):
         with gzip.open(filename, 'rb') as fh:
             magic, num_data = struct.unpack(">II", fh.read(8))
@@ -49,6 +50,21 @@ def load_data(normalize=False):
         train_images = train_images - train_mean
         test_images = test_images - train_mean
     return train_images, train_labels, test_images, test_labels, N_data
+
+def load_data_as_dict(normalize=True):
+    X, T = load_data(normalize)[:2]
+    return {'X' : X, 'T' : T}
+
+def random_partition(data, RS, subset_sizes):
+    N_rows = data['X'].shape[0]
+    shuffled_data = dictslice(data, RS.permutation(N_rows))
+    partitions = []
+    start = 0
+    for N in subset_sizes:
+        idxs = slice(start, start + N)
+        partitions.append(dictslice(shuffled_data, idxs))
+        start += N
+    return partitions
 
 def load_data_subset(*args):
     train_images, train_labels, test_images, test_labels, _ = load_data(normalize=True)

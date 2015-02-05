@@ -61,13 +61,11 @@ class VectorParser(object):
 
     def __setitem__(self, name, val):
         if isinstance(val, list): val = np.array(val)
-        assert isinstance(val, np.ndarray)
         if name not in self.idxs_and_shapes:
             self.add_shape(name, val.shape)
 
         idxs, shape = self.idxs_and_shapes[name]
-        assert val.shape == shape
-        self.vect[idxs] = val.ravel()
+        self.vect[idxs].reshape(shape)[:] = val
 
 def fill_parser(parser, items):
     """Build a vector by assigning each block the corresponding value in
