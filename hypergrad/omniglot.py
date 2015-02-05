@@ -52,14 +52,14 @@ def load_curated_alphabets(num_chars, RS):
     normalized_data = [subtract_mean(data_subset) for data_subset in data_split]
     return normalized_data
 
-def load_rotated_alphabets(num_chars, RS):
-    raw_data = load_data(ROTATED_ALPHABETS)
-    shuffled_data = [shuffle(alphabet, RS) for alphabet in raw_data]
-    rotated_data = [do_rotation(alphabet) for alphabet in shuffled_data]
-    all_data = shuffled_data + rotated_data
-    data_split = zip(*[split(alphabet, num_chars) for alphabet in all_data])
-    normalized_data = [subtract_mean(data_subset) for data_subset in data_split]
-    return normalized_data
+# def load_rotated_alphabets(num_chars, RS):
+#     raw_data = load_data(ROTATED_ALPHABETS)
+#     shuffled_data = [shuffle(alphabet, RS) for alphabet in raw_data]
+#     rotated_data = [do_rotation(alphabet) for alphabet in shuffled_data]
+#     all_data = shuffled_data + rotated_data
+#     data_split = zip(*[split(alphabet, num_chars) for alphabet in all_data])
+#     normalized_data = [subtract_mean(data_subset) for data_subset in data_split]
+#     return normalized_data
 
 def load_flipped_alphabets(RS, normalize=True):
     raw_data = load_data(FLIPPED_ALPHABETS)
@@ -70,9 +70,26 @@ def load_flipped_alphabets(RS, normalize=True):
         all_data = subtract_mean(all_data)
     return all_data
 
-def do_rotation(alphabet):
+def load_rotated_alphabets(RS, normalize=True, angle=90):
+    raw_data = load_data(ROTATED_ALPHABETS)
+    shuffled_data = [shuffle(alphabet, RS) for alphabet in raw_data]
+    rotated_data  = [do_rotation(alphabet, angle=angle) for alphabet in shuffled_data]
+    all_data = shuffled_data + rotated_data
+    if normalize:
+        all_data = subtract_mean(all_data)
+    return all_data
+
+def do_rotation(alphabet, angle):
     new_alphabet = alphabet.copy()
-    new_alphabet['X'] = alphabet['X'][:, ::-1]
+    old_X = alphabet['X']
+    if angle == 90:
+        orig_shape = old_X.shape
+        new_alphabet['X'] = old_X.reshape((orig_shape[0], 28, 28))\
+                            .transpose([0, 2, 1])[:, :, ::-1].reshape(orig_shape)
+    elif angle == 180:
+        new_alphabet['X'] = old_X[:, ::-1]
+    else:
+        assert False, "Can't rotate by {0}".format(angle)
     return new_alphabet
 
 def do_flip(alphabet):
@@ -125,7 +142,7 @@ def subtract_mean(alphabets):
         alphabet['X'] = alphabet['X'] - mean_img
     return alphabets
 
-def show_alphabets(alphabets):
+def show_alphabets(alphabets, ax=None):
     import matplotlib as mpl
     import matplotlib.pyplot as plt
     from nn_utils import plot_images
@@ -141,9 +158,10 @@ def show_alphabets(alphabets):
         image = np.transpose(image, axes=[1, 0, 2]).reshape((28, n_cols * 28))
         full_image = np.concatenate((full_image, image))
         
-    fig = plt.figure()
-    fig.set_size_inches((8, 8 * n_rows/n_cols))
-    ax = fig.add_subplot(111)
+    if ax is None:
+        fig = plt.figure()
+        fig.set_size_inches((8, 8 * n_rows/n_cols))
+        ax = fig.add_subplot(111)
     ax.imshow(full_image, cmap=mpl.cm.binary)
     ax.set_xticks(np.array([]))
     ax.set_yticks(np.array([]))
