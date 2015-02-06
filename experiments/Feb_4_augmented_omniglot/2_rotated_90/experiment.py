@@ -123,7 +123,7 @@ def build_covar_image(transform_vect, corr=True, use_abs=False):
     if corr:
         covar = dictmap(covar_to_corr, covar)
     #return np.concatenate([covar[i] for i in range(N_layers)[::-1]], axis=0)
-    return [covar[i] for i in range(N_layers)[::-1]]
+    return [covar[i] for i in range(N_layers)]
 
 def plot():
     import matplotlib.pyplot as plt
