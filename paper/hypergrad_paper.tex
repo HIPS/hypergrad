@@ -75,8 +75,8 @@ We compute hyperparameter gradients by exactly reversing the dynamics of stochas
 Machine learning systems abound with hyperparameters. These can be parameters
 that control model complexity, such as $L_1$ and $L_2$ penalties, or parameters that
 specify the learning procedure itself -- step sizes, momentum decay parameters
-and initialization conditions. Choosing the best hyperparameters is both vitally
-important and frustratingly difficult.
+and initialization conditions. Choosing the best hyperparameters is both 
+crucial and frustratingly difficult.
 
 The current gold standard for hyperparameter selection is gradient-free model-based optimization~\cite{snoek2012practical, bergstra2011algorithms,
   BerYamCox13, HutHooLey11}.
@@ -89,13 +89,14 @@ to 20 hyperparameters.
 Why not use gradients?
 Reverse-mode differentiation allows gradients to be computed with a similar time
 cost to the original objective function.
-This approach is taken almost universally for optimization of \primal{} parameters.%
+This approach is taken almost universally for optimization of \primal{}%
 %Tools like Theano and Torch can automatically compute these gradients.
 \footnote{Since this paper is about hyperparameters, we
   use ``\primal{}'' to unambiguously denote the other sort of parameter, the
   ``parameter-that-is-just-a-parameter-and-not-a-hyperparameter''.
   %After considering  ``core'', ``primal'', ``elemental'', ``fundamental'', ``inner'' and  ``vanilla'' we settled on ``\primal parameter''.
-}
+}%
+parameters.
 The problem with taking gradients with respect to hyperparameters is that computing the validation loss requires an inner loop of \primal{} optimization, which makes naive reverse-mode differentiation infeasible from a memory perspective.
 Section \ref{sec:hypergradients} describes this problem and proposes a solution, which is the main technical contribution of this paper.
 
@@ -110,7 +111,11 @@ Section \ref{sec:experiments} explores these new opportunities.
 \begin{figure}[t]
 \vskip 0.2in
 \begin{center}
+%\begin{tabular}{rl}
+%\renewcommand{\tabcolsep}{0pt}
+%\mbox{\rotatebox{90}{\small Training loss}} &
 \includegraphics[width=\columnwidth]{../experiments/Jan_25_Figure_1/2/learning_curves.pdf}
+%\end{tabular}
 \caption{Hyperparameter optimization by gradient descent.
 Each meta-iteration runs an entire training run of stochastic gradient descent to optimize \primal{} parameters (weights 1 and 2).
 Gradients of the validation loss with respect to hyperparameters are then computed by propagating gradients back through the \primal{} training iterations.
@@ -372,7 +377,7 @@ The results in this section used Adam~\citep{Adam14}, a variant of RMSprop that 
 We typically ran for 50 meta-iterations, and used a meta-step size of 0.04.
 Figure \ref{fig:learning curves} shows the \primal{} and meta-learning curves that generated the hyperparameters shown in Figure \ref{fig:optimal schedule}.
 
-\begin{figure}[h!]
+\begin{figure}[t]
 \begin{center}
 \begin{tabular}{cc}
  \Primal{} learning curves & Meta-learning curve \\
@@ -390,7 +395,7 @@ The meta-learning curve shows the training loss at the end of each \primal{} ite
 \paragraph{How smooth are hypergradients?}
 To demonstrate that the hypergradients are smooth with respect to time steps in the training schedule, Figure \ref{fig:smoothed gradient} shows the hypergradient with respect to the step size training schedule at the beginning of training, averaged over 100 random seeds.
 %
-\begin{figure}[h!]
+\begin{figure}[t]
 \vskip 0.1in
 \begin{center}
 Hypergradient at first meta-iteration\\
@@ -409,7 +414,7 @@ Colors correspond to the same layers as in Figure \ref{fig:optimal schedule}.}
 We optimized a separate weight initialization scale hyperparameter for each type of parameter (weights and biases) in each layer - a total of 8 hyperparameters.
 Results are shown in Figure \ref{fig:nn weight init scales}.
 %
-\begin{figure}[h!]
+\begin{figure}[t]
 \vskip 0.2in
 \begin{center}
 \begin{tabular}{cc}
@@ -438,21 +443,22 @@ Indeed, \citet{snoek2012practical} optimized separate regularization parameters 
 
 %\paragraph{Automatic relevance determination}
 We can take this idea even further, and introduce a separate regularization penalty for each individual parameter in a neural network.
-We use a simple model as an example - logistic regression, which can be seen as a neural network without a hidden layer.
+We use a simple model as an example -- logistic regression, which can be seen as a neural network without a hidden layer.
 We choose this model because every weight corresponds to an input-pixel and output-label pair, meaning that these 7,840 hyperparameters might be relatively interpretable.
 %
-\begin{figure}[h!]
+\begin{figure}[t]
 \begin{center}
 \includegraphics[width=\columnwidth]{../experiments/Jan_21_nn_ard/2/penalties.pdf}
+\vspace{-2em}
 \caption{Optimized $L_2$ regularization hyperparameters for each weight in a logistic regression  trained on MNIST.
 The weights corresponding to each output label (0 through 9 respectively) have been rendered separately.
-High values (black) indicate strong regularization.}
-\label{fig:logistic ard}
+High values (black) indicate strong regularization.}%
+\label{fig:logistic ard}%
 \end{center}
 \end{figure} 
 %
 Figure \ref{fig:logistic ard} shows a set of regularization hyperparameters learned for a logistic regression network.
-Because each parameter corresponds to a particular input, this regularization scheme could be seen as a generalization of automatic relevance determination.
+Because each parameter corresponds to a particular input, this regularization scheme could be seen as a generalization of automatic relevance determination~\citep{mackay1994automatic}.
 
 
 \subsection{Optimizing data}
@@ -463,7 +469,7 @@ By chaining gradients through transformations of the data, we can compute gradie
 
 We demonstrate a simple proof-of-concept where an \emph{entire training set} is learned by gradient descent, starting from blank images.
 %
-\begin{figure}[h!]
+\begin{figure}[h]
 \begin{center}
 \includegraphics[width=\columnwidth]{../experiments/Jan_19_optimize_data/9_color_bar/fake_data.pdf}
 \caption{A dataset generated purely through meta-learning.
@@ -520,7 +526,7 @@ two diagonal matrices for the upper layers and a matrix of all ones (scaled so
 that rows and columns sum to one) for the lowest layer (Figure
 \ref{fig:omniglot_results}).
 
-We use five alphabets from the omniglot set. To see whether our multitask
+We use five alphabets from the Omniglot set. To see whether our multitask
 learning system is able to learn high level similarities as well as
 low-level similarities, we repeat these five alphabets with the images rotated
 by 90 degrees (Figure \ref{fig:omniglot_images}) to make ten alphabets total.
@@ -571,10 +577,10 @@ Each matrix shows the degree of weight sharing between each pair of tasks for th
 
 \subsection{Implementation Details}
 Automatic differentiation (AD) software packages such as
-Theano~\citep{Bastien-Theano-2012, bergstra2010scipy} are a workhorse of deep
+Theano~\citep{Bastien-Theano-2012, bergstra2010scipy} are mainstays of deep
 learning, significantly speeding up development time by providing gradients
 automatically. Since we require access to the internal logic of RMD in order to implement Algorithm \ref{alg:reverse-sgd}, we implemented
-our own automatic differentiation package for Python\footnote{source code will be made available upon publication}.
+our own automatic differentiation package for Python\footnote{Source code will be made available upon publication.}.
 This package has the additional feature that it operates on standard
 Numpy~\citep{oliphant2007python} code, and can differentiate code containing
 loops and branching logic.
@@ -603,7 +609,7 @@ large learning rates induce chaotic behavior in the learning dynamics,
 making the gradient uninformative about the medium-term shape of the training objective.
 This phenomenon is related to the exploding-gradient problem~\cite{pascanu2012understanding}.
 
-Figure \ref{fig:chaos} illustrates phenomenon when training a neural network having 2 hidden layers for 50 \primal{} iterations.
+Figure \ref{fig:chaos} illustrates this phenomenon when training a neural network having 2 hidden layers for 50 \primal{} iterations.
 %
 \begin{figure}[t]
 \vskip 0.2in
@@ -663,7 +669,7 @@ For instance, the per-hidden-unit regularization of section \ref{sec:optimizing 
 However, this bound was not tight, since optimizing the SVM objective requires a discrete selection of training points.
 
 \paragraph{Bayesian methods}
-For Bayesian model with a closed-form marginal likelihood, gradients with respect to all continuous hyperparameters are usually available.
+For Bayesian models with a closed-form marginal likelihood, gradients with respect to all continuous hyperparameters are usually available.
 For example, this ability has been used to construct complex kernels for Gaussian process models~\citep[Chapter 5]{rasmussen38gaussian}.
 %or to train the parameters of Markov random fields \cite{samuel2012gradient}
 Variational inference also allows gradient-based tuning of hyperparameters in Bayesian neural-network models such as deep Gaussian processes~\citep{deepGPVar14}.
