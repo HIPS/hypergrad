@@ -369,7 +369,7 @@ When Bayesian optimization was used to choose a fixed learning rate for all laye
 
 \paragraph{Meta-optimization strategies}
 %From an optimization point of view, optimizing hyperparameters using stochastic hypergradients is no different from optimizing \primal{} parameters using stochastic gradients.
-We experimented with using several standard stochastic optimization methods for meta-optimization, including SGD, RMSprop~\citep{Tieleman2012}, and minibatch conjugate gradients.
+We experimented with several standard stochastic optimization methods for meta-optimization, including SGD, RMSprop~\citep{Tieleman2012}, and minibatch conjugate gradients.
 The results in this section used Adam~\citep{Adam14}, a variant of RMSprop that includes momentum.
 We typically ran for 50 meta-iterations, and used a meta-step size of 0.04.
 Figure \ref{fig:learning curves} shows the \primal{} and meta-learning curves that generated the hyperparameters shown in Figure \ref{fig:optimal schedule}.
@@ -491,9 +491,9 @@ Due to philosophical vertigo, we chose not to optimize the initial parameter vec
 
 Many of the notable successes in deep learning have come from novel
 architectures adapted to particular domains: convolutional neural nets,
-recurrent neural nets, multitask neural nets. We can think of these
-architectures as hard constraints of weight sharing or weight absence on an
-otherwise fully-connected neural network. By softening these hard architetural
+recurrent neural nets and multitask neural nets. We can think of these
+architectures as hard constraints that force particular weights to be zero and
+tie particular pairs of weights together. By softening these hard architetural
 constraints we can form continuous (but very high-dimensional) parameterizations
 of architecture. Having access to hypergradients makes learning these
 softened architectures feasible.
@@ -502,19 +502,19 @@ We illustrate this ``architecture learning'' with a multitask learning
 problem, the Omniglot data set \citep{Omniglot}. This data set consists of 28x28
 pixel greyscale images of characters from 50 alphabets with up to 55 characters in
 each alphabet but only 15 examples of each character. Rather than learning a
-separate neural net for each alphabet, one multitask approach would be for all the
-neural nets to share a single first layer, pooling statistical
-strength to learn generic Gabor-like filters, with separate higher layers specific to
+separate neural net for each alphabet, a multitask approach would be for all the
+neural nets to share a single first layer, pooling statistical strength to learn
+generic Gabor-like filters, while maintaining separate higher layers specific to
 each alphabet.
 
-We can parameterize any architecture based on weight sharing or weight absence
+We can parameterize any architecture based on weight tying or weight absence
 with a pairwise quadratic penalty on the weights, $\vw^T A \vw$, where $A$ is a
-number-of-weights by number-of-weights matrix. Learning this enormous matrix $A$
-is clearly infeasible but we can implicitly build such a matrix from lower
+number-of-weights by number-of-weights matrix. Learning this enormous matrix is
+clearly infeasible but we can implicitly build such a matrix from lower
 dimensional structures of manageable size.
 
-For the Omniglot problem, we learn a penalty for each alphabet pair and neural
-net layer separately. Thus, for three-layer neural networks and ten alphabets,
+For the Omniglot problem, we learn a penalty for each alphabet pair, separately
+for each neural net layer. Thus, for ten three-layer neural networks,
 the penalty matrix $A$ is fully described by three ten-by-ten matrices. An
 architecture with fully independent nets for each alphabet corresponds to three
 diagonal matrices while an architecture with a mutual lower layer corresponds to
@@ -523,9 +523,9 @@ that rows and columns sum to one) for the lowest layer (Figure
 \ref{fig:omniglot_results}).
 
 We use five alphabets from the omniglot set. To see whether our multitask
-learning system is able to pick up on high level similarities as well as
-low-level similarities, we repeat these five alphabets, with the images rotated
-by 90 degrees (Figure \ref{fig:omniglot_images}).
+learning system is able to learn high level similarities as well as
+low-level similarities, we repeat these five alphabets with the images rotated
+by 90 degrees (Figure \ref{fig:omniglot_images}) to make ten alphabets total.
 
 \begin{figure}[h!]
 \begin{center}
@@ -721,7 +721,7 @@ If each function has multivariate inputs and outputs, the gradients are
 Jacobian matrices.
 
 Forward and reverse mode differentiation differ
-only by the order in which they evaluate this expression.
+only by the order in which they evaluate this product.
 %
 Forward-mode differentiation works by multiplying gradients in the same order as
 the functions are evaluated:
@@ -738,13 +738,13 @@ final result:
 \end{align*}
 %
 In an optimization setting, the final result of the nested functions, $f_4$, is
-a scalar, while the input $x$ and intermediate values, $f_1 - f_3$, are
-vectors. This is the scenario in which the advantage of reverse mode
+a scalar, while the input $x$ and intermediate values, $f_1 - f_3$, can be
+vectors. In this scenario the advantage of reverse-mode
 differentiation is very clear. Let's imagine that the dimensionality of all the
 intermediate vectors is $D$. In reverse mode, we start from the (scalar) output,
 and multiply by the next $D \times D$ Jacobian at each step. The value we
 accumulate is just a $D$-dimensional vector. In forward mode, however, we must
-accumulate an entire $D \times D$ matrix at each step. But don't we have still
+accumulate an entire $D \times D$ matrix at each step. But do we have still
 have to compute and instantiate the $D \times D$ Jacobian matrices themselves
 either way?  In general, yes. But in the (common) case that the vector-to-vector
 functions are either elementwise operations or (reshaped) matrix multiplications, the
