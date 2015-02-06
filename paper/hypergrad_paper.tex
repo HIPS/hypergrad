@@ -399,7 +399,7 @@ Indeed, \citet{snoek2012practical} optimized separate regularization parameters 
 %\paragraph{Automatic relevance determination}
 We can take this idea even further, and introduce a separate regularization penalty for each individual parameter in a neural network.
 We use a simple model as an example - logistic regression, which can be seen as a neural network without a hidden layer.
-We choose this model because every weight corresponds to an input-pixel and output-label pair, meaning that these parameters might be more interpretable.
+We choose this model because every weight corresponds to an input-pixel and output-label pair, meaning that these 7,840 hyperparameters might be relatively interpretable.
 %
 \begin{figure}[h!]
 \begin{center}
@@ -437,6 +437,12 @@ Training labels are fixed in order from 0 to 9.}
 Figure \ref{fig:fake data} shows a training set, the pixels of which were optimized to improve performance on a validation set of 10,000 examples from MNIST.
 We optimized 10 training examples, each having a different fixed label, again from 0 to 9 respectively.
 Learning the labels of a larger training set might shed light on which classes are difficult to distinguish and so require more examples.
+
+\subsection{Optimizing initial parameters}
+The last remaining parameter to SGD is the initial parameter vector.
+Treating this vector as a hyperparameter blurs the distinction between learning and meta-learning.
+In the extreme case where all \primal{} learning rates are set to zero, the training set ceases to matter and the meta-learning procedure exactly reduces to \primal{} learning on the validation set.
+Due to philosophical vertigo, we chose not to optimize the initial parameter vector.
 
 
 \subsection{Learning to Learn Languages}
