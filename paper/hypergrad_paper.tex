@@ -366,8 +366,8 @@ Colors correspond to the same layers as in Figure \ref{fig:optimal schedule}.}
 %
 
 
-\paragraph{Weight initialization scales}
-We also optimized a separate weight initialization scale hyperparameter for each type of parameter (weights and biases) in each layer - a total of 8 hyperparameters.
+\paragraph{Optimizing weight initialization scales}
+We optimized a separate weight initialization scale hyperparameter for each type of parameter (weights and biases) in each layer - a total of 8 hyperparameters.
 Results are shown in Figure \ref{fig:nn weight init scales}.
 %
 \begin{figure}[h!]
@@ -388,9 +388,10 @@ For the first layer it is ($1/\sqrt{784}$) and for subsequent layers ($1/\sqrt{5
 \vskip -0.2in
 \end{figure}
 
+Interestingly, the initialization scale chosen for the first layer weights matches a heuristic which says to choose an initialization scale of $1/\sqrt{N}$, where $N$ is the number of weights in the layer.
 
 \subsection{Optimizing regularization parameters}
-
+\label{sec:optimizing regularization}
 Regularization is often important for generalization performance.
 Typically, a single parameter controls a single $L_2$ norm or sparsity penalty on the entire parameter vector of a neural network.
 Because different types of parameters in different layers play different roles, it is reasonable to suspect that separate regularization hyperparameter for each parameter type would improve performance.
@@ -479,35 +480,23 @@ sharing  &       & 0.60 & \bf 1.13
 
 \section{Limitations}
 
-\subsection{When are gradients meaningful?}
+Back-propagation for training neural networks has several pitfalls that were later addressed by analysis and engineering.
+Likewise, the use of hyper-gradients also has several apparent difficulties that need to be addressed before it becomes practical.
+This section explores several issues with this technique that became apparent to its first practitioners.
 
-As shown in Figure \ref{fig:nn weight init scales}, the meta-optimization in this experiments did not completely converge after 50 meta-iterations.
-We stopped meta-learning at this point to avoid an unfortunate pathology of learning learning rate.
-
-\paragraph{Discrete parameters}
-Of course gradients are not necessarily useful for optimizing discrete hyperparameters such as the number of layers, or hyperparameters that affect discrete changes such as dropout regularization parameters.
-Some of these difficulties could be addressed by 
-
-Gradient-based optimizers can perform poorly when the surface being optimized is locally ``wiggly''.
-Small wiggles cause both the direction and size of the gradient to be less correlated with the medium-scale shape of the function.
-When do we expect the training loss of a neural network to be wiggly with respect to hyperparameters?
-
-\textbf{The Vanishing Gradient Problem}
-Training hyperparameters whose dependence on the final objective depends on many hundreds of iterations by gradient descent raises several issues.
+\paragraph{When are gradients meaningful?}
 \citet{bengio1994learning} noted that "learning long-term dependencies with gradient descent is difficult."
+Learning hyperparameters whose gradient itself depends on hundreds of iterations of gradient descent raises some of the same issues.
 
-Exploding-gradient problem~\cite{pascanu2012understanding}
+%As shown in Figure \ref{fig:nn weight init scales}, the meta-optimization in this experiment did not completely converge after 50 meta-iterations.
+%We stopped meta-learning at this point to avoid an unfortunate pathology of learning learning rate.
 
-\paragraph{The edge of chaos}
-\citet*[Chapter 4]{pearlmutter1996investigation} discusses the chaotic behavior of gradient descent with momentum when training learning neural networks.
-
-One problem with training these networks is that when the learning rate is too high, the gradient becomes uninformative about the medium-term behavior of the function.
+For example, \citet*[Chapter 4]{pearlmutter1996investigation} showed that 
+%when training learning neural networks using gradient descent with momentum,
+large learning rates induce chaotic behavior in the learning dynamics,
+%Learning rate must be large enough to reach convergence, but not so large that they induce chaotic behavior in the learning dynamics.
+making the gradient uninformative about the medium-term shape of the training objective.
 Figure \ref{fig:chaos} illustrates this problem.
-
-\cite{pearlmutter2009sleep} argues that biological neural networks tune themselves so as to be at the "edge of chaos".
-Empirically, it seems like the best learning rates for training neural networks are just small enough to avoid this chaotic behavior.
-Lower learning rates don't reach convergence before training ends.
-
 
 \begin{figure}[h!]
 \vskip 0.2in
@@ -520,12 +509,31 @@ The step sizes which lead to chaotic behavior are only slightly larger than the 
 \vskip -0.2in
 \end{figure} 
 
-\subsection{Overfitting}
+We partially addressed this problem by initializing our learning rate schedules to be relatively small, and stopping meta-optimization when the magnitude of the meta-gradient began to grow.
+%\cite{pearlmutter2009sleep} argues that biological neural networks tune themselves so as to be at the "edge of chaos".
+%Lower learning rates don't reach convergence before training ends.
+%Empirically, it seems like the best learning rates for training neural networks are just small enough to avoid this chaotic behavior.
+This phenomenon is related to the exploding-gradient problem~\cite{pascanu2012understanding}.
+
+%Gradient-based optimizers can perform poorly when the surface being optimized is locally ``wiggly''.
+%Small wiggles cause both the direction and size of the gradient to be less correlated with the medium-scale shape of the function.
+%When do we expect the training loss of a neural network to be wiggly with respect to hyperparameters?
+
+
+\paragraph{Overfitting}
 How many hyperparameters can we fruitfully optimize?
 One limitation is overfitting the validation objective, in the same way that optimizing too many parameters can overfit the training objective.
 However, the same rules of thumb still apply - the size of the validation set, assuming examples are i.i.d., gives a rough guide to how many hyperparameters can be optimized.
 
 [TODO: show the difference between training, validation and test-set error when optimizing]
+
+
+\paragraph{Discrete parameters}
+Of course, gradients are not necessarily useful for optimizing discrete hyperparameters such as the number of layers, or hyperparameters that affect discrete changes such as dropout regularization parameters.
+Some of these difficulties could be addressed by parameterizing apparently discrete choices in a continuous manner.
+For instance, the per-hidden-unit regularization of section \ref{sec:optimizing regularization} is an example of a continuous way to choose the number of hidden units.
+
+
 
 
 \section{Related work}
