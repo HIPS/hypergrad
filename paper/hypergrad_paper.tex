@@ -24,7 +24,8 @@
 \newcommand{\pderiv}[2]{\frac{\partial #1}{\partial #2}}
 \newcommand{\npderiv}[2]{\nicefrac{\partial #1}{\partial #2}}
 
-\newcommand\primal{basal}
+\newcommand{\primal}{basal}
+\newcommand{\Primal}{Basal}
 \newcommand{\numhypers}{N}
 \newcommand{\hypers}{{\boldsymbol{\theta}}}
 \newcommand{\params}{\vx}
@@ -75,7 +76,7 @@ We compute hyperparameter gradients by exactly reversing the dynamics of stochas
 \label{intro}
 
 Machine learning systems abound with hyperparameters. These can be parameters
-that control model complexity, such as L1 and L2 penalties, or parameters that
+that control model complexity, such as $L_1$ and $L_2$ penalties, or parameters that
 specify the learning procedure itself -- step sizes, momentum decay parameters
 and initialization conditions. Choosing the best hyperparameters is both vitally
 important and frustratingly difficult.
@@ -101,14 +102,14 @@ Once we have access to gradients with respect to hyperparamters we open up a
 garden of delights. Instead of straining to eliminate hyperparameters, we can
 embrace them, and hyperparameterize our models as fully as they deserve. The
 second part of our paper explores the power wielded by a researcher armed with
-hypergradients...
+hypergradients.
 
 A note on terminology: we need a term for a
 parameter-that-is-not-a-hyperparameter -- the multitudinous parameters with
 respect to which we optimize our training loss, the weights of a neural net for
 example. We decided to use the term ``\primal''.
 
-\begin{figure}[ht]
+\begin{figure}[t]
 \vskip 0.2in
 \begin{center}
 \includegraphics[width=\columnwidth]{../experiments/Jan_25_Figure_1/2/learning_curves.pdf}
@@ -214,12 +215,12 @@ Computations of steps \ref{line:hvp1} and \ref{line:hvp2} both require a Hessian
 %These gradients are in principle derivable by hand, but in order for this procedure to work without extra work by the user, we would require an automatic differentiation package which could compute second derivatives.
 Thus the time complexity of reverse SGD is $\mathcal{O}(T)$, the same as forward SGD.
 
-\subsection{Self-closed Automatic Differentiation}
-\citet{pearlmutter2008reverse} implemented the first example of an automatic differentiation package that was closed under its own operation, meaning it could be used to take 2nd or 3rd gradients by simply applying the gradient operation more than once.
-However, this package could only operate on code written in a limited form of Scheme in which each function could only have one argument.
-Popular AD popular packages such as Theano do not have this ability to automatically compute higher-order gradients.
-Thus, we implemented our own automatic differentiation package (available at \url{www.redacted.com}) for Python that is closed under its own operation.
-This package has the additional feature that it operates on standard Numpy~\cite{oliphant2007python} code.
+%\subsection{Self-closed Automatic Differentiation}
+%\citet{pearlmutter2008reverse} implemented the first example of an automatic differentiation package that was closed under its own operation, meaning it could be used to take 2nd or 3rd gradients by simply applying the gradient operation more than once.
+%However, this package could only operate on code written in a limited form of Scheme in which each function could only have one argument.
+%Popular AD popular packages such as Theano do not have this ability to automatically compute higher-order gradients.
+%Thus, we implemented our own automatic differentiation package (available at \url{www.redacted.com}) for Python that is closed under its own operation.
+%This package has the additional feature that it operates on standard Numpy~\cite{oliphant2007python} code.
 
 \subsection{The decay term causes non-reversibility}
 %In practice, however, best performance is usually achieved when the decay term set to a value such as $0.98$.
@@ -236,13 +237,13 @@ One approach, known as checkpointing, simply stores the entire weight vector eve
 However, this would require too much memory to be practical for large neural nets trained for thousands of minibatches.
 Luckily, when the decay factor is close to 1, the amount of information lost at each iteration is small.
 
-\textbf{Quantifying the Savings}
+\textbf{Quantifying the savings}
 for example, an integer multiplied by 0.98 will lose $0.029$ bits of information on average.
 Compared to storing a new 32-bit integer or floating-point number, 
 Thus, if we needed only to store the small amount of information lost at each iteration, memory requirements would only be ${\frac{0.029}{32} = 0.1\%}$ of what they would otherwise be.
 Even if the decay term is $0.5$, memory requirements are still only $\frac{1}{32}$ of what they would otherwise be.
 
-\subsection{Storing Fractional Bits on a Tape}
+\subsection{Storing fractional bits on a tape}
 
 for each parameter being updated during learning, we keep a tape of bits.
 Each time an information-destroying operation (such as division by an integer) is performed, we store the information that would be needed to reverse the operation exactly.  In the case of division by an integer, this information is simply the remainder.
@@ -326,7 +327,29 @@ Not shown are the schedules for the biases or the momentum, which showed less st
 Figure \ref{fig:optimal schedule} shows the results of optimizing learning rate schedules separately for each layer of a deep neural network.
 When Bayesian optimization was used to choose a fixed learning rate for all layers and iterations, it chose a learning rate of 2.4.
 
+\paragraph{Meta-optimization strategies}
+From an optimization point of view, optimizing hyperparameters using stochastic hyper-gradients is no different from optimizing \primal{} parameters using stochastic gradients.
+We experimented with using several standard stochastic optimization methods for meta-optimization, including plain SGD, RMSprop [cite], and minibatch conjugate gradients.
+The results in this section used Adam[cite], a variant of RMSprop that includes momentum terms.
+We typically ran for 50 meta-iterations, and used a meta-step size of 0.04.
+Figure \ref{fig:learning curves} shows the \primal{} and meta-learning curves that generated the hyperparameters shown in Figure \ref{fig:optimal schedule}.
 
+\begin{figure}[h!]
+\vskip 0.2in
+\begin{center}
+\begin{tabular}{cc}
+ \Primal{} learning curvers & Meta-learning curve \\
+\hspace{-1em}\includegraphics[width=0.5\columnwidth, height=0.5\columnwidth]{../experiments/Feb_3_training_schedules/3_adam_50/learning_curves_paper.pdf} &
+\hspace{-1em}\includegraphics[width=0.5\columnwidth, height=0.5\columnwidth]{../experiments/Feb_3_training_schedules/3_adam_50/meta_learning_curve_paper.pdf}
+\end{tabular}
+\caption{asdf}
+\label{fig:learning curves}
+\end{center}
+\vskip -0.2in
+\end{figure}
+
+\paragraph{How smooth are meta-gradients?}
+To demonstrate that the hyper-gradients are smooth with respect to time steps in the training schedule, Figure \ref{fig:smoothed gradient} shows the hyper-gradient with respect to the step size training schedule at the beginning of training, averaged over 100 random seeds.
 %
 \begin{figure}[h!]
 \vskip 0.2in
@@ -334,13 +357,13 @@ When Bayesian optimization was used to choose a fixed learning rate for all laye
 Hyper-gradient at first meta-iteration\\
 \includegraphics[width=\columnwidth]{../experiments/Feb_3_training_schedules/5_initial_gradient/schedules_small.pdf}
 \caption{The initial gradient of the cross-validation loss with respect to the training schedule, averaged over 100 random weight initializations and mini batches.
-Lines correspond to the same layers as in Figure \ref{fig:optimal schedule}.}
+Colors correspond to the same layers as in Figure \ref{fig:optimal schedule}.}
 \label{fig:smoothed gradient}
 \end{center}
 \vskip -0.2in
 \end{figure} 
 %
-To demonstrate that the hyper-gradients are smooth with respect to time steps in the training schedule, Figure \ref{fig:smoothed gradient} shows the hyper-gradient with respect to the step size training schedule at the beginning of training, averaged over 100 random seeds.
+
 
 \paragraph{Weight initialization scales}
 We also optimized a separate weight initialization scale hyperparameter for each type of parameter (weights and biases) in each layer - a total of 8 hyperparameters.
@@ -366,23 +389,29 @@ Dashed lines show a heuristic scale which gives an average total activation of 1
 
 \subsection{Optimizing regularization parameters}
 
-Regularization is often important for generalization performance is .
-Typically, a single parameter controls a single L2 norm or sparsity penalty on the entire parameter vector of a neural network.
-Because different types of parameters in different layers play different roles, it is reasonable to include a separate regularization hyperparameter for each parameter type.
+Regularization is often important for generalization performance.
+Typically, a single parameter controls a single $L_2$ norm or sparsity penalty on the entire parameter vector of a neural network.
+Because different types of parameters in different layers play different roles, it is reasonable to suspect that separate regularization hyperparameter for each parameter type would improve performance.
+Indeed, \citet{snoek2012practical} optimized separate regularization parameters for each layer in a neural network, and found that it improved performance.
 
-\paragraph{Automatic relevance determination}
+%\paragraph{Automatic relevance determination}
 We can take this idea even further, and introduce a separate regularization penalty for each individual parameter in a neural network.
-This
-
+We use a simple model as an example - logistic regression, which can be seen as a neural network without a hidden layer.
+We choose this model because every weight corresponds to an input-pixel and output-label pair, meaning that these parameters might be more interpretable.
+%
 \begin{figure}[h!]
 \begin{center}
 %\includegraphics[width=\columnwidth]{../experiments/Jan_21_nn_ard/2/weights.pdf}
 \includegraphics[width=\columnwidth]{../experiments/Jan_21_nn_ard/2/penalties.pdf}
-\caption{\emph{Top:} Filters learned to classify MNIST in logistic regression.
-\emph{Bottom:} L2 regularization hyperparameters for each weight..}
+\caption{Optimized $L_2$ regularization hyperparameters for each weight in a logistic regression  trained on MNIST.
+The weights corresponding to each output label (0 through 9 respectively) have been rendered separately.
+High values (black) indicate strong regularization.}
 \label{fig:logistic ard}
 \end{center}
 \end{figure} 
+%
+Figure \ref{fig:logistic ard} shows a set of regularization hyperparameters learned for a logistic regression network.
+Because each parameter corresponds to a particular input, this regularization scheme could be seen as a generalization of automatic relevance determination.
 
 
 \subsection{Optimizing data}
@@ -404,6 +433,7 @@ We demonstrate a simple proof-of-concept where an \emph{entire training set} is 
 Figure \ref{fig:fake data} shows a training set, the pixels of which were optimized to improve performance on a validation set of 10,000 examples from MNIST.
 We optimized 10 training examples, each having a different fixed label.
 Learning the labels of a larger training set might shed light on which classes are difficult to distinguish and so require more examples.
+
 
 \subsection{Learning to Learn Languages}
 

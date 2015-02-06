@@ -289,8 +289,9 @@ def plot():
     #ax.set_title('Meta learning curves')
     losses = ['train_loss', 'valid_loss', 'tests_loss']
     loss_names = ['Training loss', 'Validation loss', 'Test loss']
-    for loss_type, loss_name in zip(losses, loss_names):
-        ax.plot(results[loss_type], 'o-', label=loss_name)
+    #for loss_type, loss_name in zip(losses, loss_names):
+    #    ax.plot(results[loss_type], 'o-', label=loss_name)
+    ax.plot(results['train_loss'], 'o-', label='Training loss')
     ax.set_xlabel('Meta iteration')
     ax.set_ylabel('Predictive loss')
     ax.legend(loc=1, frameon=False)
@@ -367,7 +368,7 @@ def plot():
 
 
 if __name__ == '__main__':
-    results = run()
-    with open('results.pkl', 'w') as f:
-        pickle.dump(results, f)
+    #results = run()
+    #with open('results.pkl', 'w') as f:
+    #    pickle.dump(results, f)
     plot()
