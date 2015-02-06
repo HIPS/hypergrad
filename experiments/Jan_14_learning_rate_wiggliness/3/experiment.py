@@ -20,7 +20,7 @@ log_param_scale = -2
 N_iters = 50
 N_data = 10**3
 
-N_meta_iter = 100
+N_meta_iter = 1000
 all_log_alpha_0 = np.linspace(0.5, 2.5, N_meta_iter)
 
 def d_log_loss(x, dx):
@@ -85,7 +85,7 @@ def plot():
     plt.savefig('chaos.pdf', pad_inches=0.1, bbox_inches='tight')
 
 if __name__ == '__main__':
-    #results = run()
-    #with open('results.pkl', 'w') as f:
-    #    pickle.dump(results, f)
+    results = run()
+    with open('results.pkl', 'w') as f:
+        pickle.dump(results, f)
     plot()
