@@ -21,7 +21,7 @@ N_iters = 50
 N_data = 10**3
 
 N_meta_iter = 1000
-all_log_alpha_0 = np.linspace(0.5, 2.5, N_meta_iter)
+log_stepsizes = np.linspace(0.5, 2.5, N_meta_iter)
 
 def d_log_loss(x, dx):
     return np.sum(x * dx)
@@ -39,7 +39,7 @@ def run():
 
     losses = []
     d_losses = []
-    for log_alpha_0 in all_log_alpha_0:
+    for log_alpha_0 in log_stepsizes:
         npr.seed(0)
         V0 = npr.randn(N_weights) * velocity_scale
         alpha_0 = np.exp(log_alpha_0)
@@ -66,18 +66,23 @@ def plot():
     fig.clf()
     fig.set_size_inches((5,4))
     ax = fig.add_subplot(211)
-    ax.plot(all_log_alpha_0, losses, 'b-', label="loss")
-    ax.set_ylim([-0, 0.5])
+    ax.plot(log_stepsizes, losses, 'b-', label="loss")
+    ax.set_ylim([0, 0.1])
+    ax.set_yticks([0.0,])
+    #ax.set_xticks([np.min(log_stepsizes), np.max(log_stepsizes)])
+    ax.set_xticks([1.0, 1.5, 2.0])
     ax.set_ylabel("Training loss")
     #ax.set_xlabel(xlabel)
     # ax.legend(loc=4)
 
     ax = fig.add_subplot(212)
-    ax.plot(all_log_alpha_0, d_losses, 'k-', label="Gradient of loss")
+    ax.plot(log_stepsizes, d_losses, 'k-', label="Gradient of loss")
     #ax.set_title("Grad loss vs step size")
     ax.set_ylim([-0.5, 0.5])
     ax.set_ylabel("Gradient")
     ax.set_yticks([0.0,])
+    #ax.set_xticks([np.min(log_stepsizes), np.max(log_stepsizes)])
+    ax.set_xticks([1.0, 1.5, 2.0])
     #ax.set_xlabel(xlabel)
     #ax.legend(loc=2)
     #plt.savefig("/tmp/fig.png")
@@ -85,7 +90,7 @@ def plot():
     plt.savefig('chaos.pdf', pad_inches=0.1, bbox_inches='tight')
 
 if __name__ == '__main__':
-    results = run()
-    with open('results.pkl', 'w') as f:
-        pickle.dump(results, f)
+    #results = run()
+    #with open('results.pkl', 'w') as f:
+    #    pickle.dump(results, f)
     plot()
