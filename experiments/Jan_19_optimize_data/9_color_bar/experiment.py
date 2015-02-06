@@ -104,6 +104,8 @@ def plot():
         all_learning_curves, all_val_loss, all_test_loss,\
         all_fakedata, all_fakedatasize, all_L2 = zip(*pickle.load(f))
 
+    import matplotlib as mpl
+    mpl.rcParams['font.family'] = 'serif'
 
     # Fake data
     fig = plt.figure(0)

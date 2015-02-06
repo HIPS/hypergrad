@@ -122,7 +122,8 @@ def build_covar_image(transform_vect, corr=True, use_abs=False):
         covar = dictmap(np.abs, covar)
     if corr:
         covar = dictmap(covar_to_corr, covar)
-    return np.concatenate([covar[i] for i in range(N_layers)[::-1]], axis=0)
+    #return np.concatenate([covar[i] for i in range(N_layers)[::-1]], axis=0)
+    return [covar[i] for i in range(N_layers)]
 
 def plot():
     import matplotlib.pyplot as plt
@@ -151,16 +152,18 @@ def plot():
                      'learned_sharing' : 'Learned sharing'}
     covar_imgs = {name : build_covar_image(transform_vects[name]) for name in names}
 
-    for i, name in enumerate(names):
-        fig = plt.figure(0)
-        fig.clf()
-        fig.set_size_inches((2, 6))
-        ax = fig.add_subplot(111)
-        ax.matshow(covar_imgs[name].T, cmap = mpl.cm.binary)
-        ax.set_xticks([])
-        ax.set_yticks([])
-        plt.savefig('learned_corr_{0}.png'.format(i), bbox_inches='tight')
-        plt.savefig('learned_corr_{0}.pdf'.format(i), bbox_inches='tight')
+    for model_ix, model_name in enumerate(names):
+        image_list = covar_imgs[model_name]
+        for layer_ix, image in enumerate(image_list):
+            fig = plt.figure(0)
+            fig.clf()
+            fig.set_size_inches((1, 1))
+            ax = fig.add_subplot(111)
+            ax.matshow(image, cmap = mpl.cm.binary, vmin=0.0, vmax= 1.0)
+            ax.set_xticks([])
+            ax.set_yticks([])
+            plt.savefig('minifigs/learned_corr_{0}_{1}.png'.format(model_name, layer_ix), bbox_inches='tight')
+            plt.savefig('minifigs/learned_corr_{0}_{1}.pdf'.format(model_name, layer_ix), bbox_inches='tight')
 
     # Write results to a nice latex table for paper.
     with open('results_table.tex', 'w') as f:
