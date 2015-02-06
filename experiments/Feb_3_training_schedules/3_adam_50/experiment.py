@@ -18,8 +18,8 @@ N_classes = 10
 N_train = 10000
 N_valid = 10000
 N_tests = 10000
-N_learning_checkpoint = 10
-thin = np.ceil(N_iters/N_learning_checkpoint)
+N_learning_checkpoint = 20
+thin = 1# np.ceil(N_iters/N_learning_checkpoint)   # Detailed learning curves.
 
 # ----- Initial values of learned hyper-parameters -----
 init_log_L2_reg = -100.0
@@ -59,12 +59,12 @@ def run():
 
         learning_curve_dict = defaultdict(list)
         def callback(x, v, g, i_iter):
-            if i_iter % thin == 0 or i_iter == N_iters or i_iter == 0:
+            if i_iter % thin == 0 or i_iter == (N_iters - 1) or i_iter == 0:
                 learning_curve_dict['learning_curve'].append(loss_fun(x, **train_data))
                 learning_curve_dict['grad_norm'].append(np.linalg.norm(g))
                 learning_curve_dict['weight_norm'].append(np.linalg.norm(x))
                 learning_curve_dict['velocity_norm'].append(np.linalg.norm(v))
-                learning_curve_dict['iteration'].append(i_iter)
+                learning_curve_dict['iteration'].append(i_iter + 1)
 
         cur_hyperparams = hyperparams.new_vect(hyperparam_vect)
         rs = RandomState((seed, i_hyper))
@@ -274,15 +274,10 @@ def plot():
     # ----- Primal learning curves -----
     ax = fig.add_subplot(111)
     #ax.set_title('Primal learning curves')
-
-    # On the next run, these will be saved so we won't have to recompute them here.
-
-
-    #for i, y in enumerate(results['learning_curves']):
     ax.plot(results['learning_curves'][0]['iteration'],
-            results['learning_curves'][0]['learning_curve'],  'o-', label='Initial hypers')
-    ax.plot(results['learning_curves'][-1]['learning_curve'],
-            results['learning_curves'][0]['iteration'], 'o-', label='Final hypers')
+            results['learning_curves'][0]['learning_curve'],  '-', label='Initial hypers')
+    ax.plot(results['learning_curves'][-1]['iteration'],
+            results['learning_curves'][-1]['learning_curve'], '-', label='Final hypers')
     ax.set_xlabel('Training iteration')
     ax.set_ylabel('Training loss')
     fig.set_size_inches((2.5,2.5))
@@ -372,7 +367,7 @@ def plot():
 
 
 if __name__ == '__main__':
-    #results = run()
-    #with open('results.pkl', 'w') as f:
-    #    pickle.dump(results, f)
+    results = run()
+    with open('results.pkl', 'w') as f:
+        pickle.dump(results, f)
     plot()

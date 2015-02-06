@@ -23,7 +23,7 @@ thin = np.ceil(N_iters/N_learning_checkpoint)
 init_log_L2_reg = -100.0
 
 # ----- Initial values of learned hyper-parameters -----
-init_log_alphas = 0.887   # Based on 90 iterations of whetlab.  (Experiment ID 70189)
+init_log_alphas = 0.887   # Based on 100 iterations of whetlab.  (Experiment ID 70189)
 init_invlogit_betas = 0.403
 init_log_param_scale = -1.63
 
