@@ -238,11 +238,10 @@ carry out the reverse training requires repeated multiplication by $1/\decay$.
 Errors accumulate exponentially, and the reversed learning procedure ends far
 from the initial point (and usually overflows). Do we need $\decay < 1$?
 Unfortunately we do. $\decay > 1$ results in unstable dynamics, and
-$\decay = 1$, recovers the leapfrog integrator~\citep{leapfrog1995}, a perfectly
-sensible and reversible set of dynamics that does not converge.
+$\decay = 1$, recovers the leapfrog integrator~\citep{leapfrog1995}, a perfectly reversible set of dynamics, but one that does not converge.
 
 This problem is quite a deep one: optimization necessarily discards information.
-Ideally, optimization maps all initializations to the same minimum,
+Ideally, optimization maps all initializations to the same optimum,
 a many-to-one mapping with no hope of inversion.
 Put another way, optimization moves a system from a high-entropy initial state
 to a low-entropy (hopefully zero entropy) optimized final state.
@@ -251,56 +250,43 @@ It is interesting to consider the analogy with physical dynamics. The $\decay$
 term is analogous to a drag term in the simulation of Hamiltonian dynamics.
 Having $\decay < 1$ corresponds to \emph{dissipative} dynamics which generates
 heat, increases the entropy of the environment and is not therefore not
-reversible. But we require dissipation in order for our system to equilibrate
-to the energy minimum we care about.
+reversible. But we must have dissipation in order for our system to converge to equilibrium.
 
-If we want to reverse the dynamics there is no choice but to store the extra
+If we want to reverse the dynamics, there is no choice but to store the extra
 bits discarded by the $\decay$ operation. But we can at least try to
 be parsimonious about the number of extra bits we store. This is what the next
-section tries to achieve.
+section addresses.
 
 \subsection{Optimal storage of discarded entropy}
 \label{sec:reversible computation}
 
-We would like to store the information discarded each time the momentum decay
-operation (XX) is applied. If we had $\decay = 0.5$ then we could just store the
+This section gives the technical details of how to efficiently store the information discarded each time the momentum decay
+operation (Step \ref{step:reverse-velocity}) is applied.
+If we had $\decay = 0.5$ then we could just store the
 single bit that falls off at each iteration and if $\decay = 0.25$ we could
-store two bits. But we want fairly fine-grained control over $\decay$ so we want
-some way of storing the required bits when we multiply by, say, $\decay = 0.9$.
-And if $\decay > 0.5$ then we would somehow like to store less than one
-bit per iteration on average. Here we give a procedure which achieves exactly
+store two bits. But for fine-grained control over $\decay$ we need a way to store the information lost when we multiply by, say, $\decay = 0.9$, which will be less than one bit on average. Here we give a procedure which achieves exactly
 this.
 
-We represent the velocity $v$ and position $x$ vectors with 64-bit integers. (Of
-course there is an implied radix point so that this is actually a fixed-point
-representation of the reals.) And we represent $\decay$ as a rational number,
+We represent the velocity $v$ and position $x$ vectors with 64-bit integers. With an implied radix point this can be a fixed-point
+representation of the reals. We represent $\decay$ as a rational number,
 $n/d$. When we divide $v$ by $d$ we use integer division. In order to be able to
-reverse the process we just need to store the remainder, $v \% s$ in some
-``information buffer'', $B$. If $B$ was an integer and $n = 2$, the remainder $r$ would just be a single
-bit, and we could store it in $B$ by left-shifting $B$'s bits and adding $r$. 
-For arbitrary $n$, we can just do the base-$n$ analogue of this operation: multiply 
-$B$ by $n$ and add $r$. Eventually, $B$ will. We need a way to either detect
+reverse the process we just need to store the remainder, $v$ modulo $s$, in some
+``information buffer'', $B$. If $B$ was an integer and $n = 2$, the remainder $r$ would just be a single bit, and we could store it in $B$ by left-shifting $B$'s bits and adding $r$. For arbitrary $n$, we can just do the base-$n$ analogue of this operation: multiply $B$ by $n$ and add $r$. Eventually, $B$ will overflow. We need a way to either detect
 this, store the bits, and start a fresh integer, or else we can just use an
 arbitrary size integer that grows as needed. (Python's ``long'' integer type
 supports this). This procedure allows division by $n$ while storing the
 remainder in $\log_2(n)$ bits on average.
 
 When we multiply by the numerator of $n/d$ we don't need to store anything
-extra, since integer division will bring us make to exactly the same point
-anyway. But the procedure as it stand would use three bits with $\decay = 7/8$
-whereas it should store less than one (hopefully $\log_2 (8/7)$). Here's the
-trick we can use. When we multiply $v$ by $n$, there is an opportunity to add a
+extra, since integer division will bring us back to exactly the same point
+anyway. But the procedure as it stands would use three bits with $\decay = 7/8$
+whereas it should store less than one (hopefully $\log_2 (8/7)$). Our solution is the following: when we multiply $v$ by $n$, there is an opportunity to add a
 nonnegative integer smaller than $n$ to the result without affecting the reverse
 process (integer division by $n$). We can get such an integer from the
-information buffer by dividing it by $n$ and recording $B \% n$. We are using
+information buffer by dividing it by $n$ and recording $B$ modulo $n$. We are using
 the velocity $v$ as an information buffer itself! Algorithm
-\ref{alg:reversible-mult} illustrates the whole process.
+\ref{alg:reversible-mult} illustrates the entire process.
 
-How much does this rigmarole save us? If we have $\decay =  0.98$ we will have
-to store $0.029$ bits on average. Compared to storing a new 32-bit integer or
-floating-point number, this reduces memory requirements by a factor of one
-thousand.
-%
 \begin{algorithm}
    \caption{Exactly reversible multiplication by a ratio}
    \label{alg:reversible-mult}
@@ -315,35 +301,25 @@ thousand.
    \State \textbf{return} updated buffer $i$, updated value $c$
 \end{algorithmic}
 \end{algorithm}
-%
-Note that we could have used an arithmetic coding scheme for our information
-buffer~\citep{steinruecken2014a}. An entirely different approach to the question
-of memory use with RMD is checkpointing. This is sometimes used even for
+
+How much does this procedure save us? If we have $\decay =  0.98$ we will have
+to store $0.029$ bits on average. Compared to storing a new 32-bit integer or
+floating-point number at each iteration, this reduces memory requirements by a factor of one thousand.
+
+We could also have used an arithmetic coding scheme for our information
+buffer~\citep{steinruecken2014a}. Another entirely different approach to the question
+of memory use with RMD is checkpointing. This is sometimes used for
 differentiation of neural net loss functions with respect to {\primal}
 parameters~\citep{martens2012training}. The idea is to store just a small number
-of parameter vectors during training, and recompute sections of the training
+of parameter vectors during training, and recompute the missing sections of the training
 procedure at a time (forwards) during the backward pass. However, this would
 require too much memory to be practical for large neural nets trained for
-thousands of minibatches.  Luckily, when the decay factor is close to 1, the
-amount of information lost at each iteration is small.
+thousands of minibatches.
 
 \section{Experiments}
 \label{sec:experiments}
 
-
-Automatic differentiation (AD) software packages such as
-Theano~\cite{Bastien-Theano-2012, bergstra2010scipy} are a workhorse of deep
-learning, significantly speeding up development time by providing gradients
-automatically. Since we require access to the internal logic of RMD we implemented
-our own automatic differentiation for Python
-(link to source code will be made available upon publication).
-This package has the additional feature that it operates on standard
-Numpy~\cite{oliphant2007python} code and can differentiate code containing
-loops, branching logic, and even derivatives.
-
-
-PUT THIS HERE MAYBE?
-We can view SGD as a function which takes an initial parameter vector, a step-size schedule, and a momentum schedule, and returns the final parameter vector.
+%We can view SGD as a function which takes an initial parameter vector, a step-size schedule, and a momentum schedule, and returns the final parameter vector.
 
 In typical machine learning applications, only a few hyperparameters (less than 20) are optimized.
 Since each experiment only yields a single number (the validation loss), the search rapidly becomes more difficult as the dimension of the hyperparameter vector increases.
@@ -539,6 +515,18 @@ Due to philosophical vertigo, we chose not to optimize the initial parameter vec
 \label{fig:omniglot}
 \end{center}
 \end{figure} 
+
+
+\subsection{Implementation Details}
+Automatic differentiation (AD) software packages such as
+Theano~\citep{Bastien-Theano-2012, bergstra2010scipy} are a workhorse of deep
+learning, significantly speeding up development time by providing gradients
+automatically. Since we require access to the internal logic of RMD in order to implement Algorithm \ref{alg:reverse-sgd}, we implemented
+our own automatic differentiation package for Python\footnote{source code will be made available upon publication}.
+This package has the additional feature that it operates on standard
+Numpy~\citep{oliphant2007python} code, and can differentiate code containing
+loops and branching logic.
+
 
 \section{Limitations}
 
