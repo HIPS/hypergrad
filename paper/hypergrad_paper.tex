@@ -296,7 +296,7 @@ This section shows several proof-of-concept experiments in which we can more ric
 
 
 \subsection{Gradient-based optimization of gradient-based optimization}
-
+\label{sec:schedule experiments}
 Modern neural net training procedures often employ various heuristics to set learning rate schedules, or set their shape using one or two hyperparameters set by cross-validation \cite{lecun1989backpropagation, dahl2014multi, sutskever2013importance}.
 These schedule choices are supported by a mixture of intuition, arguments about the shape of the objective function, and empirical tuning.
 
@@ -330,7 +330,7 @@ When Bayesian optimization was used to choose a fixed learning rate for all laye
 \paragraph{Meta-optimization strategies}
 From an optimization point of view, optimizing hyperparameters using stochastic hyper-gradients is no different from optimizing \primal{} parameters using stochastic gradients.
 We experimented with using several standard stochastic optimization methods for meta-optimization, including plain SGD, RMSprop [cite], and minibatch conjugate gradients.
-The results in this section used Adam[cite], a variant of RMSprop that includes momentum terms.
+The results in this section used Adam~\citep{Adam14}, a variant of RMSprop that includes momentum terms.
 We typically ran for 50 meta-iterations, and used a meta-step size of 0.04.
 Figure \ref{fig:learning curves} shows the \primal{} and meta-learning curves that generated the hyperparameters shown in Figure \ref{fig:optimal schedule}.
 
@@ -338,7 +338,7 @@ Figure \ref{fig:learning curves} shows the \primal{} and meta-learning curves th
 \vskip 0.2in
 \begin{center}
 \begin{tabular}{cc}
- \Primal{} learning curvers & Meta-learning curve \\
+ \Primal{} learning curves & Meta-learning curve \\
 \hspace{-1em}\includegraphics[width=0.5\columnwidth, height=0.5\columnwidth]{../experiments/Feb_3_training_schedules/3_adam_50/learning_curves_paper.pdf} &
 \hspace{-1em}\includegraphics[width=0.5\columnwidth, height=0.5\columnwidth]{../experiments/Feb_3_training_schedules/3_adam_50/meta_learning_curve_paper.pdf}
 \end{tabular}
@@ -349,7 +349,7 @@ The meta-learning curve shows the training loss at the end of each \primal{} ite
 \vskip -0.2in
 \end{figure}
 
-\paragraph{How smooth are meta-gradients?}
+\paragraph{How smooth are hyper-gradients?}
 To demonstrate that the hyper-gradients are smooth with respect to time steps in the training schedule, Figure \ref{fig:smoothed gradient} shows the hyper-gradient with respect to the step size training schedule at the beginning of training, averaged over 100 random seeds.
 %
 \begin{figure}[h!]
@@ -475,20 +475,12 @@ sharing  &       & 0.60 & \bf 1.13
 
 \subsection{When are gradients meaningful?}
 
-As shown in Figure \ref{fig:nn weight init scales}, the meta-optimization did not completely converge after 50 meta-iterations.
-We stopped meta-learning at this point to avoid
+As shown in Figure \ref{fig:nn weight init scales}, the meta-optimization in this experiments did not completely converge after 50 meta-iterations.
+We stopped meta-learning at this point to avoid an unfortunate pathology of learning learning rate.
 
 \paragraph{Discrete parameters}
 Of course gradients are not necessarily useful for optimizing discrete hyperparameters such as the number of layers, or hyperparameters that affect discrete changes such as dropout regularization parameters.
 Some of these difficulties could be addressed by 
-
-\subsubsection{Overfitting}
-
-How many hyperparameters can we fruitfully optimize?
-The main limitation seems to be overfitting.
-
-[TODO: show the difference between training, validation and test-set error when optimizing]
-
 
 Gradient-based optimizers can perform poorly when the surface being optimized is locally ``wiggly''.
 Small wiggles cause both the direction and size of the gradient to be less correlated with the medium-scale shape of the function.
@@ -522,35 +514,43 @@ The step sizes which lead to chaotic behavior are only slightly larger than the 
 \vskip -0.2in
 \end{figure} 
 
+\subsection{Overfitting}
+How many hyperparameters can we fruitfully optimize?
+One limitation is overfitting the validation objective, in the same way that optimizing too many parameters can overfit the training objective.
+However, the same rules of thumb still apply - the size of the validation set, assuming examples are i.i.d., gives a rough guide to how many hyperparameters can be optimized.
+
+[TODO: show the difference between training, validation and test-set error when optimizing]
 
 
 \section{Related work}
 
-\subsection{Gradient-based tuning of hyperparameters}
+%\subsection{Gradient-based tuning of hyperparameters}
 
 \paragraph{Neural networks}
-\citet{bengio2000gradient, larsen1998adaptive} identified the benefits of using gradients to optimize the cross-validation loss with respect to neural net hyperparameters, and showed several simple proofs-of-concept.
-However, they were only able to compute gradients of hyperparameters that controlled fixed, known functions of the weights, and so could not optimize parameters such as step-sizes or initialization distributions.
+\citet{larsen1998adaptive} and \citet{bengio2000gradient} identified the benefits of using gradients to optimize the cross-validation loss with respect to neural net hyperparameters, and showed that gradients of certain loss functions with respect to certain kinds of regularization hyperparameters could be evaluated cheaply.
+\citet{bengio2000gradient} additionally showed that some gradients are available in closed form when training has converged to a local minimum.
+%However, they were only able to compute gradients of hyperparameters that controlled fixed, known functions of the weights, and so could not optimize parameters such as step-sizes or initialization distributions.
 
 \paragraph{Support vector machines}
-\citet{chapelle2002choosing} point out that the lack of gradients in the support vector machine (SVM) objective limits the number of kernel parameters, usually to one or two.
-They introduced a differentiable bound on the SVM loss in order to be able to compute derivatives with respect to hundreds of hyperparameters, including weighting parameters for each input dimension in the kernel.
-However, this bound was not tight. [Need to have another read to figure out limitations of their approach]
+\citet{chapelle2002choosing} 
+%point out that the lack of gradients in the support vector machine (SVM) objective limits the number of kernel parameters, usually to one or two.
+ introduced a differentiable bound on the SVM loss in order to be able to compute derivatives with respect to hundreds of hyperparameters, including weighting parameters for each input dimension in the kernel.
+However, this bound was not tight, since optimizing the SVM objective requires a discrete selection of training points.
 
 \paragraph{Bayesian methods}
-For Bayesian methods that have a closed-form marginal likelihood, gradients w.r.t. all continuous hyperparameters are usually available.
-for example, this sort of flexibility has been used to construct complex, custom kernels for Gaussian process models~\cite{rasmussen38gaussian}[Chapter 5].
+For Bayesian model with a closed-form marginal likelihood, gradients with respect to all continuous hyperparameters are usually available.
+For example, this ability has been used to construct complex kernels for Gaussian process models~\citep[Chapter 5]{rasmussen38gaussian}.
 %or to train the parameters of Markov random fields \cite{samuel2012gradient}
 Variational inference also allows gradient-based tuning of hyperparameters in Bayesian neural-network models such as deep Gaussian processes~\citep{deepGPVar14}.
-However, these methods do not enable the tuning of the parameters which themselves tune the marginal likelihood.
+However, it does not provide gradients with respect to training parameters.
 
-\subsection{Reducing the number of hyperparameters}
-Several recent papers have attempted to set training hyper-parameters automatically, or lessen sensitivity to their exact values~\cite{schaul2012no, Adam14, Adasecant14, Hotswap14}.
-However, these methods all retain at least a small number of hyperparameters.
-In principle, the method we propose here can tune any remaining parameters.
-More importantly, having access to hyper-gradients might make the introduction of new, difficult-to-tune hyperparameters worthwhile.
+%\subsection{Reducing the number of hyperparameters}
+%Several recent papers have attempted to set training hyper-parameters automatically, or lessen sensitivity to their exact values~\cite{schaul2012no, Adasecant14, Hotswap14}.
+%However, these methods all retain at least a small number of hyperparameters.
+%In principle, the method we propose here can tune any remaining parameters.
+%More importantly, having access to hyper-gradients might make the introduction of new, difficult-to-tune hyperparameters worthwhile.
 
-\subsection{Gradients with respect to Markov chain parameters}
+\paragraph{Gradients with respect to Markov chain parameters}
 \citet{Bridging14} tune the step-size and mass-matrix parameters of Hamiltonian Monte Carlo by chaining gradients from a lower bound on the marginal likelihood through several iterations of leapfrog dynamics.
 Because they used only a small number of steps, all intermediate values could be stored naively.
 Our reversible-dynamics memory-tape approach could be used to dramatically extend the number of HMC iterations used in this approach.
@@ -560,7 +560,7 @@ Our reversible-dynamics memory-tape approach could be used to dramatically exten
 \paragraph{Long short-term memory}
 Several other types of computation performed in machine learning have a similar structure to the reversible dynamics of SGD.
 For example, Long Short-Term Memory~\citep{hochreiter1997long} has a similar flavour, as do the computations performed by Neural Turing Machines~\citep{graves2014neural}.
-Reversible Learning might allow gradient (not hyper-gradient) computations with respect to very long computations performed by either architecture.
+Reversible Learning might allow memory-efficient \primal{} gradient computations with respect to very long computations performed by either architecture.
 
 \paragraph{Model-based meta-optimization with gradients}
 
