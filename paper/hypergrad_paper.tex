@@ -13,6 +13,7 @@
 \usepackage{icml2015stylefiles/icml2015} 
 %\usepackage[accepted]{icml2015stylefiles/icml2015}
 \newcommand{\vx}{\mathbf{x}}
+\newcommand{\vw}{\mathbf{w}}
 \newcommand{\vv}{\mathbf{v}}
 \newcommand{\vg}{\mathbf{g}}
 \newcommand{\vzero}{\mathbf{0}}
@@ -482,7 +483,57 @@ In the extreme case where all \primal{} learning rates are set to zero, the trai
 Due to philosophical vertigo, we chose not to optimize the initial parameter vector.
 
 
-\subsection{Learning to Learn Languages}
+\subsection{Learning continuously parameterized architetures}
+
+Many of the notable successes in deep learning have come from novel
+architectures adapted to particular domains: convolutional neural nets,
+recurrent neural nets, multitask neural nets. We can think of these
+architectures as hard constraints of weight sharing or weight absence on an
+otherwise fully-connected neural network. By softening these hard architetural
+constraints we can form continuous (but very high-dimensional) parameterizations
+of architecture. Having access to hypergradients makes learning these
+softened architectures feasible.
+
+We illustrate this ``architecture learning'' with a multitask learning
+problem, the Omniglot data set \citep{Omniglot}. This data set consists of 28 by 28
+pixel greyscale images of characters from 50 alphabets with up to 55 characters in
+each alphabet but only 15 examples of each character. Rather than learning a
+separate neural net for each alphabet, one multitask approach would be for all the
+neural nets to share a single first layer, pooling statistical
+strength to learn generic Gabor-like filters, with separate higher layers specific to
+each alphabet.
+
+We can parameterize any architecture based on weight sharing or weight absence
+with a pairwise quadratic penalty on the weights, $\vw^T A \vw$, where $A$ is a
+number-of-weights by number-of-weights matrix. Learning this enormous matrix $A$
+is clearly infeasible but we can implicitly build such a matrix from lower
+dimensional structures of manageable size.
+
+For the Omniglot problem, we learn a penalty for each alphabet pair and neural
+net layer separately. Thus, for three-layer neural networks and ten alphabets,
+the penalty matrix $A$ is fully described by three ten-by-ten matrices. An
+architecture with fully independent nets for each alphabet corresponds to three
+diagonal matrices while an architecture with a mutual lower layer corresponds to
+two diagonal matrices for the upper layers and a matrix of all ones (scaled so
+that rows and columns sum to one) for the lowest layer (Figure
+\ref{fig:omniglot_results}).
+
+We use five alphabets from the omniglot set. To see whether our multitask
+learning system is able to pick up on high level similarities as well as
+low-level similarities, we repeat these five alphabets, with the images rotated
+by 90 degrees (Figure \ref{fig:omniglot_images}).
+
+Rather than learning the penalty matrix directly (which is constrained to be
+positive semi-definite) our hyperparameters are three ten-by-ten transformations
+from a space of ``whitened'' weights, whose penalty matrix is the identity
+matrix, to the space of weights used in the actual neural networks. This is an
+unidentifiable but unconstrained parameterization.
+
+Figure \ref{fig:omniglot_results} shows the learned penalties (normalized by row
+and column to have ones on the diagonal, akin to a correlation matrix). We see
+that the lowest layer has been partially shared, across all alphabets equally,
+with the upper layers much less shared. Interestingly, the top layer penalty
+learns to share weights between the rotated alphabets.
 
 \begin{figure}[h!]
 \begin{center}
@@ -491,7 +542,7 @@ Due to philosophical vertigo, we chose not to optimize the initial parameter vec
 \hspace{-3mm}\includegraphics[width=0.85\columnwidth]{../experiments/Feb_4_augmented_omniglot/2_rotated_90/all_alphabets.png}
 \end{tabular}
 \caption{Example character sets in the Omniglot dataset.}
-\label{fig:omniglot}
+\label{fig:omniglot_images}
 \end{center}
 \end{figure} 
 
@@ -512,7 +563,7 @@ Due to philosophical vertigo, we chose not to optimize the initial parameter vec
 \parbox{3.7em}{Learned sharing} & \omniimageb{learned_sharing} & 0.60 & \bf 1.13 \\
 \end{tabular}
 \caption{Learned covariances between neural nets trained on different alphabets.}
-\label{fig:omniglot}
+\label{fig:omniglot_results}
 \end{center}
 \end{figure} 
 
