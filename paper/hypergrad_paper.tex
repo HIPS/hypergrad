@@ -106,13 +106,13 @@ optimization, which makes naive reverse mode differentiation unfeasible from a
 memory perspective. Section \ref{hypergradients} describes this problem and
 proposes a solution. This is our main technical contribution.
 
-Gaining access to gradients with respect to hyperparamters opens up an exciting
-field of research possibilities. Instead of straining to eliminate
-hyperparameters from out models, we can embrace them, and hyperparameterize our
-models as fully as they deserve. Just as having a high-dimensional \primal
-parameterization gives a flexible model, having a high-dimensional
-hyperparameterization gives flexibility over model classes. Section
-\ref{experiments} explores these new opportunities.
+Gaining access to gradients with respect to hyperparamters opens up a garden of
+delights. Instead of straining to eliminate hyperparameters from out models, we
+can embrace them, and hyperparameterize our models as fully as they
+deserve. Just as having a high-dimensional \primal parameterization gives a
+flexible model, having a high-dimensional hyperparameterization gives
+flexibility over model classes. Section \ref{experiments} explores these new
+opportunities.
 
 \begin{figure}[t]
 \vskip 0.2in
@@ -157,27 +157,47 @@ Applying RMD to hyperparameter optimization has been proposed before
 of memory constraints. RMD requires the intermediate variables to be maintained
 in memory for the reverse pass. Evaluating the hyperloss (e.g. validation loss)
 requires training the model, which may many (\primal) iterations. Conventional
-RMD would require us to store this entire training trajectory in memory.  In the
-case of large neural networks, the amount of memory required to store the
-millions of parameters being trained is typically close to the amount of
-physical RAM available~\cite{sequence2014}. If storing the parameter vector
-takes $\sim$1GB, and the parameter vector is updated tens of thousands of times
-(equal to the number of mini batches times the number of epochs) then storing
-the learning history becomes unmanageable even with physical storage.
+RMD would require us to store this entire training trajectory, $\params_1
+... \params_T$ in memory.  In the case of large neural networks, the amount of
+memory required to store the millions of parameters being trained is typically
+close to the amount of physical RAM available~\cite{sequence2014}. If storing
+the parameter vector takes $\sim$1GB, and the parameter vector is updated tens
+of thousands of times (equal to the number of mini batches times the number of
+epochs) then storing the learning history becomes unmanageable even with
+physical storage.
 
-If we could reverse the training, we'd be fine
+Imagine we had reversible learning dynamics. If we could trace a training
+procedure backwards, starting from the trained parameter values and working
+back to the initial parameters, then we could recompute the learning trajectory
+on the fly during the reverse pass of RMD rather storing it in memory. This is
+not possible in general, but we will show that for the popular training
+procedure of (possibly stochastic) gradient descent with momentum, we can do
+exactly this, in addition to storing a small number of auxiliary bits to handle
+finit precision arithmetic.
 
-Automatic differentiation is helpful. We roll our own. Because we can.
-Automatic differentiation (AD) software packages such as Theano~\cite{Bastien-Theano-2012, bergstra2010scipy} are a workhorse of deep learning, significantly speeding up development time by providing gradients automatically.
+Automatic differentiation (AD) software packages such as
+Theano~\cite{Bastien-Theano-2012, bergstra2010scipy} are a workhorse of deep
+learning, significantly speeding up development time by providing gradients
+automatically. Since we require access to the internal logic of RMD we implented
+our own automatic differentiation for Python
+(\url{github.com/REDACTED/REDACTED})).
+This package has the additional feature that it operates on standard
+Numpy~\cite{oliphant2007python} code and can differentiate code containing
+loops, branching logic, and even derivatives.
 
-\subsection{Reversible learning}
+\subsection{Reversible learning (exact arithmetic)}
 \label{sec:reversible learning}
 
-This section discusses how we overcome the technical difficulty of recovering the history of parameter vectors in order to perform reverse-mode AD, when performing stochastic gradient descent with momentum.
+Stochastic gradient descent (SGD) with momentum (Algorithm \ref{alg:sgd}) can be
+seen as a physical simulation of a system moving through a series of fixed force
+fields indexed by time $t$. As it stands, this procedure looks
+reversible. Algorithm \ref{alg:reverse-sgd} shows how sgd with momentum could be
+reversed and used for RMD. It simply reverses the steps in Algorithm
+\ref{alg:sgd}, interleaved with computations of gradients. It outputs the
+gradient of a function of the trained weights $f(\vx)$ (such as the validation
+loss) with respect to the initial weights $\vx_1$, the stepsize and momentum
+schedules, and any other hyperparameters which affect training gradients.
 
-Stochastic gradient descent (SGD) with momentum (Algorithm \ref{alg:sgd}) can be seen as a physical simulation of a system moving through a series of fixed force fields indexed by time $t$.
-
-%
 \begin{algorithm}
    \caption{Stochastic gradient descent with momentum}
    \label{alg:sgd}
@@ -192,25 +212,6 @@ Stochastic gradient descent (SGD) with momentum (Algorithm \ref{alg:sgd}) can be
    \State \textbf{output} trained parameters $\vx_T$
 \end{algorithmic}
 \end{algorithm}
-%
-
-We can view SGD as a function which takes an initial parameter vector, a step-size schedule, and a momentum schedule, and returns the final parameter vector.
-
-
-The validation and test set performance depend on the output of this function, the trained weights.
-It is usually straightforward to compute the gradient of the validation loss with respect to the trained weights.
-To get hyper parameter gradients, we also need to differentiate the output of stochastic gradient descent with respect to its inputs.
-How can we take the gradient of SGD with respect to its parameters?
-
-\subsection{Reversible dynamics}
-
-If the momentum decay term $\decay$ in Algorithm \ref{alg:sgd} is set to one (no decay), then we recover a reversible dynamics scheme known as the leapfrog integrator~\citep{leapfrog1995}.
-%Leapfrog dynamics are exactly reversible through time.
-Exactly reversible dynamics would allow us to trace a training procedure backwards, starting from the trained parameter values.
-Having the parameter vectors available in this order would allow reverse-mode AD with fixed memory requirements, no matter how many training iterations were performed.
-
-This procedure is given by Algorithm \ref{alg:reverse-sgd}, which simply reverses the steps in Algorithm \ref{alg:sgd}, interleaved with computations of gradients.
-It outputs the gradient of a function of the trained weights $f(\vx)$ (such as the validation loss) with respect to the initial weights $\vx_1$, the stepsize and momentum schedules, and any other hyperparameters which affect training gradients.
 %
 \begin{algorithm}
    \caption{Reverse-mode differentiation of SGD \\ without checkpointing}
@@ -236,20 +237,17 @@ It outputs the gradient of a function of the trained weights $f(\vx)$ (such as t
 \end{algorithmic}
 \end{algorithm}
 %
-
-\paragraph{Time complexity}
-Computations of steps \ref{line:hvp1} and \ref{line:hvp2} both require a Hessian-vector product, but these can be computed exactly in about the same time required to compute a gradient \citep{pearlmutter1994fast}.
-%These gradients are in principle derivable by hand, but in order for this procedure to work without extra work by the user, we would require an automatic differentiation package which could compute second derivatives.
-Thus the time complexity of reverse SGD is $\mathcal{O}(T)$, the same as forward SGD.
+%% \paragraph{Time complexity}
+%% Computations of steps \ref{line:hvp1} and \ref{line:hvp2} both require a Hessian-vector product, but these can be computed exactly in about the same time required to compute a gradient \citep{pearlmutter1994fast}.
+%% %These gradients are in principle derivable by hand, but in order for this procedure to work without extra work by the user, we would require an automatic differentiation package which could compute second derivatives.
+%% Thus the time complexity of reverse SGD is $\mathcal{O}(T)$, the same as forward SGD.
 
 %\subsection{Self-closed Automatic Differentiation}
 %\citet{pearlmutter2008reverse} implemented the first example of an automatic differentiation package that was closed under its own operation, meaning it could be used to take 2nd or 3rd gradients by simply applying the gradient operation more than once.
 %However, this package could only operate on code written in a limited form of Scheme in which each function could only have one argument.
 %Popular AD popular packages such as Theano do not have this ability to automatically compute higher-order gradients.
-%Thus, we implemented our own automatic differentiation package (available at \url{www.redacted.com}) for Python that is closed under its own operation.
-%This package has the additional feature that it operates on standard Numpy~\cite{oliphant2007python} code.
 
-\subsection{The decay term causes non-reversibility}
+\subsection{Reversible learning (finite precision arithmetic)}
 %In practice, however, best performance is usually achieved when the decay term set to a value such as $0.98$.
 %Even if the decay were less than one, if one could somehow simulate having exact real numbers, this procedure could be reversed, and used for reverse-mode AD.
 The decay term must be less than one in order for the optimizer to converge.
@@ -257,7 +255,14 @@ Since information is lost each time decay is applied, and the learning process i
 Even if double-precision floating point numbers are used, errors accumulate exponentially, and the reversed learning procedure ends far from the initial point.
 This means that naively applying Algorithm \ref{alg:reverse-sgd} will not provide accurate gradients if the decay term is less than one.
 
-\section{Reversible computation even with non-reversible dynamics}
+If the momentum decay term $\decay$ in Algorithm \ref{alg:sgd} is set to one (no
+decay), then we recover a reversible dynamics scheme known as the leapfrog
+integrator~\citep{leapfrog1995}
+
+This is deeep duude! Information loss is necessary for optimization. And drag
+implies heat implies entropy. I'mn so high right now.
+
+\section{Optimal storage of emitted entropy}
 \label{sec:reversible computation}
 To get around the problem of information loss caused by decay, we need to store the information lost in each iteration.
 One approach, known as checkpointing, simply stores the entire weight vector every few iterations~\citep{martens2012training}
@@ -269,8 +274,6 @@ for example, an integer multiplied by 0.98 will lose $0.029$ bits of information
 Compared to storing a new 32-bit integer or floating-point number, 
 Thus, if we needed only to store the small amount of information lost at each iteration, memory requirements would only be ${\frac{0.029}{32} = 0.1\%}$ of what they would otherwise be.
 Even if the decay term is $0.5$, memory requirements are still only $\frac{1}{32}$ of what they would otherwise be.
-
-\subsection{Storing fractional bits on a tape}
 
 for each parameter being updated during learning, we keep a tape of bits.
 Each time an information-destroying operation (such as division by an integer) is performed, we store the information that would be needed to reverse the operation exactly.  In the case of division by an integer, this information is simply the remainder.
@@ -313,6 +316,9 @@ Algorithm \ref{alg:reversible-mult} is analogous to using arithmetic coding to s
 \section{Experiments}
 \label{sec:experiments}
 
+PUT THIS HERE MAYBE?
+We can view SGD as a function which takes an initial parameter vector, a step-size schedule, and a momentum schedule, and returns the final parameter vector.
+
 In typical machine learning applications, only a few hyperparameters (less than 20) are optimized.
 Since each experiment only yields a single number (the validation loss), the search rapidly becomes more difficult as the dimension of the hyperparameter vector increases.
 %For a neural network, these usually include a global weight initialization scale, learning rate and momentum, along with various architecture choices [cite Dalh QSAR paper].
@@ -320,8 +326,6 @@ In contrast, when hypergradients are available, the amount of information gained
 How can we take advantage of this new ability?
 
 This section shows several proof-of-concept experiments in which we can more richly parameterize training and regularization schemes in ways that would have been previously impractical to optimize.
-
-
 
 \subsection{Gradient-based optimization of gradient-based optimization}
 \label{sec:schedule experiments}
