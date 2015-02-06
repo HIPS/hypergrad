@@ -156,11 +156,11 @@ def plot():
         fig.clf()
         fig.set_size_inches((2, 6))
         ax = fig.add_subplot(111)
-        ax.matshow(covar_imgs[name], cmap = mpl.cm.binary)
+        ax.matshow(covar_imgs[name].T, cmap = mpl.cm.binary)
         ax.set_xticks([])
         ax.set_yticks([])
-        plt.savefig('learned_corr_{0}.png'.format(i))
-        plt.savefig('learned_corr_{0}.pdf'.format(i))
+        plt.savefig('learned_corr_{0}.png'.format(i), bbox_inches='tight')
+        plt.savefig('learned_corr_{0}.pdf'.format(i), bbox_inches='tight')
 
     # Write results to a nice latex table for paper.
     with open('results_table.tex', 'w') as f:
