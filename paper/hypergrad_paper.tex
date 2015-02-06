@@ -493,28 +493,21 @@ Due to philosophical vertigo, we chose not to optimize the initial parameter vec
 \end{center}
 \end{figure} 
 
-\newcommand{\omniimage}[1]{\multirow{2}{4cm}{\includegraphics[width=3.7cm, height=1.4cm, angle=0]{../experiments/Feb_4_augmented_omniglot/2_rotated_90/learned_corr_#1.pdf}}}%
+
+\newcommand{\omniimagea}[2]{\parbox{4em}{\includegraphics[width=1.4cm]{../experiments/Feb_4_augmented_omniglot/2_rotated_90/minifigs/learned_corr_#1_#2.pdf}}}%
+
+\newcommand{\omniimageb}[1]{\omniimagea{#1}{0} & \omniimagea{#1}{1} & \omniimagea{#1}{2}}%
+
 
 \begin{figure}[h!]
 \renewcommand{\tabcolsep}{1pt}
 \begin{center}
-\begin{tabular}{cccc}%
-                  & \multirow{2}{4cm}{
-                  \renewcommand{\tabcolsep}{1pt}%
-                  \begin{tabular}{ccc}
-                  Input   & Middle  & Output \\
-                  weights & weights & weights 
-                  \end{tabular}}%
-                    & Train & Test\\
-                  & & error & error \\ \\
-Separate & \omniimage{0}%
-%\begin{tabular}{c}\omniimage{0}\\\omniimage{1}\\\omniimage{2}\end{tabular}}%
- & & \\ 
-weights  & &   0.61 & 1.34 \\ \\
-Tied     & \omniimage{1} & & \\
-weights  & &   0.90 & 1.25 \\ \\
-Learned  & \omniimage{2} & & \\
-sharing  & &   0.60 & \bf 1.13
+\begin{tabular}{c@{\hskip 0.9em}ccc@{\hskip 0.9em}c@{\hskip 0.9em}c}%
+& Input   & Middle  & Output & Train & Test\\
+& weights & weights & weights & error & error \\
+\parbox{3.7em}{Separate networks} & \omniimageb{no_sharing} & 0.61 & 1.34\\ \hline
+\parbox{3.7em}{Tied weights} & \omniimageb{full_sharing} & 0.90 & 1.25 \\ \hline
+\parbox{3.7em}{Learned sharing} & \omniimageb{learned_sharing} & 0.60 & \bf 1.13 \\
 \end{tabular}
 \caption{Learned covariances between neural nets trained on different alphabets.}
 \label{fig:omniglot}
@@ -544,7 +537,7 @@ large learning rates induce chaotic behavior in the learning dynamics,
 making the gradient uninformative about the medium-term shape of the training objective.
 This phenomenon is related to the exploding-gradient problem~\cite{pascanu2012understanding}.
 
-Figure \ref{fig:chaos} illustrates phenomenon when training a neural network having 2 hidden layers.
+Figure \ref{fig:chaos} illustrates phenomenon when training a neural network having 2 hidden layers for 50 \primal{} iterations.
 %
 \begin{figure}[t]
 \vskip 0.2in
@@ -561,7 +554,7 @@ To maintain stability during meta-learning, we initialize using a small learning
 \vskip -0.2in
 \end{figure} 
 %
-We partially addressed this problem by initializing our learning rate schedules to be relatively small, and stopping meta-optimization when the magnitude of the meta-gradient began to grow.
+We partially addressed this problem in our experiments by initializing learning rates to be relatively small, and stopping meta-optimization when the magnitude of the meta-gradient began to grow.
 %\cite{pearlmutter2009sleep} argues that biological neural networks tune themselves so as to be at the "edge of chaos".
 %Lower learning rates don't reach convergence before training ends.
 %Empirically, it seems like the best learning rates for training neural networks are just small enough to avoid this chaotic behavior.
