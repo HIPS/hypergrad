@@ -273,37 +273,52 @@ heat, increases the entropy of the environment and is not therefore not
 reversible. But we require dissipation in order for our system to equilibrate
 to the energy minimum we care about.
 
-There is no hope then, of exactly reversing optimizing dynamics without storing
-some extra bits. But we can try to be parsimonious about the number of extra
-bits we store. This is what the next section tries to achieve.
+If we want to reverse the dynamics there is no choice but to store the extra
+bits discarded by the $\decay$ operation. But we can at least try to
+be parsimonious about the number of extra bits we store. This is what the next
+section tries to achieve.
 
-\section{Optimal storage of emitted entropy}
+\section{Optimal storage of discarded entropy}
 \label{sec:reversible computation}
-To get around the problem of information loss caused by decay, we need to store the information lost in each iteration.
-One approach, known as checkpointing, simply stores the entire weight vector every few iterations~\citep{martens2012training}
-However, this would require too much memory to be practical for large neural nets trained for thousands of minibatches.
-Luckily, when the decay factor is close to 1, the amount of information lost at each iteration is small.
 
-\textbf{Quantifying the savings}
-for example, an integer multiplied by 0.98 will lose $0.029$ bits of information on average.
-Compared to storing a new 32-bit integer or floating-point number, 
-Thus, if we needed only to store the small amount of information lost at each iteration, memory requirements would only be ${\frac{0.029}{32} = 0.1\%}$ of what they would otherwise be.
-Even if the decay term is $0.5$, memory requirements are still only $\frac{1}{32}$ of what they would otherwise be.
+We would like to store the information discarded each time the momentum decay
+operation (XX) is applied. If we had $\decay = 0.5$ then we could just store the
+single bit that falls off at each iteration and if $\decay = 0.25$ we could
+store two bits. But we want fairly fine-grained control over $\decay$ so we want
+some way of storing the required bits when we multiply by, say, $\decay = 0.9$.
+And if $\decay > 0.5$ then we would somehow like to store less than one
+bit per iteration on average. Here we give a procedure which achieves exactly
+this.
 
-for each parameter being updated during learning, we keep a tape of bits.
-Each time an information-destroying operation (such as division by an integer) is performed, we store the information that would be needed to reverse the operation exactly.  In the case of division by an integer, this information is simply the remainder.
-During the reverse pass, when the inverse operation is performed (multiplication by that same integer), this extra information is extracted from the tape.
+We represent the velocity $v$ and position $x$ vectors with 64-bit integers. (Of
+course there is an implied radix point so that this is actually a fixed-point
+representation of the reals.) And we represent $\decay$ as a rational number,
+$n/d$. When we divide $v$ by $d$ we use integer division. In order to be able to
+reverse the process we just need to store the remainder, $v \% s$ in some
+``information buffer'', $B$. If $B$ was an integer and $n = 2$, the remainder $r$ would just be a single
+bit, and we could store it in $B$ by left-shifting $B$'s bits and adding $r$. 
+For arbitrary $n$, we can just do the base-$n$ analogue of this operation: multiply 
+$B$ by $n$ and add $r$. Eventually, $B$ will. We need a way to either detect
+this, store the bits, and start a fresh integer, or else we can just use an
+arbitary size integer that grows as needed. (Python's ``long'' integer type
+supports this). This procedure allows division by $n$ while storing the
+remainder in $\log_2(n)$ bits on average.
 
-Addition and subtraction are exactly reversible operations on fixed-precision numbers, except when overflow occurs.
-%Thus step \ref{step:update position} in Algorithm \ref{alg:sgd} is exactly reversible with fixed-point arithmetic.
-However, division or multiplication by a value less than one, in a fixed-point number system, causes information to be lost.
-Thus in SGD when the current velocity is multiplied by a decay term less than 1 (step \ref{step:update velocity} in Algorithm \ref{alg:sgd}), information is lost about the initial trajectory of the learning process.
-When this same step is revisited in the reverse-SGD algorithm (step \ref{step:reverse-velocity} in Algorithm \ref{alg:reverse-sgd}), this information must be added back into the result if the computation is to proceed backward along the same path.
+When we multiply by the numerator of $n/d$ we don't need to store anything
+extra, since integer division will bring us make to exactly the same point
+anyway. But the procedure as it stand would use three bits with $\decay = 7/8$
+whereas it should store less than one (hopefully $\log_2 (8/7)$). Here's the
+trick we can use. When we multiply $v$ by $n$, there is an opportunity to add a
+nonnegative integer smaller than $n$ to the result without affecting the reverse
+process (intger division by $n$). We can get such an integer from the
+information buffer by dividing it by $n$ and recording $B \% n$. We are using
+the velocity $v$ as an information buffer itself! Algorithm
+\ref{alg:reversible-mult} illustrates the whole process.
 
-Algorithm \ref{alg:reversible-mult} shows how to multiply an integer by a ratio in such a way that the information lost is stored in another integer $i$.
-This integer acts as an ``information buffer'', which stores the extra information lost during the training process.
-This same information is retrieved in reverse order in steps \ref{step:reverse-position}, \ref{step:reverse-gradient}, and \ref{step:reverse-velocity} of Algorithm \ref{alg:reverse-sgd}.
-
+How much does this rigmarole save us? If we have $\decay =  0.98$ we will have
+to store $0.029$ bits on average. Compared to storing a new 32-bit integer or
+floating-point number, this reduces memory requirements by a factor of one
+thousand.
 %
 \begin{algorithm}
    \caption{Exactly reversible multiplication by a ratio}
@@ -320,13 +335,16 @@ This same information is retrieved in reverse order in steps \ref{step:reverse-p
 \end{algorithmic}
 \end{algorithm}
 %
-
-%Notice that steps \ref{step:f1}, \ref{step:f2}, and \ref{step:f3} are the same as steps \ref{step:b1}, \ref{step:b2}, and \ref{step:b3}, but with the two variables switched.
-%
-%\paragraph{How to store less than one bit?}
-%In the case where $\decay$ is close to one, typically less than a single bit will be s
-%
-Algorithm \ref{alg:reversible-mult} is analogous to using arithmetic coding to store a random digit having a uniform distribution~\citep{steinruecken2014a}.
+Note that we could have used an arithmetic coding scheme for our information
+buffer~\citep{steinruecken2014a}. An entirely different approach to the question
+of memory use with RMD is checkpointing. This is sometimes used even for
+differentiation of neural net loss functions with resepct to {\primal}
+parameters~\citep{martens2012training}. The idea is to store just a small number
+of parameter vectors during training, and recompute sections of the training
+procedure at a time (forwards) during the backward pass. However, this would
+require too much memory to be practical for large neural nets trained for
+thousands of minibatches.  Luckily, when the decay factor is close to 1, the
+amount of information lost at each iteration is small.
 
 \section{Experiments}
 \label{sec:experiments}
