@@ -68,7 +68,7 @@
 Tuning hyperparameters of learning algorithms is hard because gradients are usually unavailable.
 We compute exact gradients of cross-validation performance with respect to all hyperparameters by chaining derivatives backwards through the \emph{entire training procedure}.
 These gradients allow us to optimize thousands of hyperparameters, including step-size and momentum schedules, weight initialization distributions, richly parameterized regularization schemes, and neural network architectures.
-We compute hyperparameter gradients by exactly reversing the dynamics of stochastic gradient descent with momentum. %, storing only the information lost due to finite precision arithmetic.
+We compute hyperparameter gradients by exactly reversing the dynamics of stochastic gradient descent with momentum.
 \end{abstract} 
 
 \section{Introduction}
@@ -174,7 +174,7 @@ finite precision arithmetic.
 
 Stochastic gradient descent (SGD) with momentum (Algorithm \ref{alg:sgd}) can be
 seen as a physical simulation of a system moving through a series of fixed force
-fields indexed by time $t$. With exact arithmetic this procedure is reversible. This lets us write Algorithm \ref{alg:reverse-sgd} which reverses the steps in Algorithm
+fields indexed by time $t$. With exact arithmetic this procedure is reversible. This lets us write Algorithm \ref{alg:reverse-sgd}, which reverses the steps in Algorithm
 \ref{alg:sgd}, interleaved with computations of gradients. It outputs the
 gradient of a function of the trained weights $f(\vx)$ (such as the validation
 loss) with respect to the initial weights $\vx_1$, the learning-rate and momentum
@@ -231,7 +231,9 @@ numerical precision. The problem is the momentum decay term~$\decay$.
 Every time we apply step \ref{step:reverse-velocity} to reduce the velocity, we
 lose information. Assuming we are using a fixed-point representation,
 \footnote{We assume fixed-point representation to simplify the discussion (and
-  the implementation). Floating point representation doesn't fix the problem, it
+  the implementation). 
+  \citet{courbariaux2014low} show that fixed-point arithmetic is sufficient to train deep networks.
+  Floating point representation doesn't fix the problem, it
   just defers the loss of information from the division step to the addition step.}
 each multiplication by $\decay < 1$ shifts bits to the right, destroying the
 least significant bits. The is more than a pedantic concern. Attempting to
@@ -263,8 +265,9 @@ section addresses.
 
 This section gives the technical details of how to efficiently store the information discarded each time the momentum decay
 operation (Step \ref{step:reverse-velocity}) is applied.
-If we had $\decay = 0.5$ then we could just store the
-single bit that falls off at each iteration and if $\decay = 0.25$ we could
+
+If $\decay = 0.5$, we can simply store the
+single bit that falls off at each iteration, and if $\decay = 0.25$ we could
 store two bits. But for fine-grained control over $\decay$ we need a way to store the information lost when we multiply by, say, $\decay = 0.9$, which will be less than one bit on average. Here we give a procedure which achieves exactly
 this.
 
@@ -272,7 +275,8 @@ We represent the velocity $v$ and position $x$ vectors with 64-bit integers. Wit
 representation of the reals. We represent $\decay$ as a rational number,
 $n/d$. When we divide $v$ by $d$ we use integer division. In order to be able to
 reverse the process we just need to store the remainder, $v$ modulo $s$, in some
-``information buffer'', $B$. If $B$ was an integer and $n = 2$, the remainder $r$ would just be a single bit, and we could store it in $B$ by left-shifting $B$'s bits and adding $r$. For arbitrary $n$, we can just do the base-$n$ analogue of this operation: multiply $B$ by $n$ and add $r$. Eventually, $B$ will overflow. We need a way to either detect
+``information buffer'', $B$. If $B$ were an integer and $n = 2$, the remainder $r$ would just be a single bit, and we could store it in $B$ by left-shifting $B$'s bits and adding $r$. For arbitrary $n$, we can do the base-$n$ analogue of this operation: multiply $B$ by $n$ and add $r$.
+Eventually, $B$ will overflow. We need a way to either detect
 this, store the bits, and start a fresh integer, or else we can just use an
 arbitrary size integer that grows as needed. (Python's ``long'' integer type
 supports this). This procedure allows division by $n$ while storing the
@@ -280,8 +284,8 @@ remainder in $\log_2(n)$ bits on average.
 
 When we multiply by the numerator of $n/d$ we don't need to store anything
 extra, since integer division will bring us back to exactly the same point
-anyway. But the procedure as it stands would use three bits with $\decay = 7/8$
-whereas it should store less than one (hopefully $\log_2 (8/7)$). Our solution is the following: when we multiply $v$ by $n$, there is an opportunity to add a
+anyway. But the procedure as it stands would store three bits when $\decay = 7/8$,
+whereas it should store less than one ($\log_2 (8/7) = 0.19$). Our solution is the following: when we multiply $v$ by $n$, there is an opportunity to add a
 nonnegative integer smaller than $n$ to the result without affecting the reverse
 process (integer division by $n$). We can get such an integer from the
 information buffer by dividing it by $n$ and recording $B$ modulo $n$. We are using
@@ -303,14 +307,14 @@ the velocity $v$ as an information buffer itself! Algorithm
 \end{algorithmic}
 \end{algorithm}
 
-How much does this procedure save us? If we have $\decay =  0.98$ we will have
-to store $0.029$ bits on average. Compared to storing a new 32-bit integer or
+How much does this procedure save us? When $\decay =  0.98$, we will have
+to store only $0.029$ bits on average. Compared to storing a new 32-bit integer or
 floating-point number at each iteration, this reduces memory requirements by a factor of one thousand.
 
 We could also have used an arithmetic coding scheme for our information
 buffer~\citep{steinruecken2014a}. Another entirely different approach to the question
 of memory use with RMD is checkpointing. This is sometimes used for
-differentiation of neural net loss functions with respect to {\primal}
+differentiation of neural network loss functions with respect to {\primal}
 parameters~\citep{martens2012training}. The idea is to store just a small number
 of parameter vectors during training, and recompute the missing sections of the training
 procedure at a time (forwards) during the backward pass. However, this would
@@ -607,9 +611,9 @@ Figure \ref{fig:chaos} illustrates phenomenon when training a neural network hav
 \begin{figure}[t]
 \vskip 0.2in
 \begin{center}
-\includegraphics[width=\columnwidth]{../experiments/Jan_14_learning_rate_wiggliness/3/chaos.pdf}
+\includegraphics[width=0.9\columnwidth]{../experiments/Jan_14_learning_rate_wiggliness/3/chaos.pdf}
 \vskip -0.1in
-Log learning rate
+\small Log learning rate
 \caption{\emph{Top:} Loss after training as a function of learning rate.
 \emph{Bottom:} Gradient of loss with respect to learning rate.
 When the learning rate is high, the gradient becomes uninformative about the medium-term behavior of the function.
@@ -635,7 +639,7 @@ How many hyperparameters can we fruitfully optimize?
 One limitation is overfitting the validation objective, in the same way that optimizing too many parameters can overfit the training objective.
 However, the same rules of thumb still apply - the size of the validation set, assuming examples are i.i.d., gives a rough guide to how many hyperparameters can be optimized.
 
-[TODO: show the difference between training, validation and test-set error when optimizing]
+%[TODO: show the difference between training, validation and test-set error when optimizing]
 
 
 \paragraph{Discrete parameters}
@@ -708,21 +712,18 @@ We demonstrated the tuning of detailed training schedules, regularization schedu
 
 \section*{Acknowledgments} 
 
-%We would like to thank Christian Steinruecken and Oren Rippel for helpful discussions.
-
-\bibliography{references.bib}
-\bibliographystyle{icml2015stylefiles/icml2015}
-
 \section*{Appendix}
 
-\subsection{Forward vs. Reverse-Mode Differentiation}
+\subsection{Forward vs. reverse-mode differentiation}
 By the chain rule, the gradient of a set of nested functions is given by the product of the individual derivatives of each function:
 %
 \begin{align*}
 \pderiv{f_4(f_3(f_2(f_1(x))))}{x} = \pderiv{f_4}{f_3} \cdot \pderiv{f_3}{f_2} \cdot \pderiv{f_2}{f_1} \cdot \pderiv{f_1}{x}
 \end{align*}
 If each function has multivariate inputs and outputs, the gradients are
-Jacobian matrices. Forward and reverse mode differentiation differ
+Jacobian matrices.
+
+Forward and reverse mode differentiation differ
 only by the order in which they evaluate this expression.
 %
 Forward-mode differentiation works by multiplying gradients in the same order as
@@ -733,14 +734,14 @@ the functions are evaluated:
 \end{align*}
 %
 Reverse-mode multiplies the gradients in the opposite order, starting from the
-final result.
+final result:
 %
 \begin{align*}
 \pderiv{f_4(f_3(f_2(f_1(x))))}{x} = \left(  \left(  \pderiv{f_4}{f_3} \cdot \pderiv{f_3}{f_2} \right) \cdot \pderiv{f_2}{f_1} \right) \cdot \pderiv{f_1}{x} 
 \end{align*}
 %
 In an optimization setting, the final result of the nested functions, $f_4$, is
-a scalar, while the input, $x$, and intermediate values, $f_1 - f_3$, are
+a scalar, while the input $x$ and intermediate values, $f_1 - f_3$, are
 vectors. This is the scenario in which the advantage of reverse mode
 differentiation is very clear. Let's imagine that the dimensionality of all the
 intermediate vectors is $D$. In reverse mode, we start from the (scalar) output,
@@ -755,9 +756,15 @@ Jacobian can be performed efficiently without instantiation~\cite{pearlmutter200
 
 The main drawback of reverse-mode differentiation is that intermediate values
 must be maintained in memory during the forward pass. In sections
-\ref{sec:reversible learning} and \ref{sec:reversible computation} we show how
+\ref{sec:reversible learning} and \ref{sec:reversible computation}, we show how
 to drastically reduce the memory requirements of reverse-mode differentiation
 when differentiating through the entire learning procedure.
+
+%We would like to thank Christian Steinruecken and Oren Rippel for helpful discussions.
+
+\bibliography{references.bib}
+\bibliographystyle{icml2015stylefiles/icml2015}
+
 
 \end{document} 
 
