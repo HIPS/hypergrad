@@ -18,8 +18,8 @@ N_classes = 10
 N_train = 10000
 N_valid = 10000
 N_tests = 10000
-N_learning_checkpoint = 10
-thin = np.ceil(N_iters/N_learning_checkpoint)
+N_learning_checkpoint = 20
+thin = 1# np.ceil(N_iters/N_learning_checkpoint)   # Detailed learning curves.
 
 # ----- Initial values of learned hyper-parameters -----
 init_log_L2_reg = -100.0
@@ -59,11 +59,12 @@ def run():
 
         learning_curve_dict = defaultdict(list)
         def callback(x, v, g, i_iter):
-            if i_iter % thin == 0:
+            if i_iter % thin == 0 or i_iter == (N_iters - 1) or i_iter == 0:
                 learning_curve_dict['learning_curve'].append(loss_fun(x, **train_data))
                 learning_curve_dict['grad_norm'].append(np.linalg.norm(g))
                 learning_curve_dict['weight_norm'].append(np.linalg.norm(x))
                 learning_curve_dict['velocity_norm'].append(np.linalg.norm(v))
+                learning_curve_dict['iteration'].append(i_iter + 1)
 
         cur_hyperparams = hyperparams.new_vect(hyperparam_vect)
         rs = RandomState((seed, i_hyper))
@@ -265,7 +266,43 @@ def plot():
 
     plt.savefig('learning_curves.png')
 
-    # ----- Learning curve info -----
+
+
+    # ----- Nice learning curves for paper -----
+    print "Plotting nice learning curves for paper..."
+    fig.clf()
+    # ----- Primal learning curves -----
+    ax = fig.add_subplot(111)
+    #ax.set_title('Primal learning curves')
+    ax.plot(results['learning_curves'][0]['iteration'],
+            results['learning_curves'][0]['learning_curve'],  '-', label='Initial hypers')
+    ax.plot(results['learning_curves'][-1]['iteration'],
+            results['learning_curves'][-1]['learning_curve'], '-', label='Final hypers')
+    ax.set_xlabel('Training iteration')
+    ax.set_ylabel('Training loss')
+    fig.set_size_inches((2.5,2.5))
+    ax.legend(numpoints=1, loc=1, frameon=False, prop={'size':'10'})
+    plt.savefig('learning_curves_paper.pdf', pad_inches=0.05, bbox_inches='tight')
+
+    fig.clf()
+    ax = fig.add_subplot(111)
+    #ax.set_title('Meta learning curves')
+    losses = ['train_loss', 'valid_loss', 'tests_loss']
+    loss_names = ['Training loss', 'Validation loss', 'Test loss']
+    for loss_type, loss_name in zip(losses, loss_names):
+        ax.plot(results[loss_type], 'o-', label=loss_name)
+    ax.set_xlabel('Meta iteration')
+    ax.set_ylabel('Predictive loss')
+    ax.legend(loc=1, frameon=False)
+    fig.set_size_inches((2.5,2.5))
+    ax.legend(numpoints=1, loc=1, frameon=False, prop={'size':'10'})
+    plt.savefig('meta_learning_curve_paper.pdf', pad_inches=0.05, bbox_inches='tight')
+
+
+
+
+
+    # ----- Extra learning curve info -----
     print "Plotting extra learning curves..."
     fig.clf()
     ax = fig.add_subplot(311)
@@ -291,6 +328,10 @@ def plot():
     ax.legend(loc=1, frameon=False)
     plt.savefig('extra_learning_curves.png')
 
+
+
+
+
     # ----- Init scale and L2 reg -----
     print "Plotting initialization distributions and regularization..."
     fig.clf()
@@ -305,17 +346,10 @@ def plot():
     y2 = 1.0/np.sqrt(layer_sizes[1])
     ax.plot(ax.get_xlim(), (y2, y2), 'k--', label=r'$1/\sqrt{50}$')
     ax.plot(ax.get_xlim(), (y1, y1), 'b--', label=r'$1/\sqrt{784}$')
-    #plt.axhline(y = y1, color='b--')
-    #plt.axhline(y = y2, color='k--')
-    #ax.legend(loc=0, frameon=False, prop={'size':'11'})
-
     ax.set_yticks([0.00, 1.0/np.sqrt(784), 0.10, 1.0/np.sqrt(50), 0.20, 0.25])
     ax.set_yticklabels(['0.00', r"$1 / \sqrt{784}$", "0.10",
                         r"$1 / \sqrt{50}$", "0.20", "0.25"])
-
-
     fig.set_size_inches((2.5,2.5))
-
     #ax.legend(numpoints=1, loc=1, frameon=False, prop={'size':'12'})
     plt.savefig('init_weight_learning_curve.pdf', pad_inches=0.05, bbox_inches='tight')
 
@@ -326,9 +360,6 @@ def plot():
             ax.plot(np.exp(y), 'o-', label=layer_name(parser.names[i]))
     ax.set_xlabel('Meta iteration')
     ax.set_ylabel('Initial scale')
-    #ax.set_ylabel('Scale')
-    #ax.set_yscale('log')
-    #ax.set_ylabel('Log param scale')
     fig.set_size_inches((2.5,2.5))
     ax.legend(numpoints=1, loc=0, frameon=False, prop={'size':'10'})
     plt.savefig('init_bias_learning_curve.pdf', pad_inches=0.05, bbox_inches='tight')
@@ -336,7 +367,7 @@ def plot():
 
 
 if __name__ == '__main__':
-    #results = run()
-    #with open('results.pkl', 'w') as f:
-    #    pickle.dump(results, f)
+    results = run()
+    with open('results.pkl', 'w') as f:
+        pickle.dump(results, f)
     plot()

@@ -420,30 +420,20 @@ Learning the labels of a larger training set might shed light on which classes a
 \end{center}
 \end{figure} 
 
+\newcommand{\omniimage}[1]{\includegraphics[width=0.4\columnwidth, angle=180]{../experiments/Feb_4_augmented_omniglot/2_rotated_90/learned_corr_#1.pdf}}
+
 \begin{figure}[h!]
 \begin{center}
 \begin{tabular}{cccc}
-\hspace{-3mm}&\hspace{-3mm}Independent &\hspace{-4mm} First layer &\hspace{-5mm} Learned \\
-\hspace{-3mm}&\hspace{-3mm}networks    &\hspace{-4mm} shared      &\hspace{-5mm} sharing \\
-\hspace{-3mm}\rotatebox{90}{\qquad First layer \qquad Second layer \quad Third layer} & 
-\hspace{-1em}\includegraphics[width=0.3 \columnwidth]{../experiments/Feb_4_augmented_omniglot/2_rotated_90/learned_corr_0.pdf} &
-\hspace{-1em}\includegraphics[width=0.3 \columnwidth]{../experiments/Feb_4_augmented_omniglot/2_rotated_90/learned_corr_1.pdf} &
-\hspace{-1em}\includegraphics[width=0.3 \columnwidth]{../experiments/Feb_4_augmented_omniglot/2_rotated_90/learned_corr_2.pdf}
+            & stuff & Train & Test \\ 
+Independent & \omniimage{0}      & 0.61 & 1.34 \\
+Tied        & \omniimage{1}      & 0.90 & 1.25 \\
+Learned     & \omniimage{2}      & 0.60 & \bf 1.13 
 \end{tabular}
 \caption{Learned covariances between neural nets trained on different alphabets.}
 \label{fig:omniglot}
 \end{center}
 \end{figure} 
-
-\begin{table}[h!]
-\begin{center}
-\begin{tabular}{cccc}
-\input{../experiments/Feb_4_augmented_omniglot/2_rotated_90/results_table.tex}
-\end{tabular}
-\caption{Training and test error on omniglot dataset.}
-\label{table:omniglot}
-\end{center}
-\end{table} 
 
 \section{Limitations}
 

@@ -140,8 +140,10 @@ def plot():
             ax.plot(cur_results, 'o-', label=layer_name(name))
     low, high = ax.get_ylim()
     #ax.set_ylim([0, high])
-    ax.set_ylabel('Step size Gradient')
+    ax.set_ylabel('Learning rate radient')
     ax.set_xlabel('Schedule index')
+    ax.set_yticks([0,])
+    ax.set_yticklabels(['0',])
     fig.set_size_inches((6,2.5))
     #ax.legend(numpoints=1, loc=1, frameon=False, prop={'size':'12'})
     plt.savefig('schedules_small.pdf', pad_inches=0.05, bbox_inches='tight')
@@ -191,7 +193,7 @@ def plot():
 
 
 if __name__ == '__main__':
-    results = run()
-    with open('results.pkl', 'w') as f:
-        pickle.dump(results, f)
+    #results = run()
+    #with open('results.pkl', 'w') as f:
+    #    pickle.dump(results, f)
     plot()
