@@ -17,17 +17,17 @@ log_param_scale = -4
 log_L2_reg_scale = np.log(0.01)
 
 # ----- Discrete training hyper-parameters -----
-layer_sizes = [784, 20, 10]
+layer_sizes = [784, 10]
 batch_size = 200
 N_iters = 50
 
 # ----- Variables for meta-optimization -----
 N_train_data = 10000
 N_val_data = 10000
-N_test_data = 10000
+N_test_data = 1000
 meta_stepsize = 1000
 N_meta_iter = 50
-meta_L2_reg = 0.01
+meta_L2_reg = 0.1
 
 one_hot = lambda x, K : np.array(x[:,None] == np.arange(K)[None, :], dtype=int)
 
@@ -37,7 +37,7 @@ def run():
 
     batch_idxs = BatchList(N_train_data, batch_size)
     parser, _, loss_fun, frac_err = make_nn_funs(layer_sizes)
-    N_weights = parser.N
+    N_weights = len(parser.vect)
 
     hyperparser = WeightsParser()
     hyperparser.add_weights('log_L2_reg', (N_weights,))
@@ -88,7 +88,7 @@ def plot():
 
     fig = plt.figure(0)
     fig.clf()
-    N_figs = 2
+    N_figs = 4
     ax = fig.add_subplot(N_figs, 1, 1)
     ax.set_title("Learning Curves")
     subsample = np.ceil(float(len(all_learning_curves)) / 50)
@@ -110,6 +110,18 @@ def plot():
     ax.set_xlabel("Meta Iteration Number")
     ax.legend(loc=2)
 
+    ax = fig.add_subplot(N_figs, 1, 3)
+    ax.set_title("Weights")
+    images = all_weights[-1].T
+    plot_mnist_images(images, ax, ims_per_row=10)
+    fig.set_size_inches((8,12))
+
+    ax = fig.add_subplot(N_figs, 1, 4)
+    ax.set_title("Per-weight L2 penalty")
+    images = all_L2[-1].T
+    plot_mnist_images(images, ax, ims_per_row=10)
+    fig.set_size_inches((8,12))
+
     plt.savefig("fig.png")
 
 
@@ -118,6 +130,7 @@ def plot():
     N_figs = 1
 
     ax = fig.add_subplot(N_figs, 1, 1)
+    #ax.set_title("Weights")
     images = all_weights[-1].T
     plot_mnist_images(images, ax, ims_per_row=10)
     fig.set_size_inches((8,12))
@@ -126,18 +139,17 @@ def plot():
     plt.savefig("weights.png")
     plt.savefig("weights.pdf", pad_inches=0.05, bbox_inches='tight')
 
+
+    # Fake data
     fig = plt.figure(0)
-    fig.clf()
-    N_figs = 1
+    ax = plt.Axes(fig, [0., 0., 1., 1.])
+    ax.set_axis_off()
+    fig.add_axes(ax)
 
-    ax = fig.add_subplot(N_figs, 1, 1)
     images = all_L2[-1].T
-    plot_mnist_images(images, ax, ims_per_row=10)
-    fig.set_size_inches((8,12))
-
-    fig.tight_layout()
+    plot_mnist_images(images, ax, ims_per_row=5, padding=2)
     plt.savefig("penalties.png")
-    plt.savefig("penalties.pdf", pad_inches=0.05, bbox_inches='tight')
+    plt.savefig("penalties.pdf", bbox_inches='tight')
 
 
 if __name__ == '__main__':
