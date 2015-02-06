@@ -11,8 +11,6 @@
 \newcommand{\theHalgorithm}{\arabic{algorithm}}
 \usepackage{icml2015stylefiles/icml2015} 
 %\usepackage[accepted]{icml2015stylefiles/icml2015}
-
-
 \newcommand{\vx}{\mathbf{x}}
 \newcommand{\vv}{\mathbf{v}}
 \newcommand{\vg}{\mathbf{g}}
@@ -25,6 +23,7 @@
 \newcommand{\pderiv}[2]{\frac{\partial #1}{\partial #2}}
 \newcommand{\npderiv}[2]{\nicefrac{\partial #1}{\partial #2}}
 
+\newcommand\primal{basal}
 \newcommand{\numhypers}{N}
 \newcommand{\hypers}{{\boldsymbol{\theta}}}
 \newcommand{\params}{\vx}
@@ -51,6 +50,7 @@
 %\icmladdress{Harvard University, Cambridge, Massachusetts}
 \icmlauthor{David Duvenaud}{dduvenaud@seas.harvard.edu}
 %\icmladdress{Harvard University, Cambridge, Massachusetts}
+% TODO: Add equal contribution footnote
 \icmlauthor{Ryan P. Adams}{rpa@seas.harvard.edu}
 %\icmladdress{Harvard University, Cambridge, Massachusetts}
 
@@ -63,23 +63,45 @@
 ]
 
 \begin{abstract} 
-Tuning hyper-parameters of learning algorithms is hard because gradients are usually unavailable.
-We compute exact gradients of cross-validation performance with respect to all hyperparameters by chaining derivatives through the \emph{entire training procedure}.
+
+Tuning hyperparameters of learning algorithms is hard because gradients are usually unavailable.
+Here we compute exact gradients of cross-validation performance with respect to all hyperparameters by chaining derivatives backwards through the \emph{entire training procedure}.
 These gradients allow us to optimize thousands of hyperparameters, including step-size and momentum schedules, weight initialization distributions, richly parameterized regularization schemes, and neural network architectures.
-We compute hyperparamater gradients efficiently by exactly reversing the dynamics of stochastic gradient descent with momentum.%, storing only the information lost due to finite precision arithmetic.
+We compute hyperparameter gradients by exactly reversing the dynamics of stochastic gradient descent with momentum. %, storing only the information lost due to finite precision arithmetic.
 \end{abstract} 
 
 \section{Introduction}
 \label{intro}
 
+Machine learning systems abound with hyperparameters. These can be parameters
+that control model complexity, such as L1 and L2 penalties, or parameters that
+specify the learning procedure itself -- step sizes, momentum decay parameters
+and initialization conditions. Choosing the best hyperparameters is both vitally
+important and frustratingly difficult.
 
+Model-based optimization methods are the current gold standard for
+hyperparameter selection~\cite{snoek2012practical, bergstra2011algorithms,
+  BerYamCox13, HutHooLey11}. Although this line of work have demonstrated that a
+rational approach to hyper-parameter selection can yield state-of-the-art
+performance, in general they are not able to effectively optimize more than 10
+to 20 hyperparameters.  Most importantly from our perspective, current hyper
+parameter optimization schemes do not use gradients with respect to these
+hyperparameters.
+% although they could incorporate this information if it were available~\cite{solak2003derivative}.
 
-\paragraph{Meta-optimization}
+Why not use gradients? Reverse-mode differentiation, available automatically
+with tools like Theano and Torch, allows gradients to be computed with a time
+cost just twice that of computing the original objective function. The main
+technical challenge is that naive reverse mode differentiation is unfeasible
+from a memory perspective. This is the central problem that we solve in this
+paper.
 
-The current state-of-the-art for hyperparameter optimization is achieved by model-based, gradient-free methods~\cite{snoek2012practical, bergstra2011algorithms, BerYamCox13, HutHooLey11}.
-These methods are able to effectively exploit the information learned through evaluations of the objective.
-However, in general they are not able to effectively optimize more than 10 to 20 parameters.
-Most importantly from our perspective, current hyper parameter optimization schemes do not usually have access to gradients with respect to these hyperparameters, although they could incorporate this information if it were available~\cite{solak2003derivative}.
+Once we have access to gradients with respect to hyperparamters we open up a
+garden of delights...
+
+\footnote{Non-standard terminolgy. We use ``\primal'' for the inner
+  optimization/parameters and ``hyper'' or ``meta'' for the outer
+  optimization/parameters to avoid any ambiguity.}
 
 \begin{figure}[ht]
 \vskip 0.2in
@@ -94,11 +116,10 @@ These ``hyper-gradients'' are used to update the hyperparameters.}
 \vskip -0.2in
 \end{figure}
 
-
 \subsection{Contributions}
 
 \begin{itemize}
-\item We give an algorithm that exactly reversing stochastic gradient descent with momentum to compute gradients with respect to all continuous training parameters.
+\item We give an algorithm that exactly reverses stochastic gradient descent with momentum to compute gradients with respect to all continuous training parameters.
 \item We show how to efficiently store only the information needed to exactly reverse learning dynamics.
 For example, when the momentum term is 0.9, this method reduces the memory requirements of reverse-mode differentiation by factor of 200.
 \item We show how these gradients allow the optimization of validation loss with respect to thousands of hyperparameters.
@@ -106,7 +127,7 @@ For example, we optimize fine-grained learning-rate schedules, per-layer initial
 \item We provide insight into learning procedures by examining optimized learning-rate schedules and initialization procedures, comparing them to standard advice in the literature.
 \end{itemize}
 
-
+Outline of paper: first intoduce our algorithm for reversible learning.
 
 \section{Automatic differentiation}
 
@@ -114,32 +135,6 @@ Automatic differentiation (AD) software packages such as Theano~\cite{Bastien-Th
 However, these methods are typically only used to train parameters with respect to some loss.
 \citet{Autodiff14} suggest using automatic differentiation to compute gradients with respect to hyperparameters.
 However, naively applying automatic differentiation through hundreds of iterations of most learning procedures would either be prohibitively slow, or take prohibitive amounts of memory.
-
-\subsection{Forward vs. Reverse-Mode Differentiation}
-By the chain rule, the gradient of a set of nested functions is given by the product of the individual derivatives of each function:
-%
-\begin{align*}
-\pderiv{f_4(f_3(f_2(f_1(x))))}{x} = \pderiv{f_4}{f_3} \cdot \pderiv{f_3}{f_2} \cdot \pderiv{f_2}{f_1} \cdot \pderiv{f_1}{x}
-\end{align*}
-If each function has multivariate inputs and outputs, the gradients can be replaced with Jacobian matrices.
-%
-Forward-mode AD works by multiplying gradients in the same order as the functions are evaluated:
-%
-\begin{align*}
-\pderiv{f_4(f_3(f_2(f_1(x))))}{x} = \pderiv{f_4}{f_3} \cdot \left( \pderiv{f_3}{f_2} \cdot \left( \pderiv{f_2}{f_1} \cdot \pderiv{f_1}{x} \right) \right)
-\end{align*}
-%
-In forward-mode, gradients can be computed at the same time as the original function, keeping track of the directional gradient.
-This method has only twice the memory cost of simply computing the function of interest, but in general requires a separate forward pass for each input parameter, resulting in an $\mathcal{O}(\numhypers)$ slowdown, where $\numhypers$ is the number of input parameters.~\cite{pearlmutter2008reverse}
-
-Reverse-mode AD works by maintaining a tape of computations performed, and computing the gradient in a backwards pass, starting from the final result:
-%
-\begin{align*}
-\pderiv{f_4(f_3(f_2(f_1(x))))}{x} = \left(  \left(  \pderiv{f_4}{f_3} \cdot \pderiv{f_3}{f_2} \right) \cdot \pderiv{f_2}{f_1} \right) \cdot \pderiv{f_1}{x} 
-\end{align*}
-%
-Naive reverse-mode AD typically only requires approximately twice the time as computing the original function, but can require up to $\mathcal{O}(\numsteps\numhypers)$ memory, where $\numsteps$ is the number of nested functions.
-In sections \ref{sec:reversible learning} and \ref{sec:reversible computation}, we show how to drastically reduce the memory requirements of reverse-mode AD for differentiating through the entire learning procedure.
 
 \section{Reversible learning}
 \label{sec:reversible learning}
@@ -178,7 +173,7 @@ How can we take the gradient of SGD with respect to its parameters?
 
 \subsection{Reversible dynamics}
 
-If the momentum decay term $\decay$ in Algorithm \ref{alg:sgd} is set to one, then we recover a reversible dynamics scheme known as the leapfrog integrator~\citep{leapfrog1995}.
+If the momentum decay term $\decay$ in Algorithm \ref{alg:sgd} is set to one (no decay), then we recover a reversible dynamics scheme known as the leapfrog integrator~\citep{leapfrog1995}.
 %Leapfrog dynamics are exactly reversible through time.
 Exactly reversible dynamics would allow us to trace a training procedure backwards, starting from the trained parameter values.
 Having the parameter vectors available in this order would allow reverse-mode AD with fixed memory requirements, no matter how many training iterations were performed.
@@ -420,20 +415,30 @@ Learning the labels of a larger training set might shed light on which classes a
 \end{center}
 \end{figure} 
 
-\newcommand{\omniimage}[1]{\includegraphics[width=0.4\columnwidth, angle=180]{../experiments/Feb_4_augmented_omniglot/2_rotated_90/learned_corr_#1.pdf}}
-
 \begin{figure}[h!]
 \begin{center}
 \begin{tabular}{cccc}
-            & stuff & Train & Test \\ 
-Independent & \omniimage{0}      & 0.61 & 1.34 \\
-Tied        & \omniimage{1}      & 0.90 & 1.25 \\
-Learned     & \omniimage{2}      & 0.60 & \bf 1.13 
+\hspace{-3mm}&\hspace{-3mm}Independent &\hspace{-4mm} First layer &\hspace{-5mm} Learned \\
+\hspace{-3mm}&\hspace{-3mm}networks    &\hspace{-4mm} shared      &\hspace{-5mm} sharing \\
+\hspace{-3mm}\rotatebox{90}{\qquad First layer \qquad Second layer \quad Third layer} & 
+\hspace{-1em}\includegraphics[width=0.3 \columnwidth]{../experiments/Feb_4_augmented_omniglot/2_rotated_90/learned_corr_0.pdf} &
+\hspace{-1em}\includegraphics[width=0.3 \columnwidth]{../experiments/Feb_4_augmented_omniglot/2_rotated_90/learned_corr_1.pdf} &
+\hspace{-1em}\includegraphics[width=0.3 \columnwidth]{../experiments/Feb_4_augmented_omniglot/2_rotated_90/learned_corr_2.pdf}
 \end{tabular}
 \caption{Learned covariances between neural nets trained on different alphabets.}
 \label{fig:omniglot}
 \end{center}
 \end{figure} 
+
+\begin{table}[h!]
+\begin{center}
+\begin{tabular}{cccc}
+\input{../experiments/Feb_4_augmented_omniglot/2_rotated_90/results_table.tex}
+\end{tabular}
+\caption{Training and test error on omniglot dataset.}
+\label{table:omniglot}
+\end{center}
+\end{table} 
 
 \section{Limitations}
 
@@ -551,6 +556,36 @@ We demonstrated the tuning of detailed training schedules, regularization schedu
 
 \bibliography{references.bib}
 \bibliographystyle{icml2015stylefiles/icml2015}
+
+\section*{Appendix}
+
+\subsection{Forward vs. Reverse-Mode Differentiation}
+By the chain rule, the gradient of a set of nested functions is given by the product of the individual derivatives of each function:
+%
+\begin{align*}
+\pderiv{f_4(f_3(f_2(f_1(x))))}{x} = \pderiv{f_4}{f_3} \cdot \pderiv{f_3}{f_2} \cdot \pderiv{f_2}{f_1} \cdot \pderiv{f_1}{x}
+\end{align*}
+If each function has multivariate inputs and outputs, the gradients can be replaced with Jacobian matrices.
+%
+Forward-mode AD works by multiplying gradients in the same order as the functions are evaluated:
+%
+\begin{align*}
+\pderiv{f_4(f_3(f_2(f_1(x))))}{x} = \pderiv{f_4}{f_3} \cdot \left( \pderiv{f_3}{f_2} \cdot \left( \pderiv{f_2}{f_1} \cdot \pderiv{f_1}{x} \right) \right)
+\end{align*}
+%
+In forward-mode, gradients can be computed at the same time as the original function, keeping track of the directional gradient.
+This method has only twice the memory cost of simply computing the function of interest, but in general requires a separate forward pass for each input parameter, resulting in an $\mathcal{O}(\numhypers)$ slowdown, where $\numhypers$ is the number of input parameters.~\cite{pearlmutter2008reverse}
+
+TODO: therefore no faster than finite differences
+
+Reverse-mode AD works by maintaining a tape of computations performed, and computing the gradient in a backwards pass, starting from the final result:
+%
+\begin{align*}
+\pderiv{f_4(f_3(f_2(f_1(x))))}{x} = \left(  \left(  \pderiv{f_4}{f_3} \cdot \pderiv{f_3}{f_2} \right) \cdot \pderiv{f_2}{f_1} \right) \cdot \pderiv{f_1}{x} 
+\end{align*}
+%
+Naive reverse-mode AD typically only requires approximately twice the time as computing the original function, but can require up to $\mathcal{O}(\numsteps\numhypers)$ memory, where $\numsteps$ is the number of nested functions.
+In sections \ref{sec:reversible learning} and \ref{sec:reversible computation}, we show how to drastically reduce the memory requirements of reverse-mode AD for differentiating through the entire learning procedure.
 
 \end{document} 
 
