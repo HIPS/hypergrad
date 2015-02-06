@@ -12,7 +12,7 @@
 \newcommand{\theHalgorithm}{\arabic{algorithm}}
 \usepackage{icml2015stylefiles/icml2015} 
 %\usepackage[accepted]{icml2015stylefiles/icml2015}
-\newcommand{\vx}{\mathbf{x}}
+%\newcommand{\params}{\mathbf{x}}
 \newcommand{\vw}{\mathbf{w}}
 \newcommand{\vv}{\mathbf{v}}
 \newcommand{\vg}{\mathbf{g}}
@@ -29,7 +29,7 @@
 \newcommand{\Primal}{Basal}
 \newcommand{\numhypers}{N}
 \newcommand{\hypers}{{\boldsymbol{\theta}}}
-\newcommand{\params}{\vx}
+\newcommand{\params}{\vw}
 \newcommand{\numsteps}{T}
 \newcommand{\decay}{\gamma}
 \newcommand{\decays}{{\boldsymbol{\decay}}}
@@ -127,7 +127,7 @@ Hyperparameters (in this case, learning rate and momentum schedules) are then up
 \begin{itemize}
 \item We give an algorithm that exactly reverses stochastic gradient descent with momentum to compute gradients with respect to all continuous training parameters.
 \item We show how to efficiently store only the information needed to exactly reverse learning dynamics.
-For example, when the momentum term is 0.9, this method reduces the memory requirements of reverse-mode differentiation by factor of 200.
+For example, when the momentum term is 0.9, this method reduces the memory requirements of reverse-mode differentiation of hyperparameters by a factor of 200.
 \item We show how these gradients allow the optimization of validation loss with respect to thousands of hyperparameters.
 For example, we optimize fine-grained learning-rate schedules, per-layer initialization distributions of neural network parameters, per-input regularization schemes, and even per-pixel data preprocessing.
 \item We provide insight into learning procedures by examining optimized learning-rate schedules and initialization procedures, comparing them to standard advice in the literature.
@@ -176,22 +176,22 @@ Stochastic gradient descent (SGD) with momentum (Algorithm \ref{alg:sgd}) can be
 seen as a physical simulation of a system moving through a series of fixed force
 fields indexed by time $t$. With exact arithmetic this procedure is reversible. This lets us write Algorithm \ref{alg:reverse-sgd}, which reverses the steps in Algorithm
 \ref{alg:sgd}, interleaved with computations of gradients. It outputs the
-gradient of a function of the trained weights $f(\vx)$ (such as the validation
-loss) with respect to the initial weights $\vx_1$, the learning-rate and momentum
+gradient of a function of the trained weights $f(\params)$ (such as the validation
+loss) with respect to the initial weights $\params_1$, the learning-rate and momentum
 schedules, and any other hyperparameters which affect training gradients.
 
 \begin{algorithm}
    \caption{Stochastic gradient descent with momentum}
    \label{alg:sgd}
 \begin{algorithmic}[1]
-   \State {\bfseries input:} initial $\vx_1$, decays $\decays$, stepsizes $\stepsizes$, loss $L(\params, \hypers, t)$
+   \State {\bfseries input:} initial $\params_1$, decays $\decays$, stepsizes $\stepsizes$, loss $L(\params, \hypers, t)$
    \State initialize $\vv_1 = \vzero$
    \For{$t=1$ {\bfseries to} $T$}
    \State $g_t = \gradparams$ \Comment{evaluate gradient}
    \State $\vv_{t+1} = \decay_t \vv_t - (1 - \decay_t) \vg_t$ \Comment{update velocity}  \label{step:update velocity}
-   \State $\vx_{t+1} = \vx_t + \stepsize_t \vv_t$ \Comment{update position} \label{step:update position}
+   \State $\params_{t+1} = \params_t + \stepsize_t \vv_t$ \Comment{update position} \label{step:update position}
    \EndFor
-   \State \textbf{output} trained parameters $\vx_T$
+   \State \textbf{output} trained parameters $\params_T$
 \end{algorithmic}
 \end{algorithm}
 %
@@ -199,23 +199,23 @@ schedules, and any other hyperparameters which affect training gradients.
    \caption{Reverse-mode differentiation of SGD}
    \label{alg:reverse-sgd}
 \begin{algorithmic}[1]
-   \State {\bfseries input:} $\vx_T$, $\vv_T$, $\decays$, $\stepsizes$, train loss $L(\params, \hypers, t)$, loss $f(\params)$
+   \State {\bfseries input:} $\params_T$, $\vv_T$, $\decays$, $\stepsizes$, train loss $L(\params, \hypers, t)$, loss $f(\params)$
    \State initialize $d\vv = \vzero$, $d\hypers = \vzero$, $d\stepsize_t = \vzero$, $d\decay = \vzero$
-   \State initialize $d\vx = \nabla_\params f(\params_T)$
+   \State initialize $d\params = \nabla_\params f(\params_T)$
    \For{$t=T$ {\bfseries counting down to} $1$}
    \State $d\stepsize_t = d\vv\tra \vv_t$
-   \State $\vx_{t-1} = \vx_t - \stepsize_t \vv_t$ \label{step:reverse-position}
+   \State $\params_{t-1} = \params_t - \stepsize_t \vv_t$ \label{step:reverse-position}
    \vspace{-0.95\baselineskip}
    \State $\vg_t = \gradparams$ \label{step:reverse-gradient}
    \hfill \scalebox{1.1}{\Bigg\}} \vspace{-\baselineskip} \begin{minipage}{2.5cm} exactly reverse \\ gradient descent \\ operations \strut \end{minipage}
    \State $\vv_{t-1} = [\vv_t - (1 - \decay_t) \vg_t] / \decay_t$ \label{step:reverse-velocity}
-   \State $d\vv = d\vv + \stepsize_t d\vx$
-   \State $d\decay_t = d\vx\tra (\vv_t + \vg_t)$
-   \State $d\vx = d\vx - (1 - \decay_t) d\vv \nabla_\params \gradparams$ \label{line:hvp1}
+   \State $d\vv = d\vv + \stepsize_t d\params$
+   \State $d\decay_t = d\params\tra (\vv_t + \vg_t)$
+   \State $d\params = d\params - (1 - \decay_t) d\vv \nabla_\params \gradparams$ \label{line:hvp1}
    \State $d\hypers = d\hypers - (1 - \decay_t) d\vv \nabla_\hypers \gradparams$ \label{line:hvp2}
    \State $d\vv = \decay_t d\vv$
    \EndFor
-   \State \textbf{output} gradient of $f(\vx_T)$ w.r.t $\vx_1$, $\vv_1$, $\decays$, $\stepsizes$ and $\hypers$
+   \State \textbf{output} gradient of $f(\params_T)$ w.r.t $\params_1$, $\vv_1$, $\decays$, $\stepsizes$ and $\hypers$
 \end{algorithmic}
 \end{algorithm}
 %
@@ -236,7 +236,7 @@ lose information. Assuming we are using a fixed-point representation,
   Floating point representation doesn't fix the problem, it
   just defers the loss of information from the division step to the addition step.}
 each multiplication by $\decay < 1$ shifts bits to the right, destroying the
-least significant bits. The is more than a pedantic concern. Attempting to
+least significant bits. This is more than a pedantic concern. Attempting to
 carry out the reverse training requires repeated multiplication by $1/\decay$. 
 Errors accumulate exponentially, and the reversed learning procedure ends far
 from the initial point (and usually overflows). Do we need $\decay < 1$?
@@ -271,9 +271,9 @@ single bit that falls off at each iteration, and if $\decay = 0.25$ we could
 store two bits. But for fine-grained control over $\decay$ we need a way to store the information lost when we multiply by, say, $\decay = 0.9$, which will be less than one bit on average. Here we give a procedure which achieves exactly
 this.
 
-We represent the velocity $v$ and position $x$ vectors with 64-bit integers. With an implied radix point this can be a fixed-point
+We represent the velocity $\vv$ and parameter $\params$ vectors with 64-bit integers. With an implied radix point this can be a fixed-point
 representation of the reals. We represent $\decay$ as a rational number,
-$n/d$. When we divide $v$ by $d$ we use integer division. In order to be able to
+$n/d$. When we divide each $v$ by $d$ we use integer division. In order to be able to
 reverse the process we just need to store the remainder, $v$ modulo $s$, in some
 ``information buffer'', $B$. If $B$ were an integer and $n = 2$, the remainder $r$ would just be a single bit, and we could store it in $B$ by left-shifting $B$'s bits and adding $r$. For arbitrary $n$, we can do the base-$n$ analogue of this operation: multiply $B$ by $n$ and add $r$.
 Eventually, $B$ will overflow. We need a way to either detect
@@ -499,7 +499,7 @@ of architecture. Having access to hypergradients makes learning these
 softened architectures feasible.
 
 We illustrate this ``architecture learning'' with a multitask learning
-problem, the Omniglot data set \citep{Omniglot}. This data set consists of 28 by 28
+problem, the Omniglot data set \citep{Omniglot}. This data set consists of 28x28
 pixel greyscale images of characters from 50 alphabets with up to 55 characters in
 each alphabet but only 15 examples of each character. Rather than learning a
 separate neural net for each alphabet, one multitask approach would be for all the
