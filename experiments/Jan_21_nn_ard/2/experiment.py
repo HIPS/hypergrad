@@ -137,10 +137,15 @@ def plot():
     plt.savefig("weights.png")
     plt.savefig("weights.pdf", pad_inches=0.05, bbox_inches='tight')
 
+    from matplotlib import rc
+    rc('font',**{'family':'serif'})
 
-    # Fake data
+    # Show ARD penalties.
     fig = plt.figure(0)
+    plt.clf()
     ax = plt.Axes(fig, [0., 0., 1., 1.])
+    #ax = fig.add_subplot(1, 1, 1)
+    fig.set_size_inches((4.5,1.75))
     ax.set_axis_off()
     fig.add_axes(ax)
 
@@ -149,7 +154,11 @@ def plot():
     over_ixs = images > newmax
     images[over_ixs] = newmax
 
-    plot_mnist_images(images, ax, ims_per_row=5, padding=2)
+    cax = plot_mnist_images(images, ax, ims_per_row=5, padding=2, vmin=0.0)
+    cbar = fig.colorbar(cax, ticks=[0, newmax], shrink=.7)
+    cbar.ax.set_yticklabels(['0', '{:2.2f}'.format(newmax)])
+
+
     plt.savefig("penalties.png")
     plt.savefig("penalties.pdf", bbox_inches='tight')
 
