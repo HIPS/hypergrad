@@ -329,7 +329,7 @@ When Bayesian optimization was used to choose a fixed learning rate for all laye
 
 \paragraph{Meta-optimization strategies}
 From an optimization point of view, optimizing hyperparameters using stochastic hyper-gradients is no different from optimizing \primal{} parameters using stochastic gradients.
-We experimented with using several standard stochastic optimization methods for meta-optimization, including plain SGD, RMSprop [cite], and minibatch conjugate gradients.
+We experimented with using several standard stochastic optimization methods for meta-optimization, including plain SGD, RMSprop~\citep{Tieleman2012}, and minibatch conjugate gradients.
 The results in this section used Adam~\citep{Adam14}, a variant of RMSprop that includes momentum terms.
 We typically ran for 50 meta-iterations, and used a meta-step size of 0.04.
 Figure \ref{fig:learning curves} shows the \primal{} and meta-learning curves that generated the hyperparameters shown in Figure \ref{fig:optimal schedule}.
@@ -572,18 +572,19 @@ Our reversible-dynamics memory-tape approach could be used to dramatically exten
 \section{Extensions and future work}
 
 \paragraph{Long short-term memory}
-Several other types of computation performed in machine learning have a similar structure to the reversible dynamics of SGD.
+Other types of computation performed in machine learning have a similar structure to the reversible dynamics of SGD
+%, and might benefit from the memory saving offered by exactly reversing dynamics.
 For example, Long Short-Term Memory~\citep{hochreiter1997long} has a similar flavour, as do the computations performed by Neural Turing Machines~\citep{graves2014neural}.
-Reversible Learning might allow memory-efficient \primal{} gradient computations with respect to very long computations performed by either architecture.
+Exactly Reversing their dynamics might allow memory-efficient \primal{} gradient evaluations of the very long forward computations performed by these architectures.
 
 \paragraph{Model-based meta-optimization with gradients}
+In principle, hyper-gradients could be used for model-based optimization.
+For example, Gaussian process-based optimization methods could incorporate gradient information~\cite{solak2003derivative}.
+Such methods could make use of parallel evaluations of hypergradients, which might be too slow to evaluate in a sequential manner.
 
-Current hyper parameter optimization schemes do not usually have access to gradients with respect to these hyperparameters, although Gaussian process-based optimization methods could incorporate this information if it were available~\cite{solak2003derivative}.
-
-
-\paragraph{Reversible learning using better methods than SGD}
-
-like RMSprop
+\paragraph{Exactly reversing other learning methods}
+SGD has many popular variants, such as RMSprop~\cite{Tieleman2012}.
+Exactly reversing their dynamics would allow hypergradient optimization to move closer to current practice.
 
 
 \section{Conclusion}
