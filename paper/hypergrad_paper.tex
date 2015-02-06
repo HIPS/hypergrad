@@ -543,9 +543,12 @@ Likewise, the use of hypergradients also has several apparent difficulties that 
 This section explores several issues with this technique that became apparent to its first practitioners.
 
 \paragraph{When are gradients meaningful?}
-\citet{bengio1994learning} noted that "learning long-term dependencies with gradient descent is difficult."
-Learning hyperparameters whose gradient itself depends on hundreds of iterations of gradient descent raises some of the same issues.
+\citet{bengio1994learning} noted that ``learning long-term dependencies with gradient descent is difficult.''
+Our situation is even worse: We are using gradients to optimize functions which depend on their hyperparameters through hundreds of iterations of SGD.
+To make things worse, each \primal{} iteration's gradient itself depends on forward- and then back-propagation through a neural network.
+Thus the same issues that sometimes make \primal{} learning difficult are compounded.
 
+% raises the same issues.
 %As shown in Figure \ref{fig:nn weight init scales}, the meta-optimization in this experiment did not completely converge after 50 meta-iterations.
 %We stopped meta-learning at this point to avoid an unfortunate pathology of learning learning rate.
 
@@ -554,26 +557,30 @@ For example, \citet*[Chapter 4]{pearlmutter1996investigation} showed that
 large learning rates induce chaotic behavior in the learning dynamics,
 %Learning rate must be large enough to reach convergence, but not so large that they induce chaotic behavior in the learning dynamics.
 making the gradient uninformative about the medium-term shape of the training objective.
-Figure \ref{fig:chaos} illustrates this problem.
+This phenomenon is related to the exploding-gradient problem~\cite{pascanu2012understanding}.
 
-\begin{figure}[h!]
+Figure \ref{fig:chaos} illustrates phenomenon when training a neural network having 2 hidden layers.
+%
+\begin{figure}[t]
 \vskip 0.2in
 \begin{center}
-\includegraphics[width=\columnwidth]{../experiments/Jan_14_learning_rate_wiggliness/2/chaos.pdf}
+\includegraphics[width=\columnwidth]{../experiments/Jan_14_learning_rate_wiggliness/3/chaos.pdf}
 \vskip -0.1in
 Log learning rate
-\caption{When the learning rate is too high, the gradient becomes uninformative about the medium-term behavior of the function.
-The step sizes which lead to chaotic behavior are only slightly larger than the optimal step sizes.}
+\caption{\emph{Top:} Loss after training as a function of learning rate.
+\emph{Bottom:} Gradient of loss with respect to learning rate.
+When the learning rate is high, the gradient becomes uninformative about the medium-term behavior of the function.
+To maintain stability during meta-learning, we initialize using a small learning rate so as to approach the minimum from the left.}
 \label{fig:chaos}
 \end{center}
 \vskip -0.2in
 \end{figure} 
-
+%
 We partially addressed this problem by initializing our learning rate schedules to be relatively small, and stopping meta-optimization when the magnitude of the meta-gradient began to grow.
 %\cite{pearlmutter2009sleep} argues that biological neural networks tune themselves so as to be at the "edge of chaos".
 %Lower learning rates don't reach convergence before training ends.
 %Empirically, it seems like the best learning rates for training neural networks are just small enough to avoid this chaotic behavior.
-This phenomenon is related to the exploding-gradient problem~\cite{pascanu2012understanding}.
+
 
 %Gradient-based optimizers can perform poorly when the surface being optimized is locally ``wiggly''.
 %Small wiggles cause both the direction and size of the gradient to be less correlated with the medium-scale shape of the function.
