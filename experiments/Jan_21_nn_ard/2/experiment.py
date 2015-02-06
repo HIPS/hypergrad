@@ -144,7 +144,11 @@ def plot():
     ax.set_axis_off()
     fig.add_axes(ax)
 
-    images = all_L2[-1].T
+    images = all_L2[-1].T.copy()   # Get rid of spikes
+    newmax = np.percentile(images.ravel(), 98.0)
+    over_ixs = images > newmax
+    images[over_ixs] = newmax
+
     plot_mnist_images(images, ax, ims_per_row=5, padding=2)
     plt.savefig("penalties.png")
     plt.savefig("penalties.pdf", bbox_inches='tight')
