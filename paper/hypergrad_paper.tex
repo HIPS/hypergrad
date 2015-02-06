@@ -24,8 +24,8 @@
 \newcommand{\pderiv}[2]{\frac{\partial #1}{\partial #2}}
 \newcommand{\npderiv}[2]{\nicefrac{\partial #1}{\partial #2}}
 
-\newcommand{\primal}{basal}
-\newcommand{\Primal}{Basal}
+\newcommand{\primal}{basal }
+\newcommand{\Primal}{Basal }
 \newcommand{\numhypers}{N}
 \newcommand{\hypers}{{\boldsymbol{\theta}}}
 \newcommand{\params}{\vx}
@@ -81,33 +81,37 @@ specify the learning procedure itself -- step sizes, momentum decay parameters
 and initialization conditions. Choosing the best hyperparameters is both vitally
 important and frustratingly difficult.
 
-Model-based optimization methods are the current gold standard for
+Model-based gradient-free optimization methods are the current gold standard for
 hyperparameter selection~\cite{snoek2012practical, bergstra2011algorithms,
-  BerYamCox13, HutHooLey11}. Although this line of work have demonstrated that a
-rational approach to hyper-parameter selection can yield state-of-the-art
+  BerYamCox13, HutHooLey11}. Hyperparameters are chosen to optimize some validation
+loss after complete training. Although these approaches have demonstrated that an
+algorithmic approach to hyperparameter selection can yield state-of-the-art
 performance, in general they are not able to effectively optimize more than 10
-to 20 hyperparameters.  Most importantly from our perspective, current hyper
-parameter optimization schemes do not use gradients with respect to these
-hyperparameters.
+to 20 hyperparameters since they rely on point-wise evaluation of a very
+expensive objective function.
 % although they could incorporate this information if it were available~\cite{solak2003derivative}.
 
 Why not use gradients? Reverse-mode differentiation, available automatically
 with tools like Theano and Torch, allows gradients to be computed with a time
-cost just twice that of computing the original objective function. The main
-technical challenge is that naive reverse mode differentiation is unfeasible
-from a memory perspective. The first section of this paper explains and solves
-this problem.
+cost similar to that of computing the original objective function and this
+approach is taken almost universally for optimization of \primal parameters.
+\footnote{A note on terminology: since this paper is about hyperparameters we
+  need a term to unambiguously denote the other sort of parameter, the
+  ``parameter-that-is-just-a-parameter-not-a-hyperparameter''. We settled on
+  ``\primal''.}  The problem with taking gradients with resepct to
+hyperparameters is that computing the hyperloss (validation loss at optimized
+\primal parameters, say) requires a large number of optimization steps, which
+makes naive reverse mode differentiation unfeasible from a memory
+perspective. Section \ref{hypergradients} describes this problem and proposes a
+solution. This is our main technical contribution.
 
-Once we have access to gradients with respect to hyperparamters we open up a
-garden of delights. Instead of straining to eliminate hyperparameters, we can
-embrace them, and hyperparameterize our models as fully as they deserve. The
-second part of our paper explores the power wielded by a researcher armed with
-hypergradients.
-
-A note on terminology: we need a term for a
-parameter-that-is-not-a-hyperparameter -- the multitudinous parameters with
-respect to which we optimize our training loss, the weights of a neural net for
-example. We decided to use the term ``\primal''.
+Gaining access to gradients with respect to hyperparamters opens up an exciting
+field of research possibilities. Instead of straining to eliminate
+hyperparameters from out models, we can embrace them, and hyperparameterize our
+models as fully as they deserve. Just as having a high-dimensional \primal
+parameterization gives a flexible model, having a high-dimensional
+hyperparameterization gives flexibility over model classes. Section
+\ref{experiments} begins to explore these ideas.
 
 \begin{figure}[t]
 \vskip 0.2in
@@ -134,7 +138,7 @@ For example, we optimize fine-grained learning-rate schedules, per-layer initial
 \end{itemize}
 
 \section{Automatic differentiation}
-
+\label{sec:hypergradients}
 Automatic differentiation (AD) software packages such as Theano~\cite{Bastien-Theano-2012, bergstra2010scipy} are a workhorse of deep learning, significantly speeding up development time by providing gradients automatically.
 However, these methods are typically only used to train parameters with respect to some loss.
 \citet{Autodiff14} suggest using automatic differentiation to compute gradients with respect to hyperparameters.
@@ -284,6 +288,7 @@ This same information is retrieved in reverse order in steps \ref{step:reverse-p
 Algorithm \ref{alg:reversible-mult} is analogous to using arithmetic coding to store a random digit having a uniform distribution~\citep{steinruecken2014a}.
 
 \section{Experiments}
+\label{sec:experiments}
 
 In typical machine learning applications, only a few hyperparameters (less than 20) are optimized.
 Since each experiment only yields a single number (the validation loss), the search rapidly becomes more difficult as the dimension of the hyperparameter vector increases.
