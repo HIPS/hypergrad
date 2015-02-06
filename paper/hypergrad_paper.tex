@@ -404,7 +404,6 @@ We choose this model because every weight corresponds to an input-pixel and outp
 %
 \begin{figure}[h!]
 \begin{center}
-%\includegraphics[width=\columnwidth]{../experiments/Jan_21_nn_ard/2/weights.pdf}
 \includegraphics[width=\columnwidth]{../experiments/Jan_21_nn_ard/2/penalties.pdf}
 \caption{Optimized $L_2$ regularization hyperparameters for each weight in a logistic regression  trained on MNIST.
 The weights corresponding to each output label (0 through 9 respectively) have been rendered separately.
@@ -427,10 +426,11 @@ We demonstrate a simple proof-of-concept where an \emph{entire training set} is 
 %
 \begin{figure}[h!]
 \begin{center}
-\includegraphics[width=\columnwidth]{../experiments/Jan_19_optimize_data/4/fake_data.pdf}
+\includegraphics[width=\columnwidth]{../experiments/Jan_19_optimize_data/9_color_bar/fake_data.pdf}
 \caption{A dataset generated purely through meta-learning.
 Each pixel is treated as a hyperparameter, which are all optimized to maximize validation-set performance.
-Training labels are fixed in order from 0 to 9.}
+Training labels are fixed in order from 0 to 9.
+Some optimal pixel values are negative.}
 \label{fig:fake data}
 \end{center}
 \end{figure} 

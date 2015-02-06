@@ -109,12 +109,19 @@ def plot():
     fig = plt.figure(0)
     fig.clf()
     ax = plt.Axes(fig, [0., 0., 1., 1.])
+    fig.set_size_inches((4.5,1.75))
     ax.set_axis_off()
     fig.add_axes(ax)
     images = all_fakedata[-1]
-    plot_mnist_images(images, ax, ims_per_row=5, padding=2)
+    immin = np.min(images.ravel())
+    immax = np.max(images.ravel())
+    cax = plot_mnist_images(images, ax, ims_per_row=5, padding=2)
+    cbar = fig.colorbar(cax, ticks=[immin, 0, immax], shrink=.7)
+    cbar.ax.set_yticklabels([immin, '0', '{:2.2f}'.format(immax)])
+
     plt.savefig('fake_data.pdf', bbox_inches='tight')
 
+    # Everything else plot.
     fig = plt.figure(0)
     fig.clf()
     N_figs = 3
@@ -146,8 +153,6 @@ def plot():
     plot_mnist_images(images, ax, ims_per_row=10)
     fig.set_size_inches((8,12))
     plt.savefig("fig.png")
-
-
 
 
 if __name__ == '__main__':
