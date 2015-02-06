@@ -24,8 +24,8 @@
 \newcommand{\pderiv}[2]{\frac{\partial #1}{\partial #2}}
 \newcommand{\npderiv}[2]{\nicefrac{\partial #1}{\partial #2}}
 
-\newcommand{\primal}{basal }
-\newcommand{\Primal}{Basal }
+\newcommand{\primal}{basal}
+\newcommand{\Primal}{Basal}
 \newcommand{\numhypers}{N}
 \newcommand{\hypers}{{\boldsymbol{\theta}}}
 \newcommand{\params}{\vx}
@@ -43,7 +43,6 @@
 
 \twocolumn[
 \icmltitle{\ourtitle}
-
 % It is OKAY to include author information, even for blind
 % submissions: the style file will automatically remove it for you
 % unless you've provided the [accepted] option to the icml2015
@@ -64,10 +63,9 @@
 \vskip 0.3in
 ]
 
-\begin{abstract} 
-
+\begin{abstract}
 Tuning hyperparameters of learning algorithms is hard because gradients are usually unavailable.
-Here we compute exact gradients of cross-validation performance with respect to all hyperparameters by chaining derivatives backwards through the \emph{entire training procedure}.
+We compute exact gradients of cross-validation performance with respect to all hyperparameters by chaining derivatives backwards through the \emph{entire training procedure}.
 These gradients allow us to optimize thousands of hyperparameters, including step-size and momentum schedules, weight initialization distributions, richly parameterized regularization schemes, and neural network architectures.
 We compute hyperparameter gradients by exactly reversing the dynamics of stochastic gradient descent with momentum. %, storing only the information lost due to finite precision arithmetic.
 \end{abstract} 
@@ -81,47 +79,43 @@ specify the learning procedure itself -- step sizes, momentum decay parameters
 and initialization conditions. Choosing the best hyperparameters is both vitally
 important and frustratingly difficult.
 
-Model-based gradient-free optimization methods are the current gold standard for
-hyperparameter selection~\cite{snoek2012practical, bergstra2011algorithms,
-  BerYamCox13, HutHooLey11}. Hyperparameters are chosen to optimize some validation
-loss after complete training. Although these approaches have demonstrated that an
-algorithmic approach to hyperparameter selection can yield state-of-the-art
-performance, in general they are not able to effectively optimize more than 10
-to 20 hyperparameters since they rely on point-wise evaluation of a very
-expensive objective function.
+The current gold standard for hyperparameter selection is gradient-free model-based optimization~\cite{snoek2012practical, bergstra2011algorithms,
+  BerYamCox13, HutHooLey11}.
+Hyperparameters are chosen to optimize the validation loss after complete training of the model parameters.
+These approaches have demonstrated that automatic tuning of hyperparameters can yield state-of-the-art performance.
+However, in general they are not able to effectively optimize more than 10
+to 20 hyperparameters.
 % although they could incorporate this information if it were available~\cite{solak2003derivative}.
 
-Why not use gradients? Reverse-mode differentiation, available automatically
-with tools like Theano and Torch, allows gradients to be computed with a time
-cost similar to that of computing the original objective function and this
-approach is taken almost universally for optimization of \primal parameters.
-\footnote{Since this paper is about hyperparameters we
-  need a token to unambiguously denote the other sort of parameter, the
-  ``parameter-that-is-just-a-parameter-and-not-a-hyperparameter''. After considering
-  ``core'', ``primal'', ``elemental'', ``fundamental'', ``inner'' and
-  ``vanilla'' we settled on ``\primal parameter''.}  The problem with taking gradients
-with resepct to hyperparameters is that computing the `hyperloss' (validation
-loss at the optimized \primal parameters) involves an inner loop of \primal
-optimization, which makes naive reverse mode differentiation unfeasible from a
-memory perspective. Section \ref{hypergradients} describes this problem and
-proposes a solution. This is our main technical contribution.
+Why not use gradients?
+Reverse-mode differentiation allows gradients to be computed with a similar time
+cost to the original objective function.
+This approach is taken almost universally for optimization of \primal{} parameters.%
+%Tools like Theano and Torch can automatically compute these gradients.
+\footnote{Since this paper is about hyperparameters, we
+  use ``\primal{}'' to unambiguously denote the other sort of parameter, the
+  ``parameter-that-is-just-a-parameter-and-not-a-hyperparameter''.
+  %After considering  ``core'', ``primal'', ``elemental'', ``fundamental'', ``inner'' and  ``vanilla'' we settled on ``\primal parameter''.
+}
+The problem with taking gradients with respect to hyperparameters is that computing the validation loss requires an inner loop of \primal{} optimization, which makes naive reverse-mode differentiation infeasible from a memory perspective.
+Section \ref{sec:hypergradients} describes this problem and proposes a solution, which is the main technical contribution of this paper.
 
 Gaining access to gradients with respect to hyperparamters opens up a garden of
-delights. Instead of straining to eliminate hyperparameters from out models, we
-can embrace them, and hyperparameterize our models as fully as they
-deserve. Just as having a high-dimensional \primal parameterization gives a
+delights. Instead of straining to eliminate hyperparameters from our models, we
+can embrace them, and richly hyperparameterize our models.
+Just as having a high-dimensional \primal{} parameterization gives a
 flexible model, having a high-dimensional hyperparameterization gives
-flexibility over model classes. Section \ref{experiments} explores these new
-opportunities.
+flexibility over model classes, regularization, and training methods.
+Section \ref{sec:experiments} explores these new opportunities.
 
 \begin{figure}[t]
 \vskip 0.2in
 \begin{center}
 \includegraphics[width=\columnwidth]{../experiments/Jan_25_Figure_1/2/learning_curves.pdf}
-\caption{Meta-optimization by gradient descent.
-Each meta-iteration uses stochastic gradient descent to optimize parameters with respect to training error, holding hyperparameters fixed.
-We then compute the gradient of the validation loss with respect to all hyperparameters.
-These ``hypergradients'' are used to update the hyperparameters.}
+\caption{Hyperparameter optimization by gradient descent.
+Each meta-iteration runs an entire training run of stochastic gradient descent to optimize \primal{} parameters (weights 1 and 2).
+Gradients of the validation loss with respect to hyperparameters are then computed by propagating gradients back through the \primal{} training iterations.
+Hyperparameters (in this case, learning rate and momentum schedules) are then updated in the direction of this hypergradient.}
 \label{fig:chaos}
 \end{center}
 \vskip -0.2in
@@ -134,7 +128,7 @@ These ``hypergradients'' are used to update the hyperparameters.}
 \item We show how to efficiently store only the information needed to exactly reverse learning dynamics.
 For example, when the momentum term is 0.9, this method reduces the memory requirements of reverse-mode differentiation by factor of 200.
 \item We show how these gradients allow the optimization of validation loss with respect to thousands of hyperparameters.
-For example, we optimize fine-grained learning-rate schedules, per-layer initialization distributions, per-input regularization schemes, and even per-pixel data preprocessing.
+For example, we optimize fine-grained learning-rate schedules, per-layer initialization distributions of neural network parameters, per-input regularization schemes, and even per-pixel data preprocessing.
 \item We provide insight into learning procedures by examining optimized learning-rate schedules and initialization procedures, comparing them to standard advice in the literature.
 \end{itemize}
 
@@ -142,60 +136,47 @@ For example, we optimize fine-grained learning-rate schedules, per-layer initial
 \label{sec:hypergradients}
 
 Reverse-mode differentiation (RMD) has been an asset to the field of machine
-learning (see the appendix for a refresher). The RMD method, known as
+learning~\citep{lecun1989backpropagation} (see the appendix for a refresher). The RMD method, known as
 ``backpropagation'' in the deep learning community, allows the gradient of a
-scalar loss with resepct to its parameters to be computed in a single backward
-pass, increasing the computational burden by just a factor of two over
-evaluating the loss itself. If a model has a million parameters this means we
-get a million information-bearing numbers for the price of a single
-pass. Obtaining the same sort of information by either forward-mode
+scalar loss with respect to its parameters to be computed in a single backward
+pass.
+This increases the computational burden by only a factor of two over
+evaluating the loss itself, regardless of the number of parameters.
+Obtaining the same sort of information by either forward-mode
 differentiation or brute force finite differences would require a separate pass
 for each parameter and would make deep learning entirely infeasible.
 
-Applying RMD to hyperparameter optimization has been proposed before
-\citet{Autodiff14} but the naive approach fails for real-sized problems because
-of memory constraints. RMD requires the intermediate variables to be maintained
-in memory for the reverse pass. Evaluating the hyperloss (e.g. validation loss)
-requires training the model, which may many (\primal) iterations. Conventional
-RMD would require us to store this entire training trajectory, $\params_1
+Applying RMD to hyperparameter optimization was proposed by \citet{bengio2000gradient}, and \citet{Autodiff14}, but the naive approach fails for real-sized problems because
+of memory constraints. RMD requires that intermediate variables be maintained
+in memory for the reverse pass. Evaluating the validation loss
+requires training the model, which may require many \primal{} iterations. Conventional
+RMD stores this entire training trajectory, $\params_1
 ... \params_T$ in memory.  In the case of large neural networks, the amount of
 memory required to store the millions of parameters being trained is typically
 close to the amount of physical RAM available~\cite{sequence2014}. If storing
 the parameter vector takes $\sim$1GB, and the parameter vector is updated tens
-of thousands of times (equal to the number of mini batches times the number of
-epochs) then storing the learning history becomes unmanageable even with
+of thousands of times (the number of mini batches times the number of
+epochs) then storing the learning history is unmanageable even with
 physical storage.
 
-Imagine we had reversible learning dynamics. If we could trace a training
+Imagine that we could exactly trace a training
 procedure backwards, starting from the trained parameter values and working
-back to the initial parameters, then we could recompute the learning trajectory
-on the fly during the reverse pass of RMD rather storing it in memory. This is
+back to the initial parameters. Then we could recompute the learning trajectory
+on the fly during the reverse pass of RMD rather than storing it in memory. This is
 not possible in general, but we will show that for the popular training
-procedure of (possibly stochastic) gradient descent with momentum, we can do
-exactly this, in addition to storing a small number of auxiliary bits to handle
-finit precision arithmetic.
+procedure of stochastic gradient descent with momentum, we can do
+exactly this, storing a small number of auxiliary bits to handle
+finite precision arithmetic.
 
-Automatic differentiation (AD) software packages such as
-Theano~\cite{Bastien-Theano-2012, bergstra2010scipy} are a workhorse of deep
-learning, significantly speeding up development time by providing gradients
-automatically. Since we require access to the internal logic of RMD we implented
-our own automatic differentiation for Python
-(\url{github.com/REDACTED/REDACTED})).
-This package has the additional feature that it operates on standard
-Numpy~\cite{oliphant2007python} code and can differentiate code containing
-loops, branching logic, and even derivatives.
-
-\subsection{Reversible learning (exact arithmetic)}
+\subsection{Reversible learning with exact arithmetic}
 \label{sec:reversible learning}
 
 Stochastic gradient descent (SGD) with momentum (Algorithm \ref{alg:sgd}) can be
 seen as a physical simulation of a system moving through a series of fixed force
-fields indexed by time $t$. As it stands, this procedure looks
-reversible. Algorithm \ref{alg:reverse-sgd} shows how sgd with momentum could be
-reversed and used for RMD. It simply reverses the steps in Algorithm
+fields indexed by time $t$. With exact arithmetic this procedure is reversible. This lets us write Algorithm \ref{alg:reverse-sgd} which reverses the steps in Algorithm
 \ref{alg:sgd}, interleaved with computations of gradients. It outputs the
 gradient of a function of the trained weights $f(\vx)$ (such as the validation
-loss) with respect to the initial weights $\vx_1$, the stepsize and momentum
+loss) with respect to the initial weights $\vx_1$, the learning-rate and momentum
 schedules, and any other hyperparameters which affect training gradients.
 
 \begin{algorithm}
@@ -214,7 +195,7 @@ schedules, and any other hyperparameters which affect training gradients.
 \end{algorithm}
 %
 \begin{algorithm}
-   \caption{Reverse-mode differentiation of SGD \\ without checkpointing}
+   \caption{Reverse-mode differentiation of SGD}
    \label{alg:reverse-sgd}
 \begin{algorithmic}[1]
    \State {\bfseries input:} $\vx_T$, $\vv_T$, $\decays$, $\stepsizes$, train loss $L(\params, \hypers, t)$, loss $f(\params)$
@@ -238,27 +219,27 @@ schedules, and any other hyperparameters which affect training gradients.
 \end{algorithm}
 %
 Computations of steps \ref{line:hvp1} and \ref{line:hvp2} both require a
-Hessian-vector product, but these can be computed exactly by apply RMD to the
+Hessian-vector product, but these can be computed exactly by applying RMD to the
 dot product of the gradient with a vector \citep{pearlmutter1994fast}.  Thus the
 time complexity of reverse SGD is $\mathcal{O}(T)$, the same as forward SGD.
 
-\subsection{Reversible learning (finite precision arithmetic)}
+\subsection{Reversible learning with finite precision arithmetic}
 
-In practice, algorithm \ref{alg:reverse-sgd} fails utterly due to finite
-numerical precision. The problem is the momentum decay term $\decay$.
-Every time we apply step XX to reduce the velocity, we
+In practice, Algorithm \ref{alg:reverse-sgd} fails utterly due to finite
+numerical precision. The problem is the momentum decay term~$\decay$.
+Every time we apply step \ref{step:reverse-velocity} to reduce the velocity, we
 lose information. Assuming we are using a fixed-point representation,
 \footnote{We assume fixed-point representation to simplify the discussion (and
-  the implenetation). Floating point representation doesn't fix the problem, it
+  the implementation). Floating point representation doesn't fix the problem, it
   just defers the loss of information from the division step to the addition step.}
 each multiplication by $\decay < 1$ shifts bits to the right, destroying the
 least significant bits. The is more than a pedantic concern. Attempting to
 carry out the reverse training requires repeated multiplication by $1/\decay$. 
 Errors accumulate exponentially, and the reversed learning procedure ends far
-from the initial point (and usually overflows). Do we need $\decay < 1$.
-Unfortunately we do. $\decay > 1$ results in unstable dynamics and
+from the initial point (and usually overflows). Do we need $\decay < 1$?
+Unfortunately we do. $\decay > 1$ results in unstable dynamics, and
 $\decay = 1$, recovers the leapfrog integrator~\citep{leapfrog1995}, a perfectly
-sensible (and reversible) set of dynamics but not one that converges.
+sensible and reversible set of dynamics that does not converge.
 
 This problem is quite a deep one: optimization necessarily discards information.
 Ideally, optimization maps all initializations to the same minimum,
@@ -266,7 +247,7 @@ a many-to-one mapping with no hope of inversion.
 Put another way, optimization moves a system from a high-entropy initial state
 to a low-entropy (hopefully zero entropy) optimized final state.
 
-It is interesting to consider the anology with physical dynamics. The $\decay$
+It is interesting to consider the analogy with physical dynamics. The $\decay$
 term is analogous to a drag term in the simulation of Hamiltonian dynamics.
 Having $\decay < 1$ corresponds to \emph{dissipative} dynamics which generates
 heat, increases the entropy of the environment and is not therefore not
@@ -278,7 +259,7 @@ bits discarded by the $\decay$ operation. But we can at least try to
 be parsimonious about the number of extra bits we store. This is what the next
 section tries to achieve.
 
-\section{Optimal storage of discarded entropy}
+\subsection{Optimal storage of discarded entropy}
 \label{sec:reversible computation}
 
 We would like to store the information discarded each time the momentum decay
@@ -300,7 +281,7 @@ bit, and we could store it in $B$ by left-shifting $B$'s bits and adding $r$.
 For arbitrary $n$, we can just do the base-$n$ analogue of this operation: multiply 
 $B$ by $n$ and add $r$. Eventually, $B$ will. We need a way to either detect
 this, store the bits, and start a fresh integer, or else we can just use an
-arbitary size integer that grows as needed. (Python's ``long'' integer type
+arbitrary size integer that grows as needed. (Python's ``long'' integer type
 supports this). This procedure allows division by $n$ while storing the
 remainder in $\log_2(n)$ bits on average.
 
@@ -310,7 +291,7 @@ anyway. But the procedure as it stand would use three bits with $\decay = 7/8$
 whereas it should store less than one (hopefully $\log_2 (8/7)$). Here's the
 trick we can use. When we multiply $v$ by $n$, there is an opportunity to add a
 nonnegative integer smaller than $n$ to the result without affecting the reverse
-process (intger division by $n$). We can get such an integer from the
+process (integer division by $n$). We can get such an integer from the
 information buffer by dividing it by $n$ and recording $B \% n$. We are using
 the velocity $v$ as an information buffer itself! Algorithm
 \ref{alg:reversible-mult} illustrates the whole process.
@@ -338,7 +319,7 @@ thousand.
 Note that we could have used an arithmetic coding scheme for our information
 buffer~\citep{steinruecken2014a}. An entirely different approach to the question
 of memory use with RMD is checkpointing. This is sometimes used even for
-differentiation of neural net loss functions with resepct to {\primal}
+differentiation of neural net loss functions with respect to {\primal}
 parameters~\citep{martens2012training}. The idea is to store just a small number
 of parameter vectors during training, and recompute sections of the training
 procedure at a time (forwards) during the backward pass. However, this would
@@ -348,6 +329,18 @@ amount of information lost at each iteration is small.
 
 \section{Experiments}
 \label{sec:experiments}
+
+
+Automatic differentiation (AD) software packages such as
+Theano~\cite{Bastien-Theano-2012, bergstra2010scipy} are a workhorse of deep
+learning, significantly speeding up development time by providing gradients
+automatically. Since we require access to the internal logic of RMD we implemented
+our own automatic differentiation for Python
+(link to source code will be made available upon publication).
+This package has the additional feature that it operates on standard
+Numpy~\cite{oliphant2007python} code and can differentiate code containing
+loops, branching logic, and even derivatives.
+
 
 PUT THIS HERE MAYBE?
 We can view SGD as a function which takes an initial parameter vector, a step-size schedule, and a momentum schedule, and returns the final parameter vector.
@@ -362,7 +355,7 @@ This section shows several proof-of-concept experiments in which we can more ric
 
 \subsection{Gradient-based optimization of gradient-based optimization}
 \label{sec:schedule experiments}
-Modern neural net training procedures often employ various heuristics to set learning rate schedules, or set their shape using one or two hyperparameters set by cross-validation \cite{lecun1989backpropagation, dahl2014multi, sutskever2013importance}.
+Modern neural net training procedures often employ various heuristics to set learning rate schedules, or set their shape using one or two hyperparameters set by cross-validation \cite{dahl2014multi, sutskever2013importance}.
 These schedule choices are supported by a mixture of intuition, arguments about the shape of the objective function, and empirical tuning.
 
 To more directly shed light on good learning rate schedules, we jointly optimized separate learning rates for \emph{every single learning iteration} of training of a deep neural network, as well as separately for weights and biases in each layer.
@@ -370,7 +363,7 @@ Each meta-iteration trained a network for 100 iterations of SGD, meaning that th
 To avoid learning an optimization schedule that depended on the quirks of a particular random initialization, each evaluation of hypergradients used a different random seed.
 These random seeds were used both to initialize network weights and to choose mini batches.
 
-The network was trained on 10,000 trainined examples of MNIST, and had 4 layers, of sizes 784, 50, 50, and 50.
+The network was trained on 10,000 trained examples of MNIST, and had 4 layers, of sizes 784, 50, 50, and 50.
 %We also refined Algorithms \ref{alg:sgd} and \ref{alg:reverse-sgd} to allow a separate step-size and momentum schedules for each type of parameter and each layer.
 
 Because learning schedules can implicitly regularize networks~\cite{erhan2010does}, for example by enforcing early stopping, for this experiment we optimized the learning rate schedules on the training error rather than on the validation set error.
