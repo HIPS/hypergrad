@@ -93,15 +93,19 @@ Why not use gradients? Reverse-mode differentiation, available automatically
 with tools like Theano and Torch, allows gradients to be computed with a time
 cost just twice that of computing the original objective function. The main
 technical challenge is that naive reverse mode differentiation is unfeasible
-from a memory perspective. This is the central problem that we solve in this
-paper.
+from a memory perspective. The first section of this paper explains and solves
+this problem.
 
 Once we have access to gradients with respect to hyperparamters we open up a
-garden of delights...
+garden of delights. Instead of straining to eliminate hyperparameters, we can
+embrace them, and hyperparameterize our models as fully as they deserve. The
+second part of our paper explores the power wielded by a researcher armed with
+hypergradients...
 
-\footnote{Non-standard terminolgy. We use ``\primal'' for the inner
-  optimization/parameters and ``hyper'' or ``meta'' for the outer
-  optimization/parameters to avoid any ambiguity.}
+A note on terminology: we need a term for a
+parameter-that-is-not-a-hyperparameter -- the multitudinous parameters with
+respect to which we optimize our training loss, the weights of a neural net for
+example. We decided to use the term ``\primal''.
 
 \begin{figure}[ht]
 \vskip 0.2in
@@ -126,8 +130,6 @@ For example, when the momentum term is 0.9, this method reduces the memory requi
 For example, we optimize fine-grained learning-rate schedules, per-layer initialization distributions, per-input regularization schemes, and even per-pixel data preprocessing.
 \item We provide insight into learning procedures by examining optimized learning-rate schedules and initialization procedures, comparing them to standard advice in the literature.
 \end{itemize}
-
-Outline of paper: first intoduce our algorithm for reversible learning.
 
 \section{Automatic differentiation}
 
@@ -565,27 +567,40 @@ By the chain rule, the gradient of a set of nested functions is given by the pro
 \begin{align*}
 \pderiv{f_4(f_3(f_2(f_1(x))))}{x} = \pderiv{f_4}{f_3} \cdot \pderiv{f_3}{f_2} \cdot \pderiv{f_2}{f_1} \cdot \pderiv{f_1}{x}
 \end{align*}
-If each function has multivariate inputs and outputs, the gradients can be replaced with Jacobian matrices.
+If each function has multivariate inputs and outputs, the gradients can be
+replaced with Jacobian matrices. Forward and reverse mode differentiation differ
+only by the order in which they evaluate this expression.
 %
-Forward-mode AD works by multiplying gradients in the same order as the functions are evaluated:
+Forward-mode differentiation works by multiplying gradients in the same order as
+the functions are evaluated:
 %
 \begin{align*}
 \pderiv{f_4(f_3(f_2(f_1(x))))}{x} = \pderiv{f_4}{f_3} \cdot \left( \pderiv{f_3}{f_2} \cdot \left( \pderiv{f_2}{f_1} \cdot \pderiv{f_1}{x} \right) \right)
 \end{align*}
 %
-In forward-mode, gradients can be computed at the same time as the original function, keeping track of the directional gradient.
-This method has only twice the memory cost of simply computing the function of interest, but in general requires a separate forward pass for each input parameter, resulting in an $\mathcal{O}(\numhypers)$ slowdown, where $\numhypers$ is the number of input parameters.~\cite{pearlmutter2008reverse}
-
-TODO: therefore no faster than finite differences
-
-Reverse-mode AD works by maintaining a tape of computations performed, and computing the gradient in a backwards pass, starting from the final result:
+Reverse-mode multiplies the gradients in the opposite order, starting from the
+final result.
 %
 \begin{align*}
 \pderiv{f_4(f_3(f_2(f_1(x))))}{x} = \left(  \left(  \pderiv{f_4}{f_3} \cdot \pderiv{f_3}{f_2} \right) \cdot \pderiv{f_2}{f_1} \right) \cdot \pderiv{f_1}{x} 
 \end{align*}
 %
-Naive reverse-mode AD typically only requires approximately twice the time as computing the original function, but can require up to $\mathcal{O}(\numsteps\numhypers)$ memory, where $\numsteps$ is the number of nested functions.
-In sections \ref{sec:reversible learning} and \ref{sec:reversible computation}, we show how to drastically reduce the memory requirements of reverse-mode AD for differentiating through the entire learning procedure.
+In an optimization setting, the final result of the nested functions, $f_4$, is
+a scalar, while the input, $x$, and intermediate values, $f_1 - f_4$, are
+vectors. This is the scenario in which the advantage of reverse mode
+differentiation are very clear. Let's imagine that the dimensionality of all the
+intermediate vectors is $D$. In reverse mode, we start from the (scalar) output,
+and multiply by the next $D \times D$ Jacobian at each step. The value we
+accumulate is just a $D$-dimensional vector. In forward mode, we accumulate a $D
+\times D$ matrix at each step. What about the $D \times D$ Jacobian matrices
+themselves?  Don't we have to compute and instantiate them either way?  In
+general, yes. But in the (common) case that the vector-to-vector functions are
+either elementwise operations or matrix multiplications, the Jacobian matrices
+can actually be very sparse, and multiplication by the Jacobian can be performed
+efficiently~\cite{pearlmutter2008reverse}.
+
+The main drawback of reverse-mode differentiation is that intermediate values must be
+maintained in memory during the forward pass. In sections \ref{sec:reversible learning} and \ref{sec:reversible computation}, we show how to drastically reduce the memory requirements of reverse-mode differentiation for differentiating through the entire learning procedure.
 
 \end{document} 
 
