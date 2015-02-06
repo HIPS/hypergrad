@@ -13,7 +13,7 @@ from hypergrad.util import RandomState
 # ----- Fixed params -----
 layer_sizes = [784, 50, 50, 50, 10]
 batch_size = 200
-N_iters = 10000
+N_iters = 1000
 N_classes = 10
 N_train = 10000
 N_valid = 10000
@@ -56,7 +56,7 @@ def run():
                 learning_curve_dict['weight_norm'].append(np.linalg.norm(x))
                 learning_curve_dict['velocity_norm'].append(np.linalg.norm(v))
                 learning_curve_dict['iteration'].append(i_iter + 1)
-                print "."
+                print "iteration", i_iter
 
         cur_hyperparams = hyperparams.new_vect(hyperparam_vect)
         rs = RandomState((seed, i_hyper))
