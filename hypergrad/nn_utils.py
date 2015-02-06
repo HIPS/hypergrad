@@ -128,12 +128,15 @@ def nice_layer_name(weight_key):
        for use in plots and legends."""
     return "Layer {num} {name}".format(num=weight_key[1] + 1, name=weight_key[0])
 
-def plot_images(images, ax, ims_per_row=5, padding=5, digit_dimensions=(28,28)):
+def plot_images(images, ax, ims_per_row=5, padding=5, digit_dimensions=(28,28),
+                cmap=matplotlib.cm.binary):
+
     """iamges should be a (N_images x pixels) matrix."""
     N_images = images.shape[0]
     N_rows = np.ceil(float(N_images) / ims_per_row)
-    concat_images = np.zeros(((digit_dimensions[0] + padding) * N_rows + padding,
-                              (digit_dimensions[0] + padding) * ims_per_row + padding))
+    pad_value = np.min(images.ravel())
+    concat_images = np.full(((digit_dimensions[0] + padding) * N_rows + padding,
+                            (digit_dimensions[0] + padding) * ims_per_row + padding), pad_value)
     for i in range(N_images):
         cur_image = np.reshape(images[i, :], digit_dimensions)
         row_ix = i / ims_per_row  # Integer division.
@@ -143,7 +146,7 @@ def plot_images(images, ax, ims_per_row=5, padding=5, digit_dimensions=(28,28)):
         concat_images[row_start: row_start + digit_dimensions[0],
                       col_start: col_start + digit_dimensions[0]] \
             = cur_image
-    ax.matshow(concat_images, cmap = matplotlib.cm.binary)
+    ax.matshow(concat_images, cmap=cmap)
     plt.xticks(np.array([]))
     plt.yticks(np.array([]))
 

@@ -71,9 +71,11 @@ def run():
         learning_curve = results['learning_curve']
         validation_loss = results['M_final']
         test_loss = test_loss_fun(results['x_final'])
+        weightparser = parser.new_vect(results['x_final'])
+        l2parser = parser.new_vect(np.exp(hyperparser.get(metas, 'log_L2_reg')))
         output.append((learning_curve, validation_loss, test_loss,
-                       parser.get(results['x_final'], (('weights', 0))),
-                       parser.get(np.exp(hyperparser.get(metas, 'log_L2_reg')), (('weights', 0)))))
+                       weightparser[('weights', 0)],
+                       l2parser[('weights', 0)]))
         metas -= results['dMd_meta'] * meta_stepsize
         print "Meta iteration {0} Valiation loss {1} Test loss {2}"\
             .format(i, validation_loss, test_loss)

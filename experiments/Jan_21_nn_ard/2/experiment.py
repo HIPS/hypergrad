@@ -137,19 +137,21 @@ def plot():
     plt.savefig("weights.png")
     plt.savefig("weights.pdf", pad_inches=0.05, bbox_inches='tight')
 
+
+    # Fake data
     fig = plt.figure(0)
-    fig.clf()
-    N_figs = 1
+    ax = plt.Axes(fig, [0., 0., 1., 1.])
+    ax.set_axis_off()
+    fig.add_axes(ax)
 
-    ax = fig.add_subplot(N_figs, 1, 1)
-    #ax.set_title("Per-weight L2 penalty")
-    images = all_L2[-1].T
-    plot_mnist_images(images, ax, ims_per_row=10)
-    fig.set_size_inches((8,12))
+    images = all_L2[-1].T.copy()   # Get rid of spikes
+    newmax = np.percentile(images.ravel(), 98.0)
+    over_ixs = images > newmax
+    images[over_ixs] = newmax
 
-    fig.tight_layout()
+    plot_mnist_images(images, ax, ims_per_row=5, padding=2)
     plt.savefig("penalties.png")
-    plt.savefig("penalties.pdf", pad_inches=0.05, bbox_inches='tight')
+    plt.savefig("penalties.pdf", bbox_inches='tight')
 
 
 if __name__ == '__main__':

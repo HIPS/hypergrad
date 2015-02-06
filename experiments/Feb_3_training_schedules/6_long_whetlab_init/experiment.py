@@ -125,9 +125,12 @@ def plot():
             results['learning_curves'][0]['learning_curve'],  '-', label='BayesOpt hypers')
     ax.set_xlabel('Training iteration')
     ax.set_ylabel('Training loss')
+    plt.show()
     fig.set_size_inches((2.5,2.5))
     ax.legend(numpoints=1, loc=1, frameon=False, prop={'size':'10'})
+
     plt.savefig('learning_curves_paper.pdf', pad_inches=0.05, bbox_inches='tight')
+
 
     fig.clf()
     ax = fig.add_subplot(111)
@@ -144,7 +147,7 @@ def plot():
     plt.savefig('meta_learning_curve_paper.pdf', pad_inches=0.05, bbox_inches='tight')
 
 if __name__ == '__main__':
-    results = run()
-    with open('results.pkl', 'w') as f:
-        pickle.dump(results, f)
+    #results = run()
+    #with open('results.pkl', 'w') as f:
+    #    pickle.dump(results, f)
     plot()

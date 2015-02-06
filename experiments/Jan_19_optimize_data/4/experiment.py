@@ -108,12 +108,12 @@ def plot():
     # Fake data
     fig = plt.figure(0)
     fig.clf()
-    ax = fig.add_subplot(1, 1, 1)
+    ax = plt.Axes(fig, [0., 0., 1., 1.])
+    ax.set_axis_off()
+    fig.add_axes(ax)
     images = all_fakedata[-1]
-    plot_mnist_images(images, ax, ims_per_row=10)
-    fig.set_size_inches((8,12))
-    plt.savefig('fake_data.pdf', pad_inches=0.05, bbox_inches='tight')
-
+    plot_mnist_images(images, ax, ims_per_row=5, padding=2)
+    plt.savefig('fake_data.pdf', bbox_inches='tight')
 
     fig = plt.figure(0)
     fig.clf()
