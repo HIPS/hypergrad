@@ -342,7 +342,8 @@ Figure \ref{fig:learning curves} shows the \primal{} and meta-learning curves th
 \hspace{-1em}\includegraphics[width=0.5\columnwidth, height=0.5\columnwidth]{../experiments/Feb_3_training_schedules/3_adam_50/learning_curves_paper.pdf} &
 \hspace{-1em}\includegraphics[width=0.5\columnwidth, height=0.5\columnwidth]{../experiments/Feb_3_training_schedules/3_adam_50/meta_learning_curve_paper.pdf}
 \end{tabular}
-\caption{asdf}
+\caption{\Primal{} and meta-learning curves.
+The meta-learning curve shows the training loss at the end of each \primal{} iteration.}
 \label{fig:learning curves}
 \end{center}
 \vskip -0.2in
@@ -380,7 +381,8 @@ Results are shown in Figure \ref{fig:nn weight init scales}.
 \caption{Meta-learning curves for the initialization scales of each layer in a 4-layer deep neural network.
 \emph{Left:} Initialization scales for biases.
 \emph{Right:} Initialization scales for weights.
-Dashed lines show a heuristic scale which gives an average total activation of 1 for the first layer ($1/\sqrt{784}$) as well as subsequent layers ($1/\sqrt{50}$).}
+Dashed lines show a heuristic which gives an average total activation of 1.
+For the first layer it is ($1/\sqrt{784}$) and for subsequent layers ($1/\sqrt{50}$).}
 \label{fig:nn weight init scales}
 \end{center}
 \vskip -0.2in
@@ -425,13 +427,15 @@ We demonstrate a simple proof-of-concept where an \emph{entire training set} is 
 \begin{figure}[h!]
 \begin{center}
 \includegraphics[width=\columnwidth]{../experiments/Jan_19_optimize_data/4/fake_data.pdf}
-\caption{Fake data}
+\caption{A dataset generated purely through meta-learning.
+Each pixel is treated as a hyperparameter, which are all optimized to maximize validation-set performance.
+Training labels are fixed in order from 0 to 9.}
 \label{fig:fake data}
 \end{center}
 \end{figure} 
 %
 Figure \ref{fig:fake data} shows a training set, the pixels of which were optimized to improve performance on a validation set of 10,000 examples from MNIST.
-We optimized 10 training examples, each having a different fixed label.
+We optimized 10 training examples, each having a different fixed label, again from 0 to 9 respectively.
 Learning the labels of a larger training set might shed light on which classes are difficult to distinguish and so require more examples.
 
 

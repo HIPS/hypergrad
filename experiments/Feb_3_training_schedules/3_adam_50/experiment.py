@@ -293,7 +293,7 @@ def plot():
     #    ax.plot(results[loss_type], 'o-', label=loss_name)
     ax.plot(results['train_loss'], 'o-', label='Training loss')
     ax.set_xlabel('Meta iteration')
-    ax.set_ylabel('Predictive loss')
+    ax.set_ylabel('Final training loss')
     ax.legend(loc=1, frameon=False)
     fig.set_size_inches((2.5,2.5))
     ax.legend(numpoints=1, loc=1, frameon=False, prop={'size':'10'})
