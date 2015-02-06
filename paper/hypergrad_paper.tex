@@ -527,12 +527,20 @@ learning system is able to learn high level similarities as well as
 low-level similarities, we repeat these five alphabets with the images rotated
 by 90 degrees (Figure \ref{fig:omniglot_images}) to make ten alphabets total.
 
-Rather than learning the penalty matrix directly (which for stability is
-constrained to be positive semi-definite) our hyperparameters are three
-ten-by-ten transformations from a space of ``whitened'' weights, whose penalty
-matrix is the identity matrix, to the space of weights used in the actual neural
-networks. This is an unidentifiable but unconstrained parameterization. Each
-alphabet's neural net had hidden layers of size 784, 400 and 200.
+\begin{figure}[h!]
+\begin{center}
+\begin{tabular}{cc}
+\hspace{-3mm}\rotatebox{90}{\qquad Rotated \qquad \quad Original} & 
+\hspace{-3mm}\includegraphics[width=0.85\columnwidth]{../experiments/Feb_4_augmented_omniglot/2_rotated_90/all_alphabets.png}
+\end{tabular}
+\caption{\emph{Top:} Example characters from 5 alphabets taken from the Omniglot dataset.
+\emph{Bottom:} Those same alphabets with each character rotated by $90^{\circ}$.
+Distinguishing characters within each of these 10 alphabets constitute the 10 tasks in our multi-task learning experiment.}
+\label{fig:omniglot_images}
+\end{center}
+\end{figure} 
+
+%Rather than learning the penalty matrix directly (which is constrained to be positive semi-definite) our hyperparameters are three ten-by-ten transformations from a space of ``whitened'' weights, whose penalty matrix is the identity matrix, to the space of weights used in the actual neural networks. This is an unidentifiable but unconstrained parameterization. 
 
 Figure \ref{fig:omniglot_results} shows the learned penalties (normalized by row
 and column to have ones on the diagonal, akin to a correlation matrix). We see
@@ -540,34 +548,24 @@ that the lowest layer has been partially shared, across all alphabets equally,
 with the upper layers much less shared. Interestingly, the top layer penalty
 learns to share weights between the rotated alphabets.
 
-\begin{figure}[h!]
-\begin{center}
-\begin{tabular}{cc}
-\hspace{-3mm}\rotatebox{90}{\qquad Rotated \qquad \quad Original} & 
-\hspace{-3mm}\includegraphics[width=0.85\columnwidth]{../experiments/Feb_4_augmented_omniglot/2_rotated_90/all_alphabets.png}
-\end{tabular}
-\caption{Example character sets in the Omniglot dataset.}
-\label{fig:omniglot_images}
-\end{center}
-\end{figure} 
-
-
 \newcommand{\omniimagea}[2]{\parbox{4em}{\includegraphics[width=1.4cm]{../experiments/Feb_4_augmented_omniglot/2_rotated_90/minifigs/learned_corr_#1_#2.pdf}}}%
-
 \newcommand{\omniimageb}[1]{\omniimagea{#1}{0} & \omniimagea{#1}{1} & \omniimagea{#1}{2}}%
-
-
 \begin{figure}[h!]
 \renewcommand{\tabcolsep}{1pt}
 \begin{center}
 \begin{tabular}{c@{\hskip 0.9em}ccc@{\hskip 0.9em}c@{\hskip 0.9em}c}%
 & Input   & Middle  & Output & Train & Test\\
 & weights & weights & weights & error & error \\
-\parbox{3.7em}{Separate networks} & \omniimageb{no_sharing} & 0.61 & 1.34\\ \hline
-\parbox{3.7em}{Tied weights} & \omniimageb{full_sharing} & 0.90 & 1.25 \\ \hline
-\parbox{3.7em}{Learned sharing} & \omniimageb{learned_sharing} & 0.60 & \bf 1.13 \\
+\parbox{3.7em}{Separate networks} & \omniimageb{no_sharing}      & 0.61 & 1.34\\ \hline
+\parbox{3.7em}{Tied weights}      & \omniimageb{full_sharing}    & 0.90 & 1.25\\ \hline
+\parbox{3.7em}{Learned sharing}   & \omniimageb{learned_sharing} & 0.60 & \bf 1.13
 \end{tabular}
-\caption{Learned covariances between neural nets trained on different alphabets.}
+\caption{Results of the Omniglot multitask experiment.
+Each matrix shows the degree of weight sharing between each pair of tasks for that layer.
+\emph{Top}: A separate network is trained independently for each task.
+\emph{Middle}: The lowest-level features were forced to be shared.
+\emph{Bottom}: The degree of weight sharing between tasks was optimized by hyperparameter optimization.
+}
 \label{fig:omniglot_results}
 \end{center}
 \end{figure} 
@@ -711,11 +709,9 @@ We showed how these gradients allow the optimization of validation loss with res
 This new ability allows the automatic tuning of most details of training neural networks.
 We demonstrated the tuning of detailed training schedules, regularization schedules, and neural network architectures.
 
-\section*{Acknowledgments} 
+% \section*{Acknowledgments} 
 
-\section*{Appendix}
-
-\subsection{Forward vs. reverse-mode differentiation}
+\section*{Appendix: Forward vs. reverse-mode differentiation}
 By the chain rule, the gradient of a set of nested functions is given by the product of the individual derivatives of each function:
 %
 \begin{align*}
