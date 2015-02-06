@@ -237,30 +237,45 @@ schedules, and any other hyperparameters which affect training gradients.
 \end{algorithmic}
 \end{algorithm}
 %
-%% \paragraph{Time complexity}
-%% Computations of steps \ref{line:hvp1} and \ref{line:hvp2} both require a Hessian-vector product, but these can be computed exactly in about the same time required to compute a gradient \citep{pearlmutter1994fast}.
-%% %These gradients are in principle derivable by hand, but in order for this procedure to work without extra work by the user, we would require an automatic differentiation package which could compute second derivatives.
-%% Thus the time complexity of reverse SGD is $\mathcal{O}(T)$, the same as forward SGD.
-
-%\subsection{Self-closed Automatic Differentiation}
-%\citet{pearlmutter2008reverse} implemented the first example of an automatic differentiation package that was closed under its own operation, meaning it could be used to take 2nd or 3rd gradients by simply applying the gradient operation more than once.
-%However, this package could only operate on code written in a limited form of Scheme in which each function could only have one argument.
-%Popular AD popular packages such as Theano do not have this ability to automatically compute higher-order gradients.
+Computations of steps \ref{line:hvp1} and \ref{line:hvp2} both require a
+Hessian-vector product, but these can be computed exactly by apply RMD to the
+dot product of the gradient with a vector \citep{pearlmutter1994fast}.  Thus the
+time complexity of reverse SGD is $\mathcal{O}(T)$, the same as forward SGD.
 
 \subsection{Reversible learning (finite precision arithmetic)}
-%In practice, however, best performance is usually achieved when the decay term set to a value such as $0.98$.
-%Even if the decay were less than one, if one could somehow simulate having exact real numbers, this procedure could be reversed, and used for reverse-mode AD.
-The decay term must be less than one in order for the optimizer to converge.
-Since information is lost each time decay is applied, and the learning process is no longer exactly reversible.
-Even if double-precision floating point numbers are used, errors accumulate exponentially, and the reversed learning procedure ends far from the initial point.
-This means that naively applying Algorithm \ref{alg:reverse-sgd} will not provide accurate gradients if the decay term is less than one.
 
-If the momentum decay term $\decay$ in Algorithm \ref{alg:sgd} is set to one (no
-decay), then we recover a reversible dynamics scheme known as the leapfrog
-integrator~\citep{leapfrog1995}
+In practice, algorithm \ref{alg:reverse-sgd} fails utterly due to finite
+numerical precision. The problem is the momentum decay term $\decay$.
+Every time we apply step XX to reduce the velocity, we
+lose information. Assuming we are using a fixed-point representation,
+\footnote{We assume fixed-point representation to simplify the discussion (and
+  the implenetation). Floating point representation doesn't fix the problem, it
+  just defers the loss of information from the division step to the addition step.}
+each multiplication by $\decay < 1$ shifts bits to the right, destroying the
+least significant bits. The is more than a pedantic concern. Attempting to
+carry out the reverse training requires repeated multiplication by $1/\decay$. 
+Errors accumulate exponentially, and the reversed learning procedure ends far
+from the initial point (and usually overflows). Do we need $\decay < 1$.
+Unfortunately we do. $\decay > 1$ results in unstable dynamics and
+$\decay = 1$, recovers the leapfrog integrator~\citep{leapfrog1995}, a perfectly
+sensible (and reversible) set of dynamics but not one that converges.
 
-This is deeep duude! Information loss is necessary for optimization. And drag
-implies heat implies entropy. I'mn so high right now.
+This problem is quite a deep one: optimization necessarily discards information.
+Ideally, optimization maps all initializations to the same minimum,
+a many-to-one mapping with no hope of inversion.
+Put another way, optimization moves a system from a high-entropy initial state
+to a low-entropy (hopefully zero entropy) optimized final state.
+
+It is interesting to consider the anology with physical dynamics. The $\decay$
+term is analogous to a drag term in the simulation of Hamiltonian dynamics.
+Having $\decay < 1$ corresponds to \emph{dissipative} dynamics which generates
+heat, increases the entropy of the environment and is not therefore not
+reversible. But we require dissipation in order for our system to equilibrate
+to the energy minimum we care about.
+
+There is no hope then, of exactly reversing optimizing dynamics without storing
+some extra bits. But we can try to be parsimonious about the number of extra
+bits we store. This is what the next section tries to achieve.
 
 \section{Optimal storage of emitted entropy}
 \label{sec:reversible computation}
