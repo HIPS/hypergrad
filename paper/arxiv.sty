@@ -71,15 +71,13 @@
 %\RequirePackage{algorithmic}
 \RequirePackage{natbib}
 \RequirePackage{eso-pic} % used by \AddToShipoutPicture 
+\RequirePackage{kvoptions}
 
 %%%%%%%% Options
-\DeclareOption{accepted}{%
-  \renewcommand{\Notice@String}{\ICML@appearing}
-  \gdef\isaccepted{1}
-}
-\DeclareOption{nohyperref}{%
-  \gdef\nohyperref{1}
-}
+\gdef\isaccepted{1}
+
+\DeclareStringOption[]{footnotetext}
+\ProcessKeyvalOptions*
 
 \ifdefined\nohyperref\else\ifdefined\hypersetup
   \definecolor{mydarkblue}{rgb}{0,0.08,0.45}
@@ -107,7 +105,6 @@
 % final/accepted version of the ``appearing in'' note.  Modify it to
 % change that text.
 %%%%%%%%%%%%%%%%%%%%
-\newcommand{\ICML@appearing}{$^\dagger$ Contributed equally.}
 %\textit{Proceedings of the
 %$\mathit{31}^{st}$ International Conference on Machine Learning},
 %Lille, France, 2015. JMLR: W\&CP volume 37. 
@@ -118,12 +115,10 @@
 % review version of the ``appearing in'' note.  Modify it to change
 % that text.
 %%%%%%%%%%%%%%%%%%%%
-\newcommand{\Notice@String}{^\dagger Contributed equally.}
 %Preliminary work.  Under review by the
 %International Conference on Machine Learning (ICML).  Do not distribute.}
 
 % Cause the declared options to actually be parsed and activated
-\ProcessOptions\relax
 
 % Uncomment the following for debugging.  It will cause LaTeX to dump
 % the version of the ``appearing in'' string that will actually appear
@@ -214,30 +209,30 @@
 %%% displacement to offset the space allocated for a non-existent
 %%% caption).
 %%%
-\def\ftype@copyrightbox{8}
-\def\@copyrightspace{
+%\def\ftype@copyrightbox{8}
+%\def\@copyrightspace{
 % Create a float object positioned at the bottom of the column.  Note
 % that because of the mystical nature of floats, this has to be called
 % before the first column is populated with text (e.g., from the title
 % or abstract blocks).  Otherwise, the text will force the float to
 % the next column.  -- TDRL.
-\@float{copyrightbox}[b]
-\begin{center}
-\setlength{\unitlength}{1pc}
-\begin{picture}(20,1.5)
+%\@float{copyrightbox}[b]
+%\begin{center}
+%\setlength{\unitlength}{1pc}
+%\begin{picture}(20,1.5)
 % Create a line separating the main text from the note block.
 % 4.818pc==0.8in.
-\put(0,2.5){\line(1,0){4.818}}
+%\put(0,2.5){\line(1,0){4.818}}
 % Insert the text string itself.  Note that the string has to be
 % enclosed in a parbox -- the \put call needs a box object to
 % position.  Without the parbox, the text gets splattered across the
 % bottom of the page semi-randomly.  The 19.75pc distance seems to be
 % the width of the column, though I can't find an appropriate distance
 % variable to substitute here.  -- TDRL.
-\put(0,0){\parbox[b]{19.75pc}{\small \Notice@String}}
-\end{picture}
-\end{center}
-\end@float}
+%\put(0,0){\parbox[b]{19.75pc}{\small \arxiv@footnotetext}}
+%\end{picture}
+%\end{center}
+%\end@float}
 
 % Note: A few Latex versions need the next line instead of the former.
 % \addtolength{\topmargin}{0.3in}
@@ -389,8 +384,8 @@
 % Redefinition of the abstract environment. 
 \renewenvironment{abstract}
    {%
-% Insert the ``appearing in'' copyright notice.
-\@copyrightspace
+% % Insert the ``appearing in'' copyright notice.
+%\@copyrightspace
 \centerline{\large\bf Abstract}
     \vspace{-0.12in}\begin{quote}}
    {\par\end{quote}\vskip 0.12in}

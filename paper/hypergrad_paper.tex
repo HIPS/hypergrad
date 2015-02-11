@@ -9,8 +9,11 @@
 \usepackage{hyperref}
 \usepackage{multirow}
 \newcommand{\theHalgorithm}{\arabic{algorithm}}
-\usepackage[accepted]{icml2015stylefiles/arxiv} 
+\usepackage{randomorder}   % This will be updated with the arXiv ID numbers following the period, but not the version number.
+\usepackage{arxiv} 
 %\usepackage[accepted]{icml2015stylefiles/icml2015}
+
+
 \newcommand{\vw}{\mathbf{w}}
 \newcommand{\vv}{\mathbf{v}}
 \newcommand{\vg}{\mathbf{g}}
@@ -38,6 +41,14 @@
 \newcommand\ourtitle{Gradient-based Hyperparameter Optimization through Reversible Learning}
 \icmltitlerunning{\ourtitle} % A short form for the running title.
 
+
+\newcommand\blfootnote[1]{%
+  \begingroup
+  \renewcommand\thefootnote{}\footnote{#1}%
+  \addtocounter{footnote}{-1}%
+  \endgroup
+}
+
 \begin{document} 
 
 \twocolumn[
@@ -46,9 +57,11 @@
 % submissions: the style file will automatically remove it for you
 % unless you've provided the [accepted] option to the icml2015
 % package.
+\randomorder{
 \icmlauthor{Dougal Maclaurin$^\dagger$}{maclaurin@physics.harvard.edu}
 %\icmladdress{Harvard University, Cambridge, Massachusetts}
-\icmlauthor{David Duvenaud$^\dagger$}{dduvenaud@seas.harvard.edu}
+}{}
+{\icmlauthor{David Duvenaud $^\dagger$}{dduvenaud@seas.harvard.edu}}
 %\icmladdress{Harvard University, Cambridge, Massachusetts}
 % TODO: Add equal contribution footnote
 \icmlauthor{Ryan P. Adams}{rpa@seas.harvard.edu}
@@ -72,6 +85,7 @@ We compute hyperparameter gradients by exactly reversing the dynamics of stochas
 \section{Introduction}
 \label{intro}
 
+\blfootnote{$^\dagger$\explanationtext}
 Machine learning systems abound with hyperparameters. These can be parameters
 that control model complexity, such as $L_1$ and $L_2$ penalties, or parameters that
 specify the learning procedure itself -- step sizes, momentum decay parameters
@@ -109,7 +123,7 @@ flexibility over model classes, regularization, and training methods.
 Section \ref{sec:experiments} explores these new opportunities.
 
 \begin{figure}[t]
-\vskip 0.2in
+%\vskip 0.2in
 \begin{center}
 \begin{tabular}{cc}
 \renewcommand{\tabcolsep}{0pt}
@@ -122,7 +136,7 @@ Gradients of the validation loss with respect to hyperparameters are then comput
 Hyperparameters (in this case, learning rate and momentum schedules) are then updated in the direction of this hypergradient.}
 \label{fig:chaos}
 \end{center}
-\vskip -0.2in
+\vskip -0.3in
 \end{figure}
 
 \subsection{Contributions}
@@ -353,7 +367,7 @@ The network was trained on 10,000 trained examples of MNIST, and had 4 layers, o
 
 Because learning schedules can implicitly regularize networks~\cite{erhan2010does}, for example by enforcing early stopping, for this experiment we optimized the learning rate schedules on the training error rather than on the validation set error.
 %
-\begin{figure}[h!]
+\begin{figure}[h]
 \vskip 0.1in
 \begin{center}
 Optimized learning rate schedule \\
@@ -456,6 +470,7 @@ The weights corresponding to each output label (0 through 9 respectively) have b
 High values (black) indicate strong regularization.}%
 \label{fig:logistic ard}%
 \end{center}
+\vskip -0.15in
 \end{figure} 
 %
 Figure \ref{fig:logistic ard} shows a set of regularization hyperparameters learned for a logistic regression network.
@@ -468,7 +483,6 @@ We can use Algorithm \ref{alg:reverse-sgd} to take the gradient with respect to 
 This includes the training data, which can be viewed as just another set of hyperparameters.
 By chaining gradients through transformations of the data, we can compute gradients of the validation objective with respect to data preprocessing, weighting, or augmentation procedures.
 
-We demonstrate a simple proof-of-concept where an \emph{entire training set} is learned by gradient descent, starting from blank images.
 %
 \begin{figure}[b]
 \begin{center}
@@ -483,6 +497,7 @@ Some optimal pixel values are negative.}
 \vskip -0.1in
 \end{figure}
 %
+We demonstrate a simple proof-of-concept where an \emph{entire training set} is learned by gradient descent, starting from blank images.
 Figure \ref{fig:fake data} shows a training set, the pixels of which were optimized to improve performance on a validation set of 10,000 examples from MNIST.
 We optimized 10 training examples, each having a different fixed label, again from 0 to 9 respectively.
 Learning the labels of a larger training set might shed light on which classes are difficult to distinguish and so require more examples.
@@ -549,12 +564,15 @@ Distinguishing characters within each of these 10 alphabets constitute the 10 ta
 
 %Rather than learning the penalty matrix directly (which is constrained to be positive semi-definite) our hyperparameters are three ten-by-ten transformations from a space of ``whitened'' weights, whose penalty matrix is the identity matrix, to the space of weights used in the actual neural networks. This is an unidentifiable but unconstrained parameterization. 
 
+
+
 Figure \ref{fig:omniglot_results} shows the learned penalties (normalized by row
-and column to have ones on the diagonal, akin to a correlation matrix). We see
+and column to have ones on the diagonal, akin to a correlation matrix).
+We see
 that the lowest layer has been partially shared, across all alphabets equally,
 with the upper layers much less shared. Interestingly, the top layer penalty
 learns to share weights between the rotated alphabets.
-
+%
 \newcommand{\omniimagea}[2]{\parbox{4em}{\includegraphics[width=1.4cm]{../experiments/Feb_4_augmented_omniglot/2_rotated_90/minifigs/learned_corr_#1_#2.pdf}}}%
 \newcommand{\omniimageb}[1]{\omniimagea{#1}{0} & \omniimagea{#1}{1} & \omniimagea{#1}{2}}%
 \begin{figure}[h!]
@@ -575,7 +593,9 @@ Each matrix shows the degree of weight sharing between each pair of tasks for th
 }
 \label{fig:omniglot_results}
 \end{center}
+\vskip -0.15in
 \end{figure}
+%
 
 
 \subsection{Implementation Details}
@@ -614,7 +634,7 @@ This phenomenon is related to the exploding-gradient problem~\cite{pascanu2012un
 
 Figure \ref{fig:chaos} illustrates this phenomenon when training a neural network having 2 hidden layers for 50 \primal{} iterations.
 %
-\begin{figure}[t]
+\begin{figure}
 %\vskip 0.2in
 \begin{center}
 \includegraphics[width=0.9\columnwidth]{../experiments/Jan_14_learning_rate_wiggliness/3/chaos.pdf}
@@ -663,8 +683,7 @@ The most closely-related work is \citet{domke2012generic}, who derived algorithm
 However, his approach relied on na\"ive caching of all parameter vectors $\params_1, \params_2, \dots, \params_T$, making it impractical for large problems with many training iterations.
 
 %\paragraph{Neural networks}
-\citet{larsen1998adaptive}, \citet{eigenmann1999gradient}, \citet{chen1999optimal}, \citet{bengio2000gradient}, and \citet{abdel2007adaptive} used a shortcut to compute gradients of the validation loss, but only with respect to regularization parameters that contribute linearly to that loss.
-\citet{bengio2000gradient} and \citet{foo2008efficient} additionally showed that more general gradients are available in closed form when training has converged exactly to a local minimum.
+\citet{larsen1998adaptive}, \citet{eigenmann1999gradient}, \citet{chen1999optimal}, \citet{bengio2000gradient}, \citet{abdel2007adaptive}, and \citet{foo2008efficient} showed that gradients of regularization parameters are available in closed form when training has converged exactly to a local minimum.
 In contrast, our procedure can compute exact gradients of any type of hyperparameter, whether or not learning has converged.
 %However, they were only able to compute gradients of hyperparameters that controlled fixed, known functions of the weights, and so could not optimize parameters such as step-sizes or initialization distributions.
 

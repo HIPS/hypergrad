@@ -1,0 +1,27 @@
+\ProvidesPackage{randomorder}
+\RequirePackage{ifthen, intcalc, url, kvoptions}
+\newcommand{\randomorder@defaultseed}{-1}
+\DeclareStringOption[\randomorder@defaultseed]{seed}
+\ProcessKeyvalOptions*
+
+% Make a simple "hash function" to increase the suspense.
+\newcommand*{\randomorderhash}[1]{
+\intcalcMod{%
+\intcalcAdd{#1}{%
+\intcalcAdd{\intcalcDiv{#1}{2}}{%
+\intcalcAdd{\intcalcDiv{#1}{4}}{%
+\intcalcAdd{\intcalcDiv{#1}{8}}{%
+            \intcalcDiv{#1}{16}}}}}}{2}}
+
+% Reverse order depending on result of hash.
+\newcommand*{\randomorder}[3]{\ifthenelse{\equal{\randomorderhash{\randomorder@seed}}{\randomorderhash{\randomorder@defaultseed}}}{#1#2#3}{#3#2#1}}
+
+% Explanatory text to include in the paper.
+\newcommand*{\explanationtext}{\ifthenelse{\equal{\randomorder@seed}{\randomorder@defaultseed}}%
+{Author order randomization in progress. See \mbox{\url{github.com/hips/author-roulette}}}%
+{The order of these two authors is random.  See \mbox{\url{github.com/hips/author-roulette}}}}
+
+% A version without the URL.
+\newcommand*{\shortexplanationtext}{\ifthenelse{\equal{\randomorder@seed}{\randomorder@defaultseed}}%
+{Randomization in progress.}%
+{Randomized author order.}}
