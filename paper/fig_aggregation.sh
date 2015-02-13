@@ -6,7 +6,7 @@ cp $1 paper_for_arxiv.tex
 grep -oh "\.\..*\.pdf" $1 | while read -r line ; do
     echo "Processing $line, $count"
     figname="fig_$count.pdf"
-    sed -i "s^$line^$figname^" paper_for_arxiv.tex
+    sed -i.bak "s^$line^$figname^" paper_for_arxiv.tex
     cp $line $figname
     let count+=1
 done

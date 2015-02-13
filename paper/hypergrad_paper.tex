@@ -603,10 +603,12 @@ Automatic differentiation (AD) software packages such as
 Theano~\citep{Bastien-Theano-2012, bergstra2010scipy} are mainstays of deep
 learning, significantly speeding up development time by providing gradients
 automatically. Since we require access to the internal logic of RMD in order to implement Algorithm \ref{alg:reverse-sgd}, we implemented
-our own automatic differentiation package for Python\footnote{Source code will be made available upon publication.}.
+our own automatic differentiation package for Python, available at \url{github.com/HIPS/FunkyYak}.
 This package has the additional feature that it operates on standard
 Numpy~\citep{oliphant2007python} code, and can differentiate code containing
 loops, branches, and even gradient evaluations.
+
+Code for all experiments in this paper is available at \url{github.com/HIPS/hypergrad}.
 
 
 \section{Limitations}
@@ -739,7 +741,8 @@ This new ability allows the automatic tuning of most details of training neural 
 We demonstrated the tuning of detailed training schedules, regularization schedules, and neural network architectures.
 
 \section*{Acknowledgments}
-We would like to thank Christian Steinruecken and Oren Rippel for helpful discussions.
+We would like to thank Christian Steinruecken, Oren Rippel, and Matthew James Johnson for helpful discussions.
+We also thank Brenden Lake for graciously providing the Omniglot dataset.
 
 
 \section*{Appendix: Forward vs. reverse-mode differentiation}
