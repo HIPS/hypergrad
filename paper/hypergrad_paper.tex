@@ -9,7 +9,7 @@
 \usepackage{hyperref}
 \usepackage{multirow}
 \newcommand{\theHalgorithm}{\arabic{algorithm}}
-\usepackage{randomorder}   % This will be updated with the arXiv ID numbers following the period, but not the version number.
+\usepackage[seed=03492]{randomorder}   % This will be updated with the arXiv ID numbers following the period, but not the version number.
 \usepackage{arxiv} 
 %\usepackage[accepted]{icml2015stylefiles/icml2015}
 
@@ -61,7 +61,7 @@
 \icmlauthor{Dougal Maclaurin$^\dagger$}{maclaurin@physics.harvard.edu}
 %\icmladdress{Harvard University, Cambridge, Massachusetts}
 }{}
-{\icmlauthor{David Duvenaud $^\dagger$}{dduvenaud@seas.harvard.edu}}
+{\icmlauthor{David Duvenaud$^\dagger$}{dduvenaud@seas.harvard.edu}}
 %\icmladdress{Harvard University, Cambridge, Massachusetts}
 % TODO: Add equal contribution footnote
 \icmlauthor{Ryan P. Adams}{rpa@seas.harvard.edu}
@@ -477,7 +477,7 @@ Figure \ref{fig:logistic ard} shows a set of regularization hyperparameters lear
 Because each parameter corresponds to a particular input, this regularization scheme could be seen as a generalization of automatic relevance determination~\citep{mackay1994automatic}.
 
 
-\subsection{Optimizing data}
+\subsection{Optimizing training data}
 
 We can use Algorithm \ref{alg:reverse-sgd} to take the gradient with respect to any parameter the training procedure depends on.
 This includes the training data, which can be viewed as just another set of hyperparameters.
@@ -716,7 +716,7 @@ Our reversible-dynamics memory-tape approach could be used to dramatically exten
 \section{Extensions and future work}
 
 \paragraph{Long short-term memory}
-Memory savings might also be available for RMD of \primal computations that perform many incremental updates to a parameter vector. % might benefit from the %have a similar structure to the reversible dynamics of SGD.
+Memory savings might also be available for RMD of \primal{} computations that perform many incremental updates to a parameter vector. % might benefit from the %have a similar structure to the reversible dynamics of SGD.
 %, and might benefit from the memory saving offered by exactly reversing dynamics.
 For example, evaluations of Long Short-Term Memory~\citep{hochreiter1997long} or a Neural Turing Machines~\citep{graves2014neural} rely on long chains of partial updates of parameters.
 Exactly reversing their dynamics might allow more memory-efficient \primal{} gradient evaluations of their outputs on very long input sequences. % of the very long forward computations performed by these architectures.
