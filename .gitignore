@@ -15,4 +15,14 @@ data/omniglot/*
 experiments/Feb_3_nn_ard/2_only_ard/results.pkl
 experiments/Feb_3_nn_ard/1/results.pkl
 experiments/Jan_19_optimize_data/5/results.pkl
+talks/*.aux
+talks/*.bbl
+talks/*.log
+talks/*.synctex.gz
+talks/*.pdf
+talks/*.out
+talks/*.blg
+talks/*.nav
+talks/*.snm
+talks/*.toc
 

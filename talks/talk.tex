@@ -1,0 +1,127 @@
+\input{include/header_beamer}
+\usepackage{etex}
+
+\usepackage{tabularx}
+\usepackage{include/picins}
+\usepackage{include/preamble}
+\usepackage{setspace}
+\usepackage{xcolor}
+\usepackage{tikz}
+
+\usetikzlibrary{shapes.geometric,arrows,chains,matrix,positioning,scopes,calc,shapes.arrows}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Some look and feel definitions
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\setlength{\columnsep}{0.03\textwidth}
+\setlength{\columnseprule}{0.0018\textwidth}
+\setlength{\parindent}{0.0cm}
+  
+\tikzstyle{mybox} = [draw=white, rectangle]
+\tikzset{hide on/.code={\only<#1>{\color{white}}}}
+
+\definecolor{camlightblue}{rgb}{0.601 , 0.8, 1}
+\definecolor{camdarkblue}{rgb}{0, 0.203, 0.402}
+\definecolor{camred}{rgb}{1, 0.203, 0}
+\definecolor{camyellow}{rgb}{1, 0.8, 0}
+\definecolor{lightblue}{rgb}{0, 0, 0.80}
+\definecolor{white}{rgb}{1, 1, 1}
+\definecolor{whiteblue}{rgb}{0.80, 0.80, 1}
+
+\newcolumntype{x}[1]{>{\centering\arraybackslash\hspace{0pt}}m{#1}}
+\newcommand{\tabbox}[1]{#1}
+
+\hypersetup{colorlinks=true,citecolor=blue}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% The talk
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\title{Why not use gradients?}
+
+\author{
+\includegraphics[height=0.16\textwidth]{talkfigs/dougal}
+\qquad
+\includegraphics[height=0.16\textwidth, trim=20mm 25mm 0mm 25mm, clip]{talkfigs/david2}
+\qquad
+\includegraphics[height=0.16\textwidth]{talkfigs/adams}
+\\
+Dougal Maclaurin, David Duvenaud, Ryan Prescott Adams}
+
+\institute{Harvard University}
+
+\begin{document}
+
+\frame[plain] {\titlepage}
+
+
+
+\frame[plain]{
+\frametitle{Motivation} DM
+\begin{itemize} 
+\item Hyperparameter optimization is important
+\item Can't scale to high dimensions because we don't have gradients
+\item Only one number per evaluation.
+\item How do we normally do things?
+\end{itemize}}
+
+\frame[plain]{\frametitle{Reverse-mode Differentiation} DM}
+
+\frame[plain]{\frametitle{FunkyYak: Automatic Differentiation} DD}
+\frame[plain]{\frametitle{FunkyYak Examples 1} [code + figure] DD}
+\frame[plain]{\frametitle{FunkyYak Examples 2} [code + figure] DD}
+\frame[plain]{\frametitle{FunkyYak Examples 3} [code + figure] DD}
+
+\frame[plain]{\frametitle{SGD is just a function} [code + figure] DD}
+
+\frame[plain]{\frametitle{Example uses of hyper-gradients: learning rates} DD}
+
+\frame[plain]{\frametitle{Optimizing initialization distributions} DD}
+
+\frame[plain]{\frametitle{Optimizing training data} DD } 
+
+\frame[plain]{\frametitle{Optimizing architecture/regularization} DD}
+
+\frame[plain]{\frametitle{Optimizing regularization: polyglot} DD}
+
+\frame[plain]{\frametitle{Limitations: CHAOS} [figure] DD }
+
+\frame[plain]{\frametitle{Other possible applications} DM}
+
+\frame[plain]{\frametitle{Why hasn't this been done before?} % DM
+Domke did it for small problems}
+
+\frame[plain]{\frametitle{Memory is the limiting factor} %DM
+\begin{itemize}
+\item Memory required is $N \times T$.
+\item Don't need random access.
+\item Could eliminate memory burden if we could recalculate intermediate parameters values as we go backwards through the learning process.
+\end{itemize}}
+
+\frame[plain]{\frametitle{Can't reverse naively}} %DM
+
+\frame[plain]{\frametitle{Entropy and Optimization}  %DM
+[TODO: Figure of dividing by 2}
+
+\frame[plain]{\frametitle{Storing the extra bits on a tape} %DM
+\begin{itemize} 
+\item Simple algorithm that only uses arithmetic operations
+\item Could be any LIFO coding method.
+\end{itemize}}
+
+\frame[plain]{\frametitle{Summary}  %DM
+\begin{itemize}
+\item Learning algorithms can be differentiated like any other.
+\item This lets us do meta-learning.  Many applications besides deep learning: reinforcement learning.
+\item Deep connection between learning and entropy.
+\end{itemize}
+}
+
+
+
+\end{document}
