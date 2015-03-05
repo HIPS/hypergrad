@@ -7,11 +7,49 @@
 \usepackage{setspace}
 \usepackage{xcolor}
 \usepackage{tikz}
+\usepackage{listings}
 
 \usetikzlibrary{shapes.geometric,arrows,chains,matrix,positioning,scopes,calc,shapes.arrows}
 
 %\usepackage{algorithm}
 %\usepackage{algpseudocode}
+
+% Python code definition
+
+\definecolor{Blue}{rgb}{0.0,0.0,1.0}
+\lstloadlanguages{Python}%
+\lstset{language=Python,                        % Use MATLAB
+        frame=none,                           % Single frame around code
+        basicstyle=\tiny\ttfamily,             % Use small true type font
+        keywordstyle=[1]\usefont{T1}{pcr}{m}{sl}\color{Blue}\bf,        % MATLAB functions bold and blue
+        keywordstyle=[2]\usefont{T1}{pcr}{m}{sl}\color{Purple},         % MATLAB function arguments purple
+        keywordstyle=[3]\usefont{T1}{pcr}{m}{sl}\color{Blue}\underbar,  % User functions underlined and blue
+        identifierstyle=,                       % Nothing special about identifiers
+                                                % Comments small dark green courier
+        commentstyle=\usefont{T1}{pcr}{m}{sl}\color{Green}\tiny,
+        stringstyle=\color{Purple},             % Strings are purple
+        showstringspaces=false,                 % Don't put marks in string spaces
+        tabsize=5,                              % 5 spaces per tab
+        %
+        %%% Put standard MATLAB functions not included in the default
+        %%% language here
+        morekeywords={xlim,ylim,var,alpha,factorial,poissrnd,normpdf,normcdf},
+        %
+        %%% Put MATLAB function parameters here
+        morekeywords=[2]{on, off, interp},
+        %
+        %%% Put user defined functions here
+        morekeywords=[3]{FindESS, homework_example},
+        %
+        morecomment=[l][\color{Blue}]{...},     % Line continuation (...) like blue comment
+        numbers=left,                           % Line numbers on left
+        firstnumber=1,                          % Line numbers start with line 1
+        numberstyle=\tiny\color{Blue},          % Line numbers are blue
+        stepnumber=50                            % Line numbers go in steps of 5
+        }
+
+\lstset{language=Python} 
+\lstset{columns=fullflexible}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -94,13 +132,43 @@ Dougal Maclaurin, David Duvenaud, Ryan Prescott Adams}
 \frame[plain]{\frametitle{Reverse-mode Differentiation} DM}
 
 \frame[plain]{\frametitle{FunkyYak: Automatic Differentiation} 
-\url{github.com/HIPS/FunkyYak}
-}
-\frame[plain]{\frametitle{FunkyYak Examples 1} [code + figure] DD}
-\frame[plain]{\frametitle{FunkyYak Examples 2} [code + figure] DD}
-\frame[plain]{\frametitle{FunkyYak Examples 3} [code + figure] DD}
+\url{github.com/HIPS/FunkyYak}}
 
-\frame[plain]{\frametitle{SGD is just a function} [code + figure] DD}
+\frame[plain]{\frametitle{FunkyYak Simple Example}
+\begin{columns}
+\begin{column}{5.5cm}
+\lstinputlisting{code/sinusoid.py} 
+\end{column}
+\begin{column}{5cm}
+	\includegraphics[width=6cm]{code/sinusoid.png}
+\end{column}
+\end{columns}}
+
+\frame[plain]{\frametitle{FunkyYak Complicated Example}
+\begin{columns}
+\begin{column}{5.5cm}
+\lstinputlisting{code/sinusoid-taylor.py} 
+\end{column}
+\begin{column}{5cm}
+	\includegraphics[width=6cm]{code/sinusoid_taylor.png}
+\end{column}
+\end{columns}}
+
+\frame[plain]{\frametitle{FunkyYak Higher Derivatives}
+\begin{columns}
+\begin{column}{5.5cm}
+\lstinputlisting{code/tanh.py}
+\end{column}
+\begin{column}{5cm}
+	\includegraphics[width=6cm]{code/tanh.png}
+\end{column}
+\end{columns}}
+
+\frame[plain]{\frametitle{SGD is just a function}
+\includegraphics<1>[width=0.9\columnwidth]{talkfigs/learning_curves_1.pdf}%
+\includegraphics<2>[width=0.9\columnwidth]{talkfigs/learning_curves_2.pdf}%
+\includegraphics<3>[width=0.9\columnwidth]{talkfigs/learning_curves_3.pdf}%
+}
 
 \frame[plain]{\frametitle{Example uses of hyper-gradients: learning rates}
 \includegraphics[width=\columnwidth]{../experiments/Feb_3_training_schedules/5_initial_gradient/schedules_small.pdf}}
@@ -149,7 +217,7 @@ Dougal Maclaurin, David Duvenaud, Ryan Prescott Adams}
 \end{center}
 }
 
-\frame[plain]{\frametitle{Limitations: CHAOS}
+\frame[plain]{\frametitle{Limitations: Chaotic learning dynamics}
 \includegraphics[width=0.9\columnwidth]{../experiments/Jan_14_learning_rate_wiggliness/3/chaos.pdf}}
 
 \frame[plain]{\frametitle{Other possible applications} DM}
@@ -164,10 +232,16 @@ Domke did it for small problems}
 \item Could eliminate memory burden if we could recalculate intermediate parameters values as we go backwards through the learning process.
 \end{itemize}}
 
-\frame[plain]{\frametitle{Can't reverse naively}} %DM
+\frame[plain]{\frametitle{Can't reverse naively}
+\includegraphics<1>[width=0.9\columnwidth]{../experiments/Jan_25_Figure_1/4_naive_reverse/learning_curve_forward.pdf}
+\includegraphics<2>[width=0.9\columnwidth]{../experiments/Jan_25_Figure_1/4_naive_reverse/learning_curve_reverse.pdf}
+}
 
 \frame[plain]{\frametitle{Entropy and Optimization}  %DM
-[TODO: Figure of dividing by 2}
+[TODO: Figure of dividing by 2
+
+\includegraphics[width=0.9\columnwidth]{talkfigs/dists}
+}
 
 \frame[plain]{\frametitle{Storing the extra bits on a tape} %DM
 \begin{itemize} 
