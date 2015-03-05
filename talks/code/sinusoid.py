@@ -11,5 +11,5 @@ dd_fun = grad(d_fun) # Second derivative
 
 x = np.linspace(-10, 10, 100)
 plt.plot(x, map(fun, x),
-		 x,	map(d_fun, x),
-		 x,	map(dd_fun, x))
+         x, map(d_fun, x),
+         x, map(dd_fun, x))

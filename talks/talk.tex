@@ -18,39 +18,16 @@
 
 \definecolor{Blue}{rgb}{0.0,0.0,1.0}
 \lstloadlanguages{Python}%
-\lstset{language=Python,                        % Use MATLAB
-        frame=none,                           % Single frame around code
-        basicstyle=\tiny\ttfamily,             % Use small true type font
-        keywordstyle=[1]\usefont{T1}{pcr}{m}{sl}\color{Blue}\bf,        % MATLAB functions bold and blue
-        keywordstyle=[2]\usefont{T1}{pcr}{m}{sl}\color{Purple},         % MATLAB function arguments purple
-        keywordstyle=[3]\usefont{T1}{pcr}{m}{sl}\color{Blue}\underbar,  % User functions underlined and blue
-        identifierstyle=,                       % Nothing special about identifiers
-                                                % Comments small dark green courier
-        commentstyle=\usefont{T1}{pcr}{m}{sl}\color{Green}\tiny,
-        stringstyle=\color{Purple},             % Strings are purple
-        showstringspaces=false,                 % Don't put marks in string spaces
-        tabsize=5,                              % 5 spaces per tab
-        %
-        %%% Put standard MATLAB functions not included in the default
-        %%% language here
-        morekeywords={xlim,ylim,var,alpha,factorial,poissrnd,normpdf,normcdf},
-        %
-        %%% Put MATLAB function parameters here
-        morekeywords=[2]{on, off, interp},
-        %
-        %%% Put user defined functions here
-        morekeywords=[3]{FindESS, homework_example},
-        %
-        morecomment=[l][\color{Blue}]{...},     % Line continuation (...) like blue comment
-        numbers=left,                           % Line numbers on left
-        firstnumber=1,                          % Line numbers start with line 1
-        numberstyle=\tiny\color{Blue},          % Line numbers are blue
-        stepnumber=50                            % Line numbers go in steps of 5
+\lstset{language=Python,
+        frame=none,
+        basicstyle=\tiny\ttfamily\bfseries,
+        keywordstyle=[1]\color{Blue},
+        keywordstyle=[2]\color{Purple},
+        commentstyle=\usefont{T1}{pcr}{m}{sl}\color{Green},
         }
 
 \lstset{language=Python} 
 \lstset{columns=fullflexible}
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
@@ -78,9 +55,6 @@
 
 \hypersetup{colorlinks=true,citecolor=blue}
 
-
-
-
 \newcommand{\primal}{elementary}
 \newcommand{\Primal}{Elementary}
 \newcommand{\numhypers}{N}
@@ -92,8 +66,6 @@
 \newcommand{\stepsize}{\alpha}
 \newcommand{\stepsizes}{{\boldsymbol{\stepsize}}}
 \newcommand{\gradparams}{\nabla_\params L(\params_t, \hypers, t)}
-
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
