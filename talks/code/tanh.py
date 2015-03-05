@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from funkyyak import grad
 
 def tanh(x):
-    return (1.0 - np.exp(-x))  / ( 1.0 + np.exp(-x))
+    return (1 - np.exp(-x)) / (1 + np.exp(-x))
 
 d_fun = grad(tanh)           # 1st derivative
 dd_fun = grad(d_fun)         # 2nd derivative
