@@ -66,11 +66,21 @@ Dougal Maclaurin, David Duvenaud, Ryan Prescott Adams}
 
 \frame[plain]{\frametitle{Reverse-mode Differentiation}
 \begin{align*}
-\pderiv{}{x} L\paren{F\paren{G\paren{H\paren{x}}}}
-& = \pderiv{L}{F}\pderiv{F}{G}\pderiv{G}{H}\pderiv{H}{x} \\
-& = \pderiv{L}{F}\paren{\pderiv{F}{G}\paren{\pderiv{G}{H}\pderiv{H}{x}}} \quad &\text{Forward mode}\\
-& = \paren{\paren{\pderiv{L}{F}\pderiv{F}{G}}\pderiv{G}{H}}\pderiv{H}{x} \quad &\text{Reverse mode}\\
+\onslide<1->{\pderiv{}{x} L\paren{F\paren{G\paren{H\paren{x}}}}
+             & = \pderiv{L}{F}\pderiv{F}{G}\pderiv{G}{H}\pderiv{H}{x} \\}
+\onslide<2->{& = \pderiv{L}{F}\paren{\pderiv{F}{G}\paren{\pderiv{G}{H}\pderiv{H}{x}}} \quad &\text{Forward mode}\\
+             & = \paren{\paren{\pderiv{L}{F}\pderiv{F}{G}}\pderiv{G}{H}}\pderiv{H}{x} \quad &\text{Reverse mode}}
 \end{align*}
+\onslide<3>{
+\begin{tikzpicture}[thick, scale=0.4]
+  \draw (1,3.2) rectangle (6, 3.8);
+  \draw (8,1) rectangle (13, 6);
+  \draw (15,1) rectangle (20, 6);
+  \draw (22,1) rectangle (27, 6);
+  \node at (7, 3.5) {$\times$};
+  \node at (14, 3.5) {$\times$};
+  \node at (21, 3.5) {$\times$};
+\end{tikzpicture}}
 }
 
 \frame[plain]{\frametitle{FunkyYak: Automatic Differentiation} 
