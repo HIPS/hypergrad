@@ -49,7 +49,7 @@
 \qquad\qquad
 \includegraphics[height=0.16\textwidth]{talkfigs/adams}
 \\
-Dougal Maclaurin, David Duvenaud, Ryan Prescott Adams}
+Dougal Maclaurin, David Duvenaud, Ryan Adams}
 
 \institute{Harvard University}
 
@@ -204,7 +204,7 @@ Reverse update rule:
 \end{align*}
 }
 
-\frame[plain]{\frametitle{Naive reversal ... }
+\frame[plain]{\frametitle{Naive reversal \phantom{... Fails!}}
 \includegraphics[width=0.9\columnwidth]{../experiments/Jan_25_Figure_1/4_naive_reverse/learning_curve_forward.pdf}}
 
 \frame[plain]{\frametitle{Naive reversal ... Fails!}
@@ -238,6 +238,7 @@ Reverse update rule:
 \pause
 \item Express $\beta$ as a rational number and push/pop remainders from an information buffer
 \item Information buffer can use any LIFO coding method
+\item $\sim$200X memory savings ($\beta \sim 0.9$)
 \end{itemize}
 Example code:
 
