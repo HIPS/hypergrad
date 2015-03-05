@@ -189,12 +189,23 @@ Dougal Maclaurin, David Duvenaud, Ryan Prescott Adams}
 \item Could we recompute the learning trajectory in reverse?
 \end{itemize}}
 
-\frame[plain]{\frametitle{SGD (with momentum) is Reversible}}
+\frame[plain]{\frametitle{SGD (with momentum) is Reversible}
+Forward update rule:
+\begin{align*}
+x_{t+1} & \leftarrow x_t + \alpha v_t \\
+v_{t+1} & \leftarrow \beta v_t - \nabla L\left(x_{t+1}\right) \\
+\end{align*}
+Reverse update rule:
+\begin{align*}
+v_{t} & \leftarrow \left(v_{t+1} + \nabla L\left(x_{t+1}\right)\right)/\beta \\
+x_{t} & \leftarrow x_{t+1} - \alpha v_t \\
+\end{align*}
+}
 
 \frame[plain]{\frametitle{Naive reversal ... }
 \includegraphics[width=0.9\columnwidth]{../experiments/Jan_25_Figure_1/4_naive_reverse/learning_curve_forward.pdf}}
 
-\frame[plain]{\frametitle{Naive reversal ... fails!}
+\frame[plain]{\frametitle{Naive reversal ... Fails!}
 \includegraphics[width=0.9\columnwidth]{../experiments/Jan_25_Figure_1/4_naive_reverse/learning_curve_reverse.pdf}}
 
 \frame[plain]{\frametitle{Entropy and Optimization are Deeply Connected}
