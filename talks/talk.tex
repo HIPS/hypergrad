@@ -32,7 +32,7 @@
 \setlength{\columnseprule}{0.0018\textwidth}
 \setlength{\parindent}{0.0cm}
 \hypersetup{colorlinks=true,citecolor=blue}
-
+\newcommand{\paren}[1]{\left( #1 \right)}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % The talk
@@ -64,7 +64,14 @@ Dougal Maclaurin, David Duvenaud, Ryan Prescott Adams}
   \item Why not just take gradients?
 \end{itemize}}
 
-\frame[plain]{\frametitle{Reverse-mode Differentiation}}
+\frame[plain]{\frametitle{Reverse-mode Differentiation}
+\begin{align*}
+\pderiv{}{x} L\paren{F\paren{G\paren{H\paren{x}}}}
+& = \pderiv{L}{F}\pderiv{F}{G}\pderiv{G}{H}\pderiv{H}{x} \\
+& = \pderiv{L}{F}\paren{\pderiv{F}{G}\paren{\pderiv{G}{H}\pderiv{H}{x}}} \quad &\text{Forward mode}\\
+& = \paren{\paren{\pderiv{L}{F}\pderiv{F}{G}}\pderiv{G}{H}}\pderiv{H}{x} \quad &\text{Reverse mode}\\
+\end{align*}
+}
 
 \frame[plain]{\frametitle{FunkyYak: Automatic Differentiation} 
 \begin{itemize} 
@@ -172,7 +179,7 @@ Dougal Maclaurin, David Duvenaud, Ryan Prescott Adams}
 \item Could we recompute the learning trajectory in reverse?
 \end{itemize}}
 
-\frame[plain]{\frametitle{But SGD (with momentum) is Reversible}}
+\frame[plain]{\frametitle{SGD (with momentum) is Reversible}}
 
 \frame[plain]{\frametitle{Naive reversal ... }
 \includegraphics[width=0.9\columnwidth]{../experiments/Jan_25_Figure_1/4_naive_reverse/learning_curve_forward.pdf}}
