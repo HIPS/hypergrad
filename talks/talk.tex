@@ -33,13 +33,14 @@
 \setlength{\parindent}{0.0cm}
 \hypersetup{colorlinks=true,citecolor=blue}
 \newcommand{\paren}[1]{\left( #1 \right)}
+\newcommand{\vv}{\mathbf{v}}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % The talk
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\title{Why not use gradients?}
+\title{Meta-learning: why not use gradients?}
 
 \author{
 \includegraphics[height=0.16\textwidth]{talkfigs/dougal}
@@ -59,9 +60,10 @@ Dougal Maclaurin, David Duvenaud, Ryan Prescott Adams}
 \frame[plain]{
 \frametitle{Motivation}
 \begin{itemize} 
-  \item Hyperparameters are crucial
+  \item Hyperparameters are everywhere
   \item Gradient-free optimization fails in high dimensions
-  \item Why not just take gradients?
+  \item Validation loss is a just a function
+  \item Why not take gradients?
 \end{itemize}}
 
 \frame[plain]{\frametitle{Reverse-mode Differentiation}
@@ -86,14 +88,14 @@ Dougal Maclaurin, David Duvenaud, Ryan Prescott Adams}
 \frame[plain]{\frametitle{FunkyYak: Automatic Differentiation} 
 \begin{itemize} 
   \item \url{github.com/HIPS/FunkyYak}
-  \item Small ($\sim$ 300 lines of code)
+  \item Simple ($\sim$ 300 lines of code)
   \item Functional interface
   \item Works with (almost) arbitrary Python/numpy code
   \item Can take gradients all the way down
   \item The second most popular automatic differentiation package written at Harvard in fall 2014
 \end{itemize}}
 
-\frame[plain]{\frametitle{FunkyYak Simple Example}
+\frame[plain]{\frametitle{FunkyYak Examples}
 \begin{columns}
 \begin{column}{5.5cm}
 \lstinputlisting{code/sinusoid.py} 
@@ -103,7 +105,7 @@ Dougal Maclaurin, David Duvenaud, Ryan Prescott Adams}
 \end{column}
 \end{columns}}
 
-\frame[plain]{\frametitle{FunkyYak Complicated Example}
+\frame[plain]{\frametitle{FunkyYak Examples}
 \begin{columns}
 \begin{column}{5.5cm}
 \lstinputlisting{code/sinusoid-taylor.py} 
@@ -113,7 +115,7 @@ Dougal Maclaurin, David Duvenaud, Ryan Prescott Adams}
 \end{column}
 \end{columns}}
 
-\frame[plain]{\frametitle{FunkyYak Higher Derivatives}
+\frame[plain]{\frametitle{FunkyYak Examples}
 \begin{columns}
 \begin{column}{5.5cm}
 \lstinputlisting{code/tanh.py}
@@ -184,21 +186,21 @@ Dougal Maclaurin, David Duvenaud, Ryan Prescott Adams}
 
 \frame[plain]{\frametitle{Technical Challenge: Memory}
 \begin{itemize}
-\item Need to store entire learning trajectory (easily 100s of GB)
-\item Don't need random access, just LIFO access
+\item Need access to entire learning trajectory
+\item Only require LIFO access
 \item Could we recompute the learning trajectory in reverse?
 \end{itemize}}
 
 \frame[plain]{\frametitle{SGD (with momentum) is Reversible}
 Forward update rule:
 \begin{align*}
-x_{t+1} & \leftarrow x_t + \alpha v_t \\
-v_{t+1} & \leftarrow \beta v_t - \nabla L\left(x_{t+1}\right) \\
+\vx_{t+1} & \leftarrow \vx_t + \alpha \vv_t \\
+\vv_{t+1} & \leftarrow \beta \vv_t - \nabla L\left(\vx_{t+1}\right)
 \end{align*}
 Reverse update rule:
 \begin{align*}
-v_{t} & \leftarrow \left(v_{t+1} + \nabla L\left(x_{t+1}\right)\right)/\beta \\
-x_{t} & \leftarrow x_{t+1} - \alpha v_t \\
+\vv_{t} & \leftarrow \left(\vv_{t+1} + \nabla L\left(\vx_{t+1}\right)\right)/\beta \\
+\vx_{t} & \leftarrow \vx_{t+1} - \alpha \vv_t
 \end{align*}
 }
 
@@ -208,20 +210,44 @@ x_{t} & \leftarrow x_{t+1} - \alpha v_t \\
 \frame[plain]{\frametitle{Naive reversal ... Fails!}
 \includegraphics[width=0.9\columnwidth]{../experiments/Jan_25_Figure_1/4_naive_reverse/learning_curve_reverse.pdf}}
 
+\frame[plain]{\frametitle{A closer look as reverse SGD}
+Forward update rule:
+\begin{align*}
+\vx_{t+1} & \leftarrow \vx_t + \alpha \vv_t \\
+\vv_{t+1} & \leftarrow \beta \vv_t - \nabla L\left(\vx_{t+1}\right)
+\end{align*}
+Reverse update rule:
+\begin{align*}
+\vv_{t} & \leftarrow \left(\vv_{t+1} + \nabla L\left(\vx_{t+1}\right)\right)/\beta \\
+\vx_{t} & \leftarrow \vx_{t+1} - \alpha \vv_t
+\end{align*}
+\pause
+\begin{itemize}
+\item We destroy $\log\beta$ nats of entropy per parameter per iteration 
+\item Can we set $\beta = 1$?
+\pause
+\item No! We require $\beta < 1$ for optimization to converge
+\end{itemize}}
+
 \frame[plain]{\frametitle{Entropy and Optimization are Deeply Connected}
 \includegraphics[width=0.9\columnwidth]{talkfigs/dists}}
 
 \frame[plain]{\frametitle{Storing the entropy efficiently}
 \begin{itemize} 
-\item Simple algorithm that only uses arithmetic operations
-\item Could be any LIFO coding method
-\end{itemize}}
+\item How can we store the $\log_2\beta$ bits upon multiplication?
+\pause
+\item Express $\beta$ as a rational number and push/pop remainders from an information buffer
+\item Information buffer can use any LIFO coding method
+\end{itemize}
+Example code:
 
+\lstset{basicstyle=\small\ttfamily\bfseries}
+\lstinputlisting{code/infobuffer.py}}
 \frame[plain]{\frametitle{Summary}
 \begin{itemize}
-\item Learning algorithms can be differentiated like any other
+\item We can compute gradients of learning procedures
 \item This lets us do meta-learning
-\item Deep connection between learning and entropy
+\item There is a deep connection between learning and entropy
 \end{itemize}}
 
 \end{document}
