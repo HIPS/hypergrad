@@ -40,7 +40,7 @@
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\title{Meta-learning: why not use gradients?}
+\title{Hyperparameter optimization: \\ why not use gradients?}
 
 \author{
 \includegraphics[height=0.16\textwidth]{talkfigs/dougal}
@@ -126,6 +126,8 @@ Dougal Maclaurin, David Duvenaud, Ryan Adams}
 \end{columns}}
 
 \frame[plain]{\frametitle{SGD is just a function}
+\center ${\vw_{final} = \textnormal{SGD} \left(\vw_{init}, \textnormal{learn rate}, \textnormal{momentum}, \textnormal{Loss}(\vw, \textnormal{reg}, Data) \right)}$
+
 \includegraphics<1>[width=0.9\columnwidth]{talkfigs/learning_curves_1.pdf}
 \includegraphics<2>[width=0.9\columnwidth]{talkfigs/learning_curves_2.pdf}
 \includegraphics<3>[width=0.9\columnwidth]{talkfigs/learning_curves_3.pdf}}
@@ -145,7 +147,11 @@ Dougal Maclaurin, David Duvenaud, Ryan Adams}
 \end{tabular}
 \end{center}}
 
-\frame[plain]{\frametitle{Optimizing training data} 
+\frame[plain]{\frametitle{Optimizing training data}
+\center ${\vw_{final} = \textnormal{SGD} \left(\vw_{init}, \textnormal{learn rate}, \textnormal{momentum}, \textnormal{Loss}(\vw, \textnormal{reg}, Data) \right)}$
+
+\vspace{0.5in}
+
 \includegraphics[width=\columnwidth]{../experiments/Jan_19_optimize_data/9_color_bar/fake_data.pdf}} 
 
 \frame[plain]{\frametitle{Optimizing neural network architectures}
@@ -249,8 +255,8 @@ Example code:
 \frame[plain]{\frametitle{Summary}
 \begin{itemize}
 \item We can compute gradients of learning procedures
-\item This lets us do meta-learning
-\item There is a deep connection between learning and entropy
+\item Can optimize thousands of hyperparameters
+%\item There is a deep connection between learning and entropy
 \end{itemize}}
 
 \end{document}
