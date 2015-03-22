@@ -205,7 +205,7 @@ schedules, and any other hyperparameters which affect training gradients.
    \State {\bfseries input:} initial $\params_1$, decays $\decays$, learning rates $\stepsizes$, loss function $L(\params, \hypers, t)$
    \State initialize $\vv_1 = \vzero$
    \For{$t=1$ {\bfseries to} $T$}
-   \State $g_t = \gradparams$ \Comment{evaluate gradient}
+   \State $\vg_t = \gradparams$ \Comment{evaluate gradient}
    \State $\vv_{t+1} = \decay_t \vv_t - (1 - \decay_t) \vg_t$ \Comment{update velocity}  \label{step:update velocity}
    \State $\params_{t+1} = \params_t + \stepsize_t \vv_t$ \Comment{update position} \label{step:update position}
    \EndFor
@@ -221,14 +221,14 @@ schedules, and any other hyperparameters which affect training gradients.
    \State initialize $d\vv = \vzero$, $d\hypers = \vzero$, $d\stepsize_t = \vzero$, $d\decay = \vzero$
    \State initialize $d\params = \nabla_\params f(\params_T)$
    \For{$t=T$ {\bfseries counting down to} $1$}
-   \State $d\stepsize_t = d\vv\tra \vv_t$
+   \State $d\stepsize_t = d\params\tra \vv_t$
    \State $\params_{t-1} = \params_t - \stepsize_t \vv_t$ \label{step:reverse-position}
    \vspace{-0.95\baselineskip}
    \State $\vg_t = \gradparams$ \label{step:reverse-gradient}
    \hfill \scalebox{1.1}{\Bigg\}} \vspace{-\baselineskip} \begin{minipage}{2.5cm} exactly reverse \\ gradient descent \\ operations \strut \end{minipage}
-   \State $\vv_{t-1} = [\vv_t - (1 - \decay_t) \vg_t] / \decay_t$ \label{step:reverse-velocity}
+   \State $\vv_{t-1} = [\vv_t + (1 - \decay_t) \vg_t] / \decay_t$ \label{step:reverse-velocity}
    \State $d\vv = d\vv + \stepsize_t d\params$
-   \State $d\decay_t = d\params\tra (\vv_t + \vg_t)$
+   \State $d\decay_t = d\vv\tra (\vv_t + \vg_t)$
    \State $d\params = d\params - (1 - \decay_t) d\vv \nabla_\params \gradparams$ \label{line:hvp1}
    \State $d\hypers = d\hypers - (1 - \decay_t) d\vv \nabla_\hypers \gradparams$ \label{line:hvp2}
    \State $d\vv = \decay_t d\vv$
@@ -743,6 +743,7 @@ We demonstrated the tuning of detailed training schedules, regularization schedu
 \section*{Acknowledgments}
 We would like to thank Christian Steinruecken, Oren Rippel, and Matthew James Johnson for helpful discussions.
 We also thank Brenden Lake for graciously providing the Omniglot dataset.
+Thanks to Jason Rolfe for helpful feedback.
 
 
 \section*{Appendix: Forward vs. reverse-mode differentiation}
