@@ -325,19 +325,18 @@ the velocity $v$ as an information buffer itself! Algorithm
 \end{algorithmic}
 \end{algorithm}
 
+We could also have used an arithmetic coding scheme for our information buffer~\citep[Chapter 6]{mackay2003information}.
 How much does this procedure save us? When $\decay =  0.98$, we will have
 to store only $0.029$ bits on average. Compared to storing a new 32-bit integer or
 floating-point number at each iteration, this reduces memory requirements by a factor of one thousand.
 
-We could also have used an arithmetic coding scheme for our information
-buffer~\citep{steinruecken2014a}. Another entirely different approach to the question
-of memory use with RMD is checkpointing. This is sometimes used for
-differentiation of neural network loss functions with respect to {\primal}
-parameters~\citep{martens2012training}. The idea is to store just a small number
-of parameter vectors during training, and recompute the missing sections of the training
-procedure at a time (forwards) during the backward pass. However, this would
-require too much memory to be practical for large neural nets trained for
-thousands of minibatches.
+The standard way to save memory in RMD is checkpointing. 
+Checkpointing stores the entire parameter vector on only a fraction of the training steps, and recomputes the missing steps of the training procedure (forwards) as needed during the backward pass.
+%every $\sqrt{T}$th training step (for example), and recomputes the missing steps of the training procedure (forwards) as needed during the backward pass.
+%The total memory requirement is then $\mathcal{O}(\sqrt{T}N)$ and the time complexity is $\mathcal{O}{T}$.
+%For very long computations, checkpointing to reduce 
+However, this would require too much memory to be practical for large neural nets trained
+for thousands of minibatches.
 
 \section{Experiments}
 \label{sec:experiments}
@@ -361,8 +360,7 @@ To more directly shed light on good learning rate schedules, we jointly optimize
 Each meta-iteration trained a network for 100 iterations of SGD, meaning that the learning rate schedules were specified by 800 hyperparameters (100 iterations $\times$ 4 layers $\times$ 2 types of parameters).
 To avoid learning an optimization schedule that depended on the quirks of a particular random initialization, each evaluation of hypergradients used a different random seed.
 These random seeds were used both to initialize network weights and to choose mini batches.
-
-The network was trained on 10,000 trained examples of MNIST, and had 4 layers, of sizes 784, 50, 50, and 50.
+The network was trained on 10,000 examples of MNIST, and had 4 layers, of sizes 784, 50, 50, and 50.
 %We also refined Algorithms \ref{alg:sgd} and \ref{alg:reverse-sgd} to allow a separate step-size and momentum schedules for each type of parameter and each layer.
 
 Because learning schedules can implicitly regularize networks~\cite{erhan2010does}, for example by enforcing early stopping, for this experiment we optimized the learning rate schedules on the training error rather than on the validation set error.
@@ -602,11 +600,11 @@ Each matrix shows the degree of weight sharing between each pair of tasks for th
 Automatic differentiation (AD) software packages such as
 Theano~\citep{Bastien-Theano-2012, bergstra2010scipy} are mainstays of deep
 learning, significantly speeding up development time by providing gradients
-automatically. Since we require access to the internal logic of RMD in order to implement Algorithm \ref{alg:reverse-sgd}, we implemented
-our own automatic differentiation package for Python, available at \url{github.com/HIPS/FunkyYak}.
+automatically. Since we required access to the internal logic of RMD in order to implement Algorithm \ref{alg:reverse-sgd}, we implemented
+our own automatic differentiation package for Python, available at \url{github.com/HIPS/autograd}.
 This package has the additional feature that it operates on standard
 Numpy~\citep{oliphant2007python} code, and can differentiate code containing
-loops, branches, and even gradient evaluations.
+while loops, branches, and even gradient evaluations.
 
 Code for all experiments in this paper is available at \url{github.com/HIPS/hypergrad}.
 
@@ -682,7 +680,7 @@ For instance, the per-hidden-unit regularization of section \ref{sec:optimizing 
 
 %\subsection{Gradient-based tuning of hyperparameters}
 The most closely-related work is \citet{domke2012generic}, who derived algorithms to compute reverse-mode derivatives of gradient descent with momentum and L-BFGS, using them to update the hyperparameters of CRF image models.
-However, his approach relied on na\"ive caching of all parameter vectors $\params_1, \params_2, \dots, \params_T$, making it impractical for large problems with many training iterations.
+However, his approach relied on na\"ive caching of all parameter vectors $\params_1, \params_2, \dots, \params_T$, making it impractical for large models with many training iterations.
 
 %\paragraph{Neural networks}
 \citet{larsen1998adaptive}, \citet{eigenmann1999gradient}, \citet{chen1999optimal}, \citet{bengio2000gradient}, \citet{abdel2007adaptive}, and \citet{foo2008efficient} showed that gradients of regularization parameters are available in closed form when training has converged exactly to a local minimum.
@@ -715,16 +713,20 @@ Our reversible-dynamics memory-tape approach could be used to dramatically exten
 
 \section{Extensions and future work}
 
-\paragraph{Long short-term memory}
-Memory savings might also be available for RMD of \primal{} computations that perform many incremental updates to a parameter vector. % might benefit from the %have a similar structure to the reversible dynamics of SGD.
-%, and might benefit from the memory saving offered by exactly reversing dynamics.
-For example, evaluations of Long Short-Term Memory~\citep{hochreiter1997long} or a Neural Turing Machines~\citep{graves2014neural} rely on long chains of partial updates of parameters.
-Exactly reversing their dynamics might allow more memory-efficient \primal{} gradient evaluations of their outputs on very long input sequences. % of the very long forward computations performed by these architectures.
-
-\paragraph{Model-based meta-optimization with gradients}
-In principle, hypergradients could be used for model-based optimization.
-For example, Gaussian process-based optimization methods could incorporate gradient information~\cite{solak2003derivative}.
+\paragraph{Bayesian optimization with gradients}
+Hypergradients could be used with parallel, model-based optimization of hyperparameters.
+For example, Gaussian-process-based optimization methods %~\cite{snoek2012practical}
+ could incorporate gradient information~\cite{solak2003derivative}.
 Such methods could make use of parallel evaluations of hypergradients, which might be too slow to evaluate in a sequential manner.
+
+\paragraph{Reversible \primal{} computation}
+%Checkpointing is sometimes used for differentiation of neural network loss functions with respect to {\primal} parameters~\citep{martens2012training}. 
+Recurrent neural network models can require so much memory to differentiate that checkpointing is required simply to compute their \primal{} gradients~\citep{martens2012training}.
+Reversible computation might offer memory savings for some architectures.
+%Memory savings might also be available for RMD of \primal{} computations that perform many incremental updates to a parameter vector. % might benefit from the %have a similar structure to the reversible dynamics of SGD.
+%, and might benefit from the memory saving offered by exactly reversing dynamics.
+For example, evaluations of Long Short-Term Memory~\citep{hochreiter1997long} or a Neural Turing Machines~\citep{graves2014neural} rely on long chains of mostly-small updates of parameters.
+Exactly reversing these dynamics might allow more memory-efficient \primal{} gradient evaluations of their outputs on very long input sequences. % of the very long forward computations performed by these architectures.
 
 \paragraph{Exactly reversing other learning methods}
 The memory saving trick from Section \ref{sec:reversible computation} could presumably be applied to other momentum-based variants of SGD such as RMSprop~\cite{Tieleman2012} or Adam~\citep{Adam14}.
@@ -744,6 +746,7 @@ We demonstrated the tuning of detailed training schedules, regularization schedu
 We would like to thank Christian Steinruecken, Oren Rippel, and Matthew James Johnson for helpful discussions.
 We also thank Brenden Lake for graciously providing the Omniglot dataset.
 Thanks to Jason Rolfe for helpful feedback.
+We thank Analog Devices International and Samsung Advanced Institute of Technology for their support.
 
 
 \section*{Appendix: Forward vs. reverse-mode differentiation}
