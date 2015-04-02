@@ -145,8 +145,8 @@ Hyperparameters (in this case, learning rate and momentum schedules) are then up
 \item We give an algorithm that exactly reverses stochastic gradient descent with momentum to compute gradients with respect to all continuous training parameters.
 \item We show how to efficiently store only the information needed to exactly reverse learning dynamics.
 For example, when the momentum term is 0.9, this method reduces the memory requirements of reverse-mode differentiation of hyperparameters by a factor of 200.
-\item We show how these gradients allow the optimization of validation loss with respect to thousands of hyperparameters.
-For example, we optimize fine-grained learning-rate schedules, per-layer initialization distributions of neural network parameters, per-input regularization schemes, and even per-pixel data preprocessing.
+\item We show that these gradients allow optimization of validation loss with respect to thousands of hyperparameters.
+For example, we optimize fine-grained learning-rate schedules, per-layer initialization distributions of neural network parameters, per-input regularization schemes, and per-pixel data preprocessing.
 \item We provide insight into learning procedures by examining optimized learning-rate schedules and initialization procedures, comparing them to standard advice in the literature.
 \end{itemize}
 
@@ -170,7 +170,7 @@ of memory constraints. RMD requires that intermediate variables be maintained
 in memory for the reverse pass. Evaluating the validation loss
 requires training the model, which may require many \primal{} iterations. Conventional
 RMD stores this entire training trajectory, $\params_1
-... \params_T$ in memory.  In the case of large neural networks, the amount of
+... \params_T$ in memory.  In large neural networks, the amount of
 memory required to store the millions of parameters being trained is typically
 close to the amount of physical RAM available~\cite{sequence2014}. If storing
 the parameter vector takes $\sim$1GB, and the parameter vector is updated tens
@@ -538,16 +538,16 @@ for each neural net layer. Thus, for ten three-layer neural networks,
 the penalty matrix $A$ is fully described by three ten-by-ten matrices. An
 architecture with fully independent nets for each alphabet corresponds to three
 diagonal matrices while an architecture with a mutual lower layer corresponds to
-two diagonal matrices for the upper layers and a matrix of all ones (scaled so
-that rows and columns sum to one) for the lowest layer (Figure
-\ref{fig:omniglot_results}).
+two diagonal matrices for the upper layers and a matrix of all ones
+% (scaled so that rows and columns sum to one)
+for the lowest layer (Figure \ref{fig:omniglot_results}).
 
 We use five alphabets from the Omniglot set. To see whether our multitask
 learning system is able to learn high level similarities as well as
 low-level similarities, we repeat these five alphabets with the images rotated
 by 90 degrees (Figure \ref{fig:omniglot_images}) to make ten alphabets total.
 
-\begin{figure}[h!]
+\begin{figure}
 \begin{center}
 \begin{tabular}{cc}
 \hspace{-3mm}\rotatebox{90}{\qquad Rotated \qquad \quad Original} & 
@@ -602,7 +602,7 @@ Theano~\citep{Bastien-Theano-2012, bergstra2010scipy} are mainstays of deep
 learning, significantly speeding up development time by providing gradients
 automatically. Since we required access to the internal logic of RMD in order to implement Algorithm \ref{alg:reverse-sgd}, we implemented
 our own automatic differentiation package for Python, available at \url{github.com/HIPS/autograd}.
-This package has the additional feature that it operates on standard
+This package differentiates standard
 Numpy~\citep{oliphant2007python} code, and can differentiate code containing
 while loops, branches, and even gradient evaluations.
 
