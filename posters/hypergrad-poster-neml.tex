@@ -1,0 +1,222 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% From a template maintained at https://github.com/jamesrobertlloyd/cbl-tikz-poster
+%
+% Code near the top should be fairly standard and not need to be changed
+%  - except for the document class
+% Code lower down is more likely to be customised
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\documentclass[landscape,a0b,final,a4resizeable]{include/a0poster}
+
+\usepackage{multicol}
+\usepackage{color}
+\usepackage{morefloats}
+\usepackage[pdftex]{graphicx}
+\usepackage{rotating}
+\usepackage{amsmath, amsthm, amssymb, bm}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{hyperref}
+
+
+\usepackage{include/picins}
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric,arrows,chains,matrix,positioning,scopes,calc}
+\tikzstyle{mybox} = [draw=white, rectangle]
+\definecolor{darkblue}{rgb}{0,0.08,0.45}
+\definecolor{blue}{rgb}{0,0,1}
+
+\usepackage{dsfont}
+
+\input{include/jlposter.tex}
+
+\input{include/preamble.sty}
+\newcommand{\vv}{\mathbf{v}}
+
+\begin{document}
+\begin{poster}
+
+% Potentially add some space at the top of the poster
+\vspace{0\baselineskip}
+
+
+%%% Header
+\begin{center}
+\begin{pcolumn}{0.99}
+
+\newcommand{\logowidth}{0.099\textwidth}
+
+\pbox{0.99\textwidth}{}{linewidth=2mm,framearc=0.3,linecolor=camdarkblue,fillstyle=gradient,gradangle=0,gradbegin=white,gradend=white,gradmidpoint=1.0,framesep=1em}{
+%
+%%% Cambridge Logo
+\begin{minipage}[c]{\logowidth}
+  \begin{center}
+    \includegraphics[width=18cm]{badges/hips-logo.png}
+  \end{center}
+\end{minipage}
+%
+%%% Title
+\begin{minipage}[c][9cm][c]{0.76\textwidth}
+  \begin{center}
+    {\sffamily \VeryHuge \textbf{Gradient-based Hyperparameter Optimization}}\\[10mm]
+    {\huge\sffamily \Huge Dougal Maclaurin, David Duvenaud, Ryan P. Adams\\[7.5mm]
+    %\texttt{\{ti242, dkd23, zoubin\}@cam.ac.uk}
+    }
+  \end{center}
+\end{minipage}
+%
+%
+% Harvard logo
+\begin{minipage}[c]{\logowidth}
+  \begin{flushright}
+    \includegraphics[width=8cm,trim=2em 0em 2em 2em, clip]{badges/harvard}
+  \end{flushright}
+\end{minipage}
+%
+}
+\end{pcolumn}
+\end{center}
+
+\vspace*{2.5cm}
+
+\large
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Beginning of Document
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\begin{multicols}{3}
+
+
+
+\mysection{Abstract}
+
+%\vspace{0.5in}
+
+%\begin{minipage}[c]{0.17\columnwidth}
+\begin{itemize}
+  \item Hyperparameters are everywhere
+  \item Gradient-free optimization fails in high dimensions
+  \item Validation loss is a just a function
+  \item Why not take gradients?
+\end{itemize}
+
+\vspace{0.5in}
+
+\mysection{Stochastic gradient descent is a function}
+
+\includegraphics[width=0.5\columnwidth]{../talks/talkfigs/learning_curves_3.pdf}
+
+
+
+\mysection{SGD (with momentum) is Reversible}
+Forward update rule:
+\begin{align*}
+\vx_{t+1} & \leftarrow \vx_t + \alpha \vv_t \\
+\vv_{t+1} & \leftarrow \beta \vv_t - \nabla L\left(\vx_{t+1}\right)
+\end{align*}
+Reverse update rule:
+\begin{align*}
+\vv_{t} & \leftarrow \left(\vv_{t+1} + \nabla L\left(\vx_{t+1}\right)\right)/\beta \\
+\vx_{t} & \leftarrow \vx_{t+1} - \alpha \vv_t
+\end{align*}
+
+
+\begin{tabular}{cc}
+\begin{minipage}[c]{0.4\columnwidth}
+\centering
+\begin{tabular}{c}
+\includegraphics[width=\columnwidth]{../experiments/Jan_25_Figure_1/4_naive_reverse/learning_curve_forward.pdf};
+\end{tabular}
+\end{minipage}
+&
+\begin{minipage}[c]{0.4\columnwidth}
+\includegraphics[width=\columnwidth]{../experiments/Jan_25_Figure_1/4_naive_reverse/learning_curve_reverse.pdf}
+\end{minipage}
+\end{tabular}
+
+
+
+\newpage
+
+\subsection*{Example uses of hyper-gradients: learning rates}
+\includegraphics[width=0.5\columnwidth]{../experiments/Feb_3_training_schedules/5_initial_gradient/schedules_small.pdf}
+
+\includegraphics[width=0.5\columnwidth]{../experiments/Feb_3_training_schedules/3_adam_50/schedules_small.pdf}
+
+
+\mysection{Optimizing initialization distributions}
+
+
+\begin{center}
+\begin{tabular}{cc}
+ Biases & Weights \\
+\hspace{-1em}\includegraphics[width=0.3\columnwidth]{../experiments/Feb_3_training_schedules/3_adam_50/init_bias_learning_curve.pdf} &
+\hspace{-1em}\includegraphics[width=0.3\columnwidth]{../experiments/Feb_3_training_schedules/3_adam_50/init_weight_learning_curve.pdf}
+\end{tabular}
+\end{center}
+
+
+\subsection{Optimizing training data}
+
+
+\includegraphics[width=0.5\columnwidth]{../experiments/Jan_19_optimize_data/9_color_bar/fake_data.pdf}
+
+
+\newpage
+
+
+\mysection{Optimizing regularization: Omniglot}
+
+\begin{center}
+\begin{tabular}{cc}
+\hspace{-3mm}\rotatebox{90}{\qquad Rotated \qquad \quad Original} & 
+\hspace{-3mm}\includegraphics[width=0.5\columnwidth]{../experiments/Feb_4_augmented_omniglot/2_rotated_90/all_alphabets.png}
+\end{tabular}
+\end{center}
+
+
+\newcommand{\omniimagea}[2]{\parbox{4em}{\includegraphics[width=1.4cm]{../experiments/Feb_4_augmented_omniglot/2_rotated_90/minifigs/learned_corr_#1_#2.pdf}}}%
+\newcommand{\omniimageb}[1]{\omniimagea{#1}{0} & \omniimagea{#1}{1} & \omniimagea{#1}{2}}%
+
+
+\begin{center}
+\begin{tabular}{c@{\hskip 0.9em}ccc@{\hskip 0.9em}c@{\hskip 0.9em}c}%
+\renewcommand{\tabcolsep}{1pt}
+& Input   & Middle  & Output & Train & Test\\
+& weights & weights & weights & error & error \\
+\parbox{3.7em}{Separate networks} & \omniimageb{no_sharing}      & 0.61 & 1.34\\ \hline
+\parbox{3.7em}{Tied weights}      & \omniimageb{full_sharing}    & 0.90 & 1.25\\ \hline
+\parbox{3.7em}{Learned sharing}   & \omniimageb{learned_sharing} & 0.60 & \bf 1.13
+\end{tabular}
+\end{center}
+
+
+\mysection{Chaotic Learning Dynamics}
+
+\includegraphics[width=0.4\columnwidth]{../experiments/Jan_14_learning_rate_wiggliness/3/chaos.pdf}
+\vspace{-1.6em}
+\center Learning rate
+
+\mysection{Automatic differentiation of Numpy code}
+
+\mysection{Conclusion}
+
+\begin{itemize}
+\item We can compute gradients of learning procedures
+\item Can optimize thousands of hyperparameters
+\end{itemize}
+
+
+
+\end{multicols}
+\end{poster}
+
+\end{document}
+

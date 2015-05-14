@@ -390,7 +390,7 @@ sgd_parsed = Differentiable(sgd_parsed,
 
 def simple_sgd(grad, x, callback=None, num_iters=200, step_size=0.1, mass=0.9):
     """Stochastic gradient descent with momentum.
-    grad() has signature grad(x, i, g)"""
+    grad() has signature grad(x, i), where i is the iteration."""
     velocity = np.zeros(len(x))
     for i in xrange(num_iters):
         g = grad(x, i)
@@ -413,7 +413,7 @@ def rms_prop(grad, x, callback=None, num_iters=100, step_size=0.1, gamma=0.9,
 def adam(grad, x, callback=None, num_iters=100,
          step_size=0.1, b1 = 0.1, b2 = 0.01, eps = 10**-4, lam=10**-4):
     """Adam as described in http://arxiv.org/pdf/1412.6980.pdf.
-    It's basically RMSprop with momentum, and some correction terms."""
+    It's basically RMSprop with momentum and some correction terms."""
     m = np.zeros(len(x))
     v = np.zeros(len(x))
     for i in xrange(num_iters):
