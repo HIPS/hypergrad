@@ -38,7 +38,7 @@
 \newcommand{\vv}{\mathbf{v}}
 
 \begin{document}
-\begin{poster}
+\begin{poster} 
 
 % Potentially add some space at the top of the poster
 \vspace{0\baselineskip}
@@ -81,7 +81,7 @@
 \end{pcolumn}
 \end{center}
 
-\vspace*{2.5cm}
+\vspace*{1.5cm}
 
 \large
 
@@ -93,9 +93,7 @@
 
 \begin{multicols}{3}
 
-
-
-\mysection{Abstract}
+\mysection{Motivation}
 
 %\vspace{0.5in}
 
@@ -103,86 +101,110 @@
 \begin{itemize}
   \item Hyperparameters are everywhere
   \item Gradient-free optimization fails in high dimensions
-  \item Validation loss is a just a function
-  \item Why not take gradients?
+  \item Why not use gradients? Then we could optimize thousands of hyperparameters!
 \end{itemize}
 
 \vspace{0.5in}
 
 \mysection{Stochastic gradient descent is a function}
 
-\includegraphics[width=0.5\columnwidth]{../talks/talkfigs/learning_curves_3.pdf}
-
-
-
-\mysection{SGD (with momentum) is Reversible}
-Forward update rule:
-\begin{align*}
-\vx_{t+1} & \leftarrow \vx_t + \alpha \vv_t \\
-\vv_{t+1} & \leftarrow \beta \vv_t - \nabla L\left(\vx_{t+1}\right)
-\end{align*}
-Reverse update rule:
-\begin{align*}
-\vv_{t} & \leftarrow \left(\vv_{t+1} + \nabla L\left(\vx_{t+1}\right)\right)/\beta \\
-\vx_{t} & \leftarrow \vx_{t+1} - \alpha \vv_t
-\end{align*}
-
-
 \begin{tabular}{cc}
-\begin{minipage}[c]{0.4\columnwidth}
-\centering
-\begin{tabular}{c}
-\includegraphics[width=\columnwidth]{../experiments/Jan_25_Figure_1/4_naive_reverse/learning_curve_forward.pdf};
-\end{tabular}
+\begin{minipage}[c]{0.5\columnwidth}
+\begin{itemize}
+  \item We want to optimize validation loss
+  \item Validation loss is a function of SGD
+  \item SGD is a smooth function mapping \\(init weights, hypers) $\rightarrow$ trained weights
+  \item Let's compute its gradients!
+\end{itemize}
+\end{minipage} & 
+\begin{minipage}[c]{0.5\columnwidth}
+\includegraphics[width=\columnwidth]{../talks/talkfigs/learning_curves_3.pdf}
 \end{minipage}
-&
-\begin{minipage}[c]{0.4\columnwidth}
-\includegraphics[width=\columnwidth]{../experiments/Jan_25_Figure_1/4_naive_reverse/learning_curve_reverse.pdf}
-\end{minipage}
 \end{tabular}
 
 
+\mysection{Example: Optimizing learning rate schedules}
 
-\newpage
+We can optimize learning rate schedules separately for each layer of a neural network and \emph{each iteration} of training:
+\begin{center}
+Learning rate
 
-\subsection*{Example uses of hyper-gradients: learning rates}
-\includegraphics[width=0.5\columnwidth]{../experiments/Feb_3_training_schedules/5_initial_gradient/schedules_small.pdf}
+\includegraphics[width=0.7\columnwidth]{../experiments/Feb_3_training_schedules/3_adam_50/schedules_small.pdf}
+\end{center}
 
-\includegraphics[width=0.5\columnwidth]{../experiments/Feb_3_training_schedules/3_adam_50/schedules_small.pdf}
+How did we optimize it?  By SGD on top of SGD, using meta-gradients:
+
+\begin{center}
+Hyper-gradient with respect to learning rate
+
+\includegraphics[width=0.7\columnwidth]{../experiments/Feb_3_training_schedules/5_initial_gradient/schedules_small.pdf}
+\end{center}
+
+
+\newpage %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 \mysection{Optimizing initialization distributions}
 
 
+\begin{tabular}{cc}
+\begin{minipage}[c]{0.6\columnwidth}
+\begin{itemize}
+  \item We can optimize thousands of hyperparameters
+  \item For instance, detailed weight initialization schemes
+  \item Meta-learned values roughly match $1 / \sqrt(N)$ heuristic
+\end{itemize}
+\end{minipage} & 
+\begin{minipage}[c]{0.4\columnwidth}
+\begin{center}
+Weight initialization scale
+
+\hspace{-1em}\includegraphics[width=0.8\columnwidth]{../experiments/Feb_3_training_schedules/3_adam_50/init_weight_learning_curve.pdf}
+\end{center}
+\end{minipage}
+\end{tabular}
+
+
+\mysection{Optimizing training data}
+
+\begin{center}
+Synthetic MNIST training examples
+
+\includegraphics[width=0.6\columnwidth]{../experiments/Jan_19_optimize_data/9_color_bar/fake_data.pdf}
+\end{center}
+
+Training data can be viewed as just another hyperparameter.
+We meta-learned MNIST training examples starting from blank pixels, optimizing validation loss.
+
+\vspace{0.5em}
+
+\mysection{Optimizing network architecture}
+
+\begin{itemize}
+\item Can optimize thousands of regularization params.
+\item Architecture can be controlled through regularization.
+\item We let the network choose which layers to share in a multi-task problem.
+\end{itemize}
+
+\vspace{1em}
+
 \begin{center}
 \begin{tabular}{cc}
- Biases & Weights \\
-\hspace{-1em}\includegraphics[width=0.3\columnwidth]{../experiments/Feb_3_training_schedules/3_adam_50/init_bias_learning_curve.pdf} &
-\hspace{-1em}\includegraphics[width=0.3\columnwidth]{../experiments/Feb_3_training_schedules/3_adam_50/init_weight_learning_curve.pdf}
+\rotatebox{90}{\qquad Rotated \qquad \quad Original} & 
+\includegraphics[width=0.5\columnwidth]{../experiments/Feb_4_augmented_omniglot/2_rotated_90/all_alphabets.png}
 \end{tabular}
 \end{center}
 
+\vspace{0.5em}
 
-\subsection{Optimizing training data}
+\begin{itemize}
+\item Network learned to share weights between related tasks.
+\item Learned sharing works better than all-or-nothing.
+\end{itemize}
 
+\vspace{0.5em}
 
-\includegraphics[width=0.5\columnwidth]{../experiments/Jan_19_optimize_data/9_color_bar/fake_data.pdf}
-
-
-\newpage
-
-
-\mysection{Optimizing regularization: Omniglot}
-
-\begin{center}
-\begin{tabular}{cc}
-\hspace{-3mm}\rotatebox{90}{\qquad Rotated \qquad \quad Original} & 
-\hspace{-3mm}\includegraphics[width=0.5\columnwidth]{../experiments/Feb_4_augmented_omniglot/2_rotated_90/all_alphabets.png}
-\end{tabular}
-\end{center}
-
-
-\newcommand{\omniimagea}[2]{\parbox{4em}{\includegraphics[width=1.4cm]{../experiments/Feb_4_augmented_omniglot/2_rotated_90/minifigs/learned_corr_#1_#2.pdf}}}%
+\newcommand{\omniimagea}[2]{\parbox{4em}{\includegraphics[width=3.4cm]{../experiments/Feb_4_augmented_omniglot/2_rotated_90/minifigs/learned_corr_#1_#2.pdf}}}%
 \newcommand{\omniimageb}[1]{\omniimagea{#1}{0} & \omniimagea{#1}{1} & \omniimagea{#1}{2}}%
 
 
@@ -198,19 +220,78 @@ Reverse update rule:
 \end{center}
 
 
-\mysection{Chaotic Learning Dynamics}
 
-\includegraphics[width=0.4\columnwidth]{../experiments/Jan_14_learning_rate_wiggliness/3/chaos.pdf}
-\vspace{-1.6em}
-\center Learning rate
+\newpage %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\mysection{Automatic differentiation of Numpy code}
+
+\mysection{Chaotic learning dynamics}
+
+
+
+\begin{tabular}{cc}
+\begin{minipage}[c]{0.4\columnwidth}
+\begin{itemize}
+\item Limitation: Gradient can become chaotic
+\item a.k.a.\ exploding gradients
+\item Happens when learning rate is near the optimum.
+\end{itemize}
+\end{minipage} & 
+\begin{minipage}[c]{0.55\columnwidth}
+\begin{center}
+\includegraphics[width=\columnwidth]{../experiments/Jan_14_learning_rate_wiggliness/3/chaos.pdf}
+Learning rate
+\end{center}
+\end{minipage}
+\end{tabular}
+
+\vspace{0.5em}
+
+\mysection{Stochastic gradient descent is reversible}
+
+To save memory during reverse-mode differentiation, we run SGD in reverse.
+
+\begin{tabular}{cc}
+\begin{minipage}[c]{0.4\columnwidth}
+Forward update rule:
+{\begin{align*}
+\vx_{t+1} & \leftarrow \vx_t + \alpha \vv_t \\
+\vv_{t+1} & \leftarrow \beta \vv_t - \nabla L\left(\vx_{t+1}\right)
+\end{align*}}
+\end{minipage}
+\begin{minipage}[c]{0.55\columnwidth}
+\begin{center}
+\includegraphics[width=\columnwidth]{../experiments/Jan_25_Figure_1/4_naive_reverse/learning_curve_forward.pdf}
+\end{center}
+\end{minipage}
+\end{tabular}
+
+
+\begin{tabular}{cc}
+\begin{minipage}[c]{0.4\columnwidth}
+Reverse update rule:
+{\begin{align*}
+\vv_{t} & \leftarrow \left(\vv_{t+1} + \nabla L\left(\vx_{t+1}\right)\right)/\beta \\
+\vx_{t} & \leftarrow \vx_{t+1} - \alpha \vv_t
+\end{align*}}
+\end{minipage}
+\begin{minipage}[c]{0.55\columnwidth}
+\begin{center}
+\includegraphics[width=\columnwidth]{../experiments/Jan_25_Figure_1/4_naive_reverse/learning_curve_reverse.pdf}
+\end{center}
+\end{minipage}
+\end{tabular}
+
+Need to store tiny corrections to each reversal step to ensure exact reversal.
+
+\vspace{0.5em}
 
 \mysection{Conclusion}
 
 \begin{itemize}
-\item We can compute gradients of learning procedures
-\item Can optimize thousands of hyperparameters
+\item We can compute gradients of learning procedures...
+\item This lets us optimize thousands of hyperparameters!
+\item All code for experiments at \url{github.com/HIPS/hypergrad}
+\item We also wrote an autodiff package that works on standard Numpy code:\\ \url{github.com/HIPS/autograd}
 \end{itemize}
 
 

@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.15 (TeX Live 2014) (preloaded format=pdflatex 2014.5.25)  14 MAY 2015 18:04
+This is pdfTeX, Version 3.14159265-2.6-1.40.15 (TeX Live 2014) (preloaded format=pdflatex 2014.5.25)  15 MAY 2015 14:01
 entering extended mode
  \write18 enabled.
  file:line:error style messages enabled.
@@ -991,7 +991,7 @@ LaTeX Info: Redefining \nameref on input line 40.
 
 
 ABD: EveryShipout initializing macros
-<badges/hips-logo.png, id=11, 551.1792pt x 224.2779pt>
+<badges/hips-logo.png, id=7, 551.1792pt x 224.2779pt>
 File: badges/hips-logo.png Graphic file (type png)
 
 <use badges/hips-logo.png>
@@ -1011,269 +1011,252 @@ LaTeX Font Info:    Try loading font information for U+msb on input line 80.
 (/usr/local/texlive/2014/texmf-dist/tex/latex/amsfonts/umsb.fd
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 )
-<badges/harvard.png, id=13, 1003.75pt x 1003.75pt>
+<badges/harvard.png, id=9, 1003.75pt x 1003.75pt>
 File: badges/harvard.png Graphic file (type png)
  <use badges/harvard.png>
 Package pdftex.def Info: badges/harvard.png used on input line 80.
 (pdftex.def)             Requested size: 227.62204pt x 239.31151pt.
-LaTeX Font Info:    Try loading font information for TS1+cmss on input line 104
+LaTeX Font Info:    Try loading font information for TS1+cmss on input line 102
 .
 
 (/usr/local/texlive/2014/texmf-dist/tex/latex/base/ts1cmss.fd
 File: ts1cmss.fd 1999/05/25 v2.5h Standard LaTeX font definitions
 )
-<../talks/talkfigs/learning_curves_3.pdf, id=17, 414.8298pt x 270.2898pt>
+<../talks/talkfigs/learning_curves_3.pdf, id=13, 414.8298pt x 270.2898pt>
 File: ../talks/talkfigs/learning_curves_3.pdf Graphic file (type pdf)
 
 <use ../talks/talkfigs/learning_curves_3.pdf>
 Package pdftex.def Info: ../talks/talkfigs/learning_curves_3.pdf used on input 
-line 114.
+line 121.
 (pdftex.def)             Requested size: 508.16754pt x 331.11821pt.
 
-<../experiments/Jan_25_Figure_1/4_naive_reverse/learning_curve_forward.pdf, id=
-18, 414.8298pt x 270.2898pt>
-File: ../experiments/Jan_25_Figure_1/4_naive_reverse/learning_curve_forward.pdf
- Graphic file (type pdf)
-
-<use ../experiments/Jan_25_Figure_1/4_naive_reverse/learning_curve_forward.pdf>
-Package pdftex.def Info: ../experiments/Jan_25_Figure_1/4_naive_reverse/learnin
-g_curve_forward.pdf used on input line 135.
-(pdftex.def)             Requested size: 406.52782pt x 264.89044pt.
-
-Overfull \hbox (19.79996pt too wide) in paragraph at lines 134--137
- [][] 
+Overfull \hbox (24.0pt too wide) in paragraph at lines 111--124
+[][] 
  []
 
 
-<../experiments/Jan_25_Figure_1/4_naive_reverse/learning_curve_reverse.pdf, id=
-19, 414.8298pt x 270.2898pt>
-File: ../experiments/Jan_25_Figure_1/4_naive_reverse/learning_curve_reverse.pdf
- Graphic file (type pdf)
+LaTeX Font Warning: Font shape `OT1/cmss/m/it' in size <29.86> not available
+(Font)              Font shape `OT1/cmss/m/sl' tried instead on input line 128.
 
-<use ../experiments/Jan_25_Figure_1/4_naive_reverse/learning_curve_reverse.pdf>
-Package pdftex.def Info: ../experiments/Jan_25_Figure_1/4_naive_reverse/learnin
-g_curve_reverse.pdf used on input line 140.
-(pdftex.def)             Requested size: 406.52782pt x 264.89044pt.
 
-<../experiments/Feb_3_training_schedules/5_initial_gradient/schedules_small.pdf
-, id=20, 380.59377pt x 184.13794pt>
-File: ../experiments/Feb_3_training_schedules/5_initial_gradient/schedules_smal
-l.pdf Graphic file (type pdf)
 
-<use ../experiments/Feb_3_training_schedules/5_initial_gradient/schedules_small
-.pdf>
-Package pdftex.def Info: ../experiments/Feb_3_training_schedules/5_initial_grad
-ient/schedules_small.pdf used on input line 149.
-(pdftex.def)             Requested size: 508.16754pt x 245.87816pt.
-
-<../experiments/Feb_3_training_schedules/3_adam_50/schedules_small.pdf, id=21, 
+<../experiments/Feb_3_training_schedules/3_adam_50/schedules_small.pdf, id=14, 
 381.03291pt x 189.97223pt>
 File: ../experiments/Feb_3_training_schedules/3_adam_50/schedules_small.pdf Gra
 phic file (type pdf)
 
 <use ../experiments/Feb_3_training_schedules/3_adam_50/schedules_small.pdf>
 Package pdftex.def Info: ../experiments/Feb_3_training_schedules/3_adam_50/sche
-dules_small.pdf used on input line 151.
-(pdftex.def)             Requested size: 508.16754pt x 253.35558pt.
+dules_small.pdf used on input line 132.
+(pdftex.def)             Requested size: 711.43144pt x 354.72737pt.
 
-<../experiments/Feb_3_training_schedules/3_adam_50/init_bias_learning_curve.pdf
-, id=22, 192.46593pt x 189.97223pt>
-File: ../experiments/Feb_3_training_schedules/3_adam_50/init_bias_learning_curv
-e.pdf Graphic file (type pdf)
+<../experiments/Feb_3_training_schedules/5_initial_gradient/schedules_small.pdf
+, id=15, 380.59377pt x 184.13794pt>
+File: ../experiments/Feb_3_training_schedules/5_initial_gradient/schedules_smal
+l.pdf Graphic file (type pdf)
 
-<use ../experiments/Feb_3_training_schedules/3_adam_50/init_bias_learning_curve
+<use ../experiments/Feb_3_training_schedules/5_initial_gradient/schedules_small
 .pdf>
-Package pdftex.def Info: ../experiments/Feb_3_training_schedules/3_adam_50/init
-_bias_learning_curve.pdf used on input line 160.
-(pdftex.def)             Requested size: 304.90363pt x 300.99635pt.
+Package pdftex.def Info: ../experiments/Feb_3_training_schedules/5_initial_grad
+ient/schedules_small.pdf used on input line 140.
+(pdftex.def)             Requested size: 711.43144pt x 344.22942pt.
 
 <../experiments/Feb_3_training_schedules/3_adam_50/init_weight_learning_curve.p
-df, id=23, 202.18976pt x 189.97223pt>
+df, id=16, 202.18976pt x 189.97223pt>
 File: ../experiments/Feb_3_training_schedules/3_adam_50/init_weight_learning_cu
 rve.pdf Graphic file (type pdf)
 
 <use ../experiments/Feb_3_training_schedules/3_adam_50/init_weight_learning_cur
 ve.pdf>
 Package pdftex.def Info: ../experiments/Feb_3_training_schedules/3_adam_50/init
-_weight_learning_curve.pdf used on input line 161.
-(pdftex.def)             Requested size: 304.90363pt x 286.47946pt.
+_weight_learning_curve.pdf used on input line 162.
+(pdftex.def)             Requested size: 325.22348pt x 305.57346pt.
 
-<../experiments/Jan_19_optimize_data/9_color_bar/fake_data.pdf, id=24, 328.9075
+Overfull \hbox (23.99998pt too wide) in paragraph at lines 150--166
+[][] 
+ []
+
+
+<../experiments/Jan_19_optimize_data/9_color_bar/fake_data.pdf, id=17, 328.9075
 3pt x 120.57678pt>
 File: ../experiments/Jan_19_optimize_data/9_color_bar/fake_data.pdf Graphic fil
 e (type pdf)
 
 <use ../experiments/Jan_19_optimize_data/9_color_bar/fake_data.pdf>
 Package pdftex.def Info: ../experiments/Jan_19_optimize_data/9_color_bar/fake_d
-ata.pdf used on input line 169.
-(pdftex.def)             Requested size: 508.16754pt x 186.29227pt.
+ata.pdf used on input line 173.
+(pdftex.def)             Requested size: 609.80725pt x 223.57501pt.
 
-<../experiments/Feb_4_augmented_omniglot/2_rotated_90/all_alphabets.png, id=25,
+<../experiments/Feb_4_augmented_omniglot/2_rotated_90/all_alphabets.png, id=18,
  566.5968pt x 381.5856pt>
 File: ../experiments/Feb_4_augmented_omniglot/2_rotated_90/all_alphabets.png Gr
 aphic file (type png)
 
 <use ../experiments/Feb_4_augmented_omniglot/2_rotated_90/all_alphabets.png>
 Package pdftex.def Info: ../experiments/Feb_4_augmented_omniglot/2_rotated_90/a
-ll_alphabets.png used on input line 180.
+ll_alphabets.png used on input line 194.
 (pdftex.def)             Requested size: 508.16754pt x 342.23605pt.
 
-Underfull \hbox (badness 10000) in paragraph at lines 194--194
+Underfull \hbox (badness 10000) in paragraph at lines 216--216
 []\OT1/cmss/m/n/29.86 Separate
  []
 
 
 <../experiments/Feb_4_augmented_omniglot/2_rotated_90/minifigs/learned_corr_no_
-sharing_0.pdf, id=26, 82.3878pt x 82.3878pt>
+sharing_0.pdf, id=19, 82.3878pt x 82.3878pt>
 File: ../experiments/Feb_4_augmented_omniglot/2_rotated_90/minifigs/learned_cor
 r_no_sharing_0.pdf Graphic file (type pdf)
 
 <use ../experiments/Feb_4_augmented_omniglot/2_rotated_90/minifigs/learned_corr
 _no_sharing_0.pdf>
 Package pdftex.def Info: ../experiments/Feb_4_augmented_omniglot/2_rotated_90/m
-inifigs/learned_corr_no_sharing_0.pdf used on input line 194.
-(pdftex.def)             Requested size: 39.83368pt x 39.83356pt.
+inifigs/learned_corr_no_sharing_0.pdf used on input line 216.
+(pdftex.def)             Requested size: 96.73918pt x 96.74405pt.
 
 <../experiments/Feb_4_augmented_omniglot/2_rotated_90/minifigs/learned_corr_no_
-sharing_1.pdf, id=27, 82.3878pt x 82.3878pt>
+sharing_1.pdf, id=20, 82.3878pt x 82.3878pt>
 File: ../experiments/Feb_4_augmented_omniglot/2_rotated_90/minifigs/learned_cor
 r_no_sharing_1.pdf Graphic file (type pdf)
 
 <use ../experiments/Feb_4_augmented_omniglot/2_rotated_90/minifigs/learned_corr
 _no_sharing_1.pdf>
 Package pdftex.def Info: ../experiments/Feb_4_augmented_omniglot/2_rotated_90/m
-inifigs/learned_corr_no_sharing_1.pdf used on input line 194.
-(pdftex.def)             Requested size: 39.83368pt x 39.83356pt.
+inifigs/learned_corr_no_sharing_1.pdf used on input line 216.
+(pdftex.def)             Requested size: 96.73918pt x 96.74405pt.
 
 <../experiments/Feb_4_augmented_omniglot/2_rotated_90/minifigs/learned_corr_no_
-sharing_2.pdf, id=28, 82.3878pt x 82.3878pt>
+sharing_2.pdf, id=21, 82.3878pt x 82.3878pt>
 File: ../experiments/Feb_4_augmented_omniglot/2_rotated_90/minifigs/learned_cor
 r_no_sharing_2.pdf Graphic file (type pdf)
 
 <use ../experiments/Feb_4_augmented_omniglot/2_rotated_90/minifigs/learned_corr
 _no_sharing_2.pdf>
 Package pdftex.def Info: ../experiments/Feb_4_augmented_omniglot/2_rotated_90/m
-inifigs/learned_corr_no_sharing_2.pdf used on input line 194.
-(pdftex.def)             Requested size: 39.83368pt x 39.83356pt.
+inifigs/learned_corr_no_sharing_2.pdf used on input line 216.
+(pdftex.def)             Requested size: 96.73918pt x 96.74405pt.
 
-Underfull \hbox (badness 10000) in paragraph at lines 195--195
+Underfull \hbox (badness 10000) in paragraph at lines 217--217
 []\OT1/cmss/m/n/29.86 Tied
  []
 
 
 <../experiments/Feb_4_augmented_omniglot/2_rotated_90/minifigs/learned_corr_ful
-l_sharing_0.pdf, id=29, 82.3878pt x 82.3878pt>
+l_sharing_0.pdf, id=22, 82.3878pt x 82.3878pt>
 File: ../experiments/Feb_4_augmented_omniglot/2_rotated_90/minifigs/learned_cor
 r_full_sharing_0.pdf Graphic file (type pdf)
 
 <use ../experiments/Feb_4_augmented_omniglot/2_rotated_90/minifigs/learned_corr
 _full_sharing_0.pdf>
 Package pdftex.def Info: ../experiments/Feb_4_augmented_omniglot/2_rotated_90/m
-inifigs/learned_corr_full_sharing_0.pdf used on input line 195.
-(pdftex.def)             Requested size: 39.83368pt x 39.83356pt.
+inifigs/learned_corr_full_sharing_0.pdf used on input line 217.
+(pdftex.def)             Requested size: 96.73918pt x 96.74405pt.
 
 <../experiments/Feb_4_augmented_omniglot/2_rotated_90/minifigs/learned_corr_ful
-l_sharing_1.pdf, id=30, 82.3878pt x 82.3878pt>
+l_sharing_1.pdf, id=23, 82.3878pt x 82.3878pt>
 File: ../experiments/Feb_4_augmented_omniglot/2_rotated_90/minifigs/learned_cor
 r_full_sharing_1.pdf Graphic file (type pdf)
 
 <use ../experiments/Feb_4_augmented_omniglot/2_rotated_90/minifigs/learned_corr
 _full_sharing_1.pdf>
 Package pdftex.def Info: ../experiments/Feb_4_augmented_omniglot/2_rotated_90/m
-inifigs/learned_corr_full_sharing_1.pdf used on input line 195.
-(pdftex.def)             Requested size: 39.83368pt x 39.83356pt.
+inifigs/learned_corr_full_sharing_1.pdf used on input line 217.
+(pdftex.def)             Requested size: 96.73918pt x 96.74405pt.
 
 <../experiments/Feb_4_augmented_omniglot/2_rotated_90/minifigs/learned_corr_ful
-l_sharing_2.pdf, id=31, 82.3878pt x 82.3878pt>
+l_sharing_2.pdf, id=24, 82.3878pt x 82.3878pt>
 File: ../experiments/Feb_4_augmented_omniglot/2_rotated_90/minifigs/learned_cor
 r_full_sharing_2.pdf Graphic file (type pdf)
 
 <use ../experiments/Feb_4_augmented_omniglot/2_rotated_90/minifigs/learned_corr
 _full_sharing_2.pdf>
 Package pdftex.def Info: ../experiments/Feb_4_augmented_omniglot/2_rotated_90/m
-inifigs/learned_corr_full_sharing_2.pdf used on input line 195.
-(pdftex.def)             Requested size: 39.83368pt x 39.83356pt.
+inifigs/learned_corr_full_sharing_2.pdf used on input line 217.
+(pdftex.def)             Requested size: 96.73918pt x 96.74405pt.
 
-Underfull \hbox (badness 10000) in paragraph at lines 196--196
+Underfull \hbox (badness 10000) in paragraph at lines 218--218
 []\OT1/cmss/m/n/29.86 Learned
  []
 
 
 <../experiments/Feb_4_augmented_omniglot/2_rotated_90/minifigs/learned_corr_lea
-rned_sharing_0.pdf, id=32, 82.3878pt x 82.3878pt>
+rned_sharing_0.pdf, id=25, 82.3878pt x 82.3878pt>
 File: ../experiments/Feb_4_augmented_omniglot/2_rotated_90/minifigs/learned_cor
 r_learned_sharing_0.pdf Graphic file (type pdf)
 
 <use ../experiments/Feb_4_augmented_omniglot/2_rotated_90/minifigs/learned_corr
 _learned_sharing_0.pdf>
 Package pdftex.def Info: ../experiments/Feb_4_augmented_omniglot/2_rotated_90/m
-inifigs/learned_corr_learned_sharing_0.pdf used on input line 196.
-(pdftex.def)             Requested size: 39.83368pt x 39.83356pt.
+inifigs/learned_corr_learned_sharing_0.pdf used on input line 218.
+(pdftex.def)             Requested size: 96.73918pt x 96.74405pt.
 
 <../experiments/Feb_4_augmented_omniglot/2_rotated_90/minifigs/learned_corr_lea
-rned_sharing_1.pdf, id=33, 82.3878pt x 82.3878pt>
+rned_sharing_1.pdf, id=26, 82.3878pt x 82.3878pt>
 File: ../experiments/Feb_4_augmented_omniglot/2_rotated_90/minifigs/learned_cor
 r_learned_sharing_1.pdf Graphic file (type pdf)
 
 <use ../experiments/Feb_4_augmented_omniglot/2_rotated_90/minifigs/learned_corr
 _learned_sharing_1.pdf>
 Package pdftex.def Info: ../experiments/Feb_4_augmented_omniglot/2_rotated_90/m
-inifigs/learned_corr_learned_sharing_1.pdf used on input line 196.
-(pdftex.def)             Requested size: 39.83368pt x 39.83356pt.
+inifigs/learned_corr_learned_sharing_1.pdf used on input line 218.
+(pdftex.def)             Requested size: 96.73918pt x 96.74405pt.
 
 <../experiments/Feb_4_augmented_omniglot/2_rotated_90/minifigs/learned_corr_lea
-rned_sharing_2.pdf, id=34, 82.3878pt x 82.3878pt>
+rned_sharing_2.pdf, id=27, 82.3878pt x 82.3878pt>
 File: ../experiments/Feb_4_augmented_omniglot/2_rotated_90/minifigs/learned_cor
 r_learned_sharing_2.pdf Graphic file (type pdf)
 
 <use ../experiments/Feb_4_augmented_omniglot/2_rotated_90/minifigs/learned_corr
 _learned_sharing_2.pdf>
 Package pdftex.def Info: ../experiments/Feb_4_augmented_omniglot/2_rotated_90/m
-inifigs/learned_corr_learned_sharing_2.pdf used on input line 196.
-(pdftex.def)             Requested size: 39.83368pt x 39.83356pt.
+inifigs/learned_corr_learned_sharing_2.pdf used on input line 218.
+(pdftex.def)             Requested size: 96.73918pt x 96.74405pt.
 
-<../experiments/Jan_14_learning_rate_wiggliness/3/chaos.pdf, id=35, 321.44466pt
+<../experiments/Jan_14_learning_rate_wiggliness/3/chaos.pdf, id=28, 321.44466pt
  x 261.40158pt>
 File: ../experiments/Jan_14_learning_rate_wiggliness/3/chaos.pdf Graphic file (
 type pdf)
 
 <use ../experiments/Jan_14_learning_rate_wiggliness/3/chaos.pdf>
 Package pdftex.def Info: ../experiments/Jan_14_learning_rate_wiggliness/3/chaos
-.pdf used on input line 203.
-(pdftex.def)             Requested size: 406.52782pt x 330.59622pt.
- [1
+.pdf used on input line 241.
+(pdftex.def)             Requested size: 558.9874pt x 454.57977pt.
+
+<../experiments/Jan_25_Figure_1/4_naive_reverse/learning_curve_forward.pdf, id=
+29, 414.8298pt x 270.2898pt>
+File: ../experiments/Jan_25_Figure_1/4_naive_reverse/learning_curve_forward.pdf
+ Graphic file (type pdf)
+
+<use ../experiments/Jan_25_Figure_1/4_naive_reverse/learning_curve_forward.pdf>
+Package pdftex.def Info: ../experiments/Jan_25_Figure_1/4_naive_reverse/learnin
+g_curve_forward.pdf used on input line 263.
+(pdftex.def)             Requested size: 558.9874pt x 364.2321pt.
+
+<../experiments/Jan_25_Figure_1/4_naive_reverse/learning_curve_reverse.pdf, id=
+30, 414.8298pt x 270.2898pt>
+File: ../experiments/Jan_25_Figure_1/4_naive_reverse/learning_curve_reverse.pdf
+ Graphic file (type pdf)
+
+<use ../experiments/Jan_25_Figure_1/4_naive_reverse/learning_curve_reverse.pdf>
+Package pdftex.def Info: ../experiments/Jan_25_Figure_1/4_naive_reverse/learnin
+g_curve_reverse.pdf used on input line 279.
+(pdftex.def)             Requested size: 558.9874pt x 364.2321pt.
+[1
 
 
 Non-PDF special ignored!
 Non-PDF special ignored!{/usr/local/texlive/2014/texmf-var/fonts/map/pdftex/upd
 map/pdftex.map} <./badges/harvard.png> <./badges/hips-logo.png> <../talks/talkf
-igs/learning_curves_3.pdf> <../experiments/Jan_25_Figure_1/4_naive_reverse/lear
-ning_curve_forward.pdf
+igs/learning_curves_3.pdf> <../experiments/Feb_3_training_schedules/3_adam_50/s
+chedules_small.pdf
 
-pdfTeX warning: /usr/texbin/pdflatex (file ../experiments/Jan_25_Figure_1/4_nai
-ve_reverse/learning_curve_forward.pdf): PDF inclusion: multiple pdfs with page 
-group included in a single page
-> <../experiments/Jan_25_Figure_1/4_naive_reverse/learning_curve_reverse.pdf
-
-pdfTeX warning: /usr/texbin/pdflatex (file ../experiments/Jan_25_Figure_1/4_nai
-ve_reverse/learning_curve_reverse.pdf): PDF inclusion: multiple pdfs with page 
-group included in a single page
+pdfTeX warning: /usr/texbin/pdflatex (file ../experiments/Feb_3_training_schedu
+les/3_adam_50/schedules_small.pdf): PDF inclusion: multiple pdfs with page grou
+p included in a single page
 > <../experiments/Feb_3_training_schedules/5_initial_gradient/schedules_small.p
 df
 
 pdfTeX warning: /usr/texbin/pdflatex (file ../experiments/Feb_3_training_schedu
 les/5_initial_gradient/schedules_small.pdf): PDF inclusion: multiple pdfs with 
-page group included in a single page
-> <../experiments/Feb_3_training_schedules/3_adam_50/schedules_small.pdf
-
-pdfTeX warning: /usr/texbin/pdflatex (file ../experiments/Feb_3_training_schedu
-les/3_adam_50/schedules_small.pdf): PDF inclusion: multiple pdfs with page grou
-p included in a single page
-> <../experiments/Feb_3_training_schedules/3_adam_50/init_bias_learning_curve.p
-df
-
-pdfTeX warning: /usr/texbin/pdflatex (file ../experiments/Feb_3_training_schedu
-les/3_adam_50/init_bias_learning_curve.pdf): PDF inclusion: multiple pdfs with 
 page group included in a single page
 > <../experiments/Feb_3_training_schedules/3_adam_50/init_weight_learning_curve
 .pdf
@@ -1346,36 +1329,49 @@ ultiple pdfs with page group included in a single page
 pdfTeX warning: /usr/texbin/pdflatex (file ../experiments/Jan_14_learning_rate_
 wiggliness/3/chaos.pdf): PDF inclusion: multiple pdfs with page group included 
 in a single page
+> <../experiments/Jan_25_Figure_1/4_naive_reverse/learning_curve_forward.pdf
+
+pdfTeX warning: /usr/texbin/pdflatex (file ../experiments/Jan_25_Figure_1/4_nai
+ve_reverse/learning_curve_forward.pdf): PDF inclusion: multiple pdfs with page 
+group included in a single page
+> <../experiments/Jan_25_Figure_1/4_naive_reverse/learning_curve_reverse.pdf
+
+pdfTeX warning: /usr/texbin/pdflatex (file ../experiments/Jan_25_Figure_1/4_nai
+ve_reverse/learning_curve_reverse.pdf): PDF inclusion: multiple pdfs with page 
+group included in a single page
 >]
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 221.
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 221.
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 302.
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 302.
  (./hypergrad-poster-neml.aux)
-Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 221.
-Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 221.
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 302.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 302.
 Package rerunfilecheck Info: File `hypergrad-poster-neml.out' has not changed.
-(rerunfilecheck)             Checksum: 301088F743285E1348E469AB5A0994C3;64.
-Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 221.
+(rerunfilecheck)             Checksum: D41D8CD98F00B204E9800998ECF8427E;0.
+Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 302.
  ) 
 Here is how much of TeX's memory you used:
- 18901 strings out of 493117
- 364183 string characters out of 6135433
- 450068 words of memory out of 5000000
- 21946 multiletter control sequences out of 15000+600000
- 16259 words of font info for 59 fonts, out of 8000000 for 9000
+ 18896 strings out of 493117
+ 363845 string characters out of 6135433
+ 460068 words of memory out of 5000000
+ 21942 multiletter control sequences out of 15000+600000
+ 16786 words of font info for 61 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 55i,21n,60p,480b,906s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 55i,22n,60p,480b,897s stack positions out of 5000i,500n,10000p,200000b,80000s
 {/usr/local/texlive/2014/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.enc
 }</usr/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb>
-</usr/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi12.pfb><
-/usr/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmr17.pfb></u
-sr/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmss17.pfb></us
-r/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmssbx10.pfb></u
-sr/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></us
-r/local/texlive/2014/texmf-dist/fonts/type1/public/cm-super/sfss2986.pfb>
-Output written on hypergrad-poster-neml.pdf (1 page, 799140 bytes).
+</usr/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb><
+/usr/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi12.pfb></
+usr/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmr17.pfb></us
+r/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmss17.pfb></usr
+/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmssbx10.pfb></us
+r/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmssi17.pfb></us
+r/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr
+/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt12.pfb></usr/
+local/texlive/2014/texmf-dist/fonts/type1/public/cm-super/sfss2986.pfb>
+Output written on hypergrad-poster-neml.pdf (1 page, 808969 bytes).
 PDF statistics:
- 800 PDF objects out of 1000 (max. 8388607)
+ 776 PDF objects out of 1000 (max. 8388607)
  120 compressed objects within 2 object streams
- 4 named destinations out of 1000 (max. 500000)
- 138 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 2 named destinations out of 1000 (max. 500000)
+ 125 words of extra memory for PDF output out of 10000 (max. 10000000)
 
