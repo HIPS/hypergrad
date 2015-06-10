@@ -1,7 +1,7 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-from funkyyak import grad
+from autograd import grad
 
 # Taylor approximation to sin function
 def fun(x):

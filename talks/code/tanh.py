@@ -1,7 +1,7 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-from funkyyak import grad
+from autograd import grad
 
 def tanh(x):
     return (1 - np.exp(-x)) / (1 + np.exp(-x))

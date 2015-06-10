@@ -1,20 +1,22 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.15 (TeX Live 2014) (preloaded format=pdflatex 2014.5.25)  15 MAY 2015 14:01
+This is pdfTeX, Version 3.14159265-2.6-1.40.15 (TeX Live 2014) (preloaded format=pdftex 2014.5.25)  15 MAY 2015 12:15
 entering extended mode
- \write18 enabled.
+ restricted \write18 enabled.
  file:line:error style messages enabled.
  %&-line parsing enabled.
 **hypergrad-poster-neml.tex
 (./hypergrad-poster-neml.tex
-LaTeX2e <2014/05/01>
-Babel <3.9k> and hyphenation patterns for 78 languages loaded.
-(./include/a0poster.cls
+./hypergrad-poster-neml.tex:12: Undefined control sequence.
+l.12 \documentclass
+                   [landscape,a0b,final,a4resizeable]{include/a0poster}
+? 
+./hypergrad-poster-neml.tex:12: Emergency stop.
+l.12 \documentclass
+                   [landscape,a0b,final,a4resizeable]{include/a0poster}
+End of file on the terminal!
 
-LaTeX Warning: You have requested document class `include/a0poster',
-               but the document class provides `a0poster'.
-
-Document Class: a0poster 2004/01/31 v1.22b a0poster class (GK, MW)
-(/usr/local/texlive/2014/texmf-dist/tex/latex/base/article.cls
-Document Class: article 2007/10/19 v1.4h Standard LaTeX document class
+./hypergrad-poster-neml.tex:12:  ==> Fatal error occurred, no output PDF file p
+roduced!
+ document class
 (/usr/local/texlive/2014/texmf-dist/tex/latex/base/size10.clo
 File: size10.clo 2007/10/19 v1.4h Standard LaTeX file (size option)
 )

@@ -22,23 +22,12 @@
         }
 \lstset{language=Python} 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
-% Some look and feel definitions
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 \setlength{\columnsep}{0.03\textwidth}
 \setlength{\columnseprule}{0.0018\textwidth}
 \setlength{\parindent}{0.0cm}
 \hypersetup{colorlinks=true,citecolor=blue}
 \newcommand{\paren}[1]{\left( #1 \right)}
 \newcommand{\vv}{\mathbf{v}}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
-% The talk
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \title{Hyperparameter optimization: \\ why not use gradients?}
 
@@ -85,17 +74,17 @@ Dougal Maclaurin, David Duvenaud, Ryan Adams}
 \end{tikzpicture}}
 }
 
-\frame[plain]{\frametitle{FunkyYak: Automatic Differentiation} 
+\frame[plain]{\frametitle{Autograd: Automatic Differentiation} 
 \begin{itemize} 
-  \item \url{github.com/HIPS/FunkyYak}
+  \item \url{github.com/HIPS/autograd}
   \item Simple ($\sim$ 300 lines of code)
   \item Functional interface
   \item Works with (almost) arbitrary Python/numpy code
-  \item Can take gradients all the way down
-  \item The second most popular automatic differentiation package written at Harvard in fall 2014
+  \item Can take gradients of gradients (of gradients...)
+  %\item The second most popular automatic differentiation package written at Harvard in fall 2014
 \end{itemize}}
 
-\frame[plain]{\frametitle{FunkyYak Examples}
+\frame[plain]{\frametitle{Autograd Examples}
 \begin{columns}
 \begin{column}{5.5cm}
 \lstinputlisting{code/sinusoid.py} 
@@ -105,7 +94,7 @@ Dougal Maclaurin, David Duvenaud, Ryan Adams}
 \end{column}
 \end{columns}}
 
-\frame[plain]{\frametitle{FunkyYak Examples}
+\frame[plain]{\frametitle{Autograd Examples}
 \begin{columns}
 \begin{column}{5.5cm}
 \lstinputlisting{code/sinusoid-taylor.py} 
@@ -115,7 +104,7 @@ Dougal Maclaurin, David Duvenaud, Ryan Adams}
 \end{column}
 \end{columns}}
 
-\frame[plain]{\frametitle{FunkyYak Examples}
+\frame[plain]{\frametitle{Autograd Examples}
 \begin{columns}
 \begin{column}{5.5cm}
 \lstinputlisting{code/tanh.py}
@@ -218,7 +207,7 @@ Reverse update rule:
 \frame[plain]{\frametitle{Naive reversal ... Fails!}
 \includegraphics[width=0.9\columnwidth]{../experiments/Jan_25_Figure_1/4_naive_reverse/learning_curve_reverse.pdf}}
 
-\frame[plain]{\frametitle{A closer look as reverse SGD}
+\frame[plain]{\frametitle{A closer look at reverse SGD}
 Forward update rule:
 \begin{align*}
 \vx_{t+1} & \leftarrow \vx_t + \alpha \vv_t \\

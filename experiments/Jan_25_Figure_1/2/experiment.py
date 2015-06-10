@@ -161,7 +161,7 @@ def plot():
     plt.savefig('learning_curves.pdf', pad_inches=0.05, bbox_inches='tight')
 
 if __name__ == '__main__':
-    results = run()
-    with open('results.pkl', 'w') as f:
-        pickle.dump(results, f)
+    #results = run()
+    #with open('results.pkl', 'w') as f:
+    #    pickle.dump(results, f)
     plot()
