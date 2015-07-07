@@ -9,6 +9,8 @@
 \usepackage{listings}
 %\usepackage{algorithm}
 %\usepackage{algpseudocode}
+\usepackage{algorithm}
+\usepackage[noend]{algpseudocode}
 
 \definecolor{Blue}{rgb}{0.0,0.0,1.0}
 \lstloadlanguages{Python}%
@@ -32,6 +34,16 @@
 \hypersetup{colorlinks=true,citecolor=blue}
 \newcommand{\paren}[1]{\left( #1 \right)}
 \newcommand{\vv}{\mathbf{v}}
+
+\newcommand{\primal}{elementary}
+\newcommand{\Primal}{Elementary}
+\newcommand{\numhypers}{N}
+\newcommand{\hypers}{{\boldsymbol{\theta}}}
+\newcommand{\numsteps}{T}
+\newcommand{\decays}{{\boldsymbol{\decay}}}
+\newcommand{\stepsize}{\alpha}
+\newcommand{\stepsizes}{{\boldsymbol{\stepsize}}}
+\newcommand{\gradparams}{\nabla_\params L(\params_t, \hypers, t)}
 
 \title{Hyperparameter optimization: \\ Why not use gradients?}
 %\title{Gradient-based Hyperparameter Optimization with Reversible Learning}
@@ -60,15 +72,15 @@ Dougal Maclaurin, David Duvenaud, Ryan Adams}
 \begin{itemize} 
   \item Hyperparameters are everywhere
   \begin{itemize}
-	\item sometimes hidden
+	\item sometimes hidden!
   \end{itemize}
-  \item Gradient-free optimization hard in high dimensions
+  \item Gradient-free optimization is hard %in high dimensions
   \item Validation loss is a function of hyperparameters
   \item Why not take gradients?
 \end{itemize}}
 
 \frame[plain]{\frametitle{Optimizing optimization}
-\center ${\params_{final} = \textnormal{SGD} \left(\params_{init}, \textnormal{learn rate}, \textnormal{momentum}, \textnormal{Loss}(\params, \textnormal{reg}, Data) \right)}$
+\center ${\params_{final} = \textnormal{SGD} \left(\params_{init}, \textnormal{learn rate}, \textnormal{momentum}, \nabla \textnormal{Loss}(\params, \textnormal{reg}, Data) \right)}$
 
 \includegraphics<1>[width=0.9\columnwidth]{talkfigs/learning_curves_1.pdf}
 \includegraphics<2>[width=0.9\columnwidth]{talkfigs/learning_curves_2.pdf}
@@ -77,10 +89,82 @@ Dougal Maclaurin, David Duvenaud, Ryan Adams}
 
 
 
-\frame[plain]{\frametitle{A closer look}
-\center ${J = Loss \left( D_{val}, \textnormal{SGD} \left(\vw_{init}, \learnrate, \decay, \textnormal{Loss}(D_{train}, \vw, \textnormal{reg}) \right)\right)}$
+\frame[plain]{\frametitle{A pretty scary function to differentiate}
 
-\center ${\frac{\partial J}{\partial D_{train}} = Loss \left( D_{val}, \textnormal{SGD} \left(\vw_{init}, \learnrate, \decay, \textnormal{Loss}(D_{train}, \vw, \textnormal{reg}) \right)\right)}$
+\vspace{0.3cm}
+
+\center ${J = Loss \left( D_{val}, \textnormal{SGD} \left(\vx_{init}, \learnrate, \decay, \nabla \textnormal{Loss}(D_{train}, \vx, \textnormal{reg}) \right)\right)}$
+
+\vspace{-0.6cm}
+
+\centerline{
+\begin{minipage}[t]{0.8\columnwidth}
+\begin{algorithm}[H]
+\small
+   \caption{SGD}
+   \label{alg:sgd}
+\begin{algorithmic}[1]
+   \State {\bfseries input:} initial $\params_1$, decay $\decays$, learning rate $\stepsizes$, regularization params $\theta$, loss function $L(\params, \hypers, t)$
+   \State initialize $\vv_1 = \vzero$
+   \For{$t=1$ {\bfseries to} $T$}
+   \State $\vg_t = \gradparams$ \Comment{evaluate gradient}
+   \State $\vv_{t+1} = \decay_t \vv_t - (1 - \decay_t) \vg_t$ \Comment{update velocity}  \label{step:update velocity}
+   \State $\params_{t+1} = \params_t + \stepsize_t \vv_t$ \Comment{update position} \label{step:update position}
+   \EndFor
+   \State \textbf{output} trained parameters $\params_T$
+\end{algorithmic}
+\end{algorithm}
+\end{minipage}
+}
+\vspace{0.3cm}
+\begin{itemize}
+\item Each gradient evaluation in SGD requires forward and backprop through model
+\item Entire learning procedure looks like a 1000-layer deep net
+\end{itemize}
+
+}
+
+\frame[plain]{\frametitle{Autograd: Automatic Differentiation} 
+\begin{itemize} 
+  \item \url{github.com/HIPS/autograd}
+  \item Simple ($\sim$ 300 lines of code)
+  \item Functional interface
+  \item Works with (almost) arbitrary Python/Numpy code
+  \item Can take gradients of gradients (of gradients...)
+\end{itemize}}
+
+\frame[plain]{\frametitle{Autograd Example}
+\begin{columns}
+\begin{column}{5.5cm}
+\lstinputlisting{code/sinusoid-taylor.py} 
+\end{column}
+\begin{column}{5cm}
+\includegraphics[width=6cm]{code/sinusoid_taylor.png}
+\end{column}
+\end{columns}}
+
+\frame[plain]{\frametitle{Most Numpy functions implemented}
+\vspace{0.5cm}
+\newcommand{\us}{\textunderscore}
+\centerline{
+\begin{tabular}{llllllll}
+ Complex             & Array         & Misc      & Linear   & Stats   \\
+ \& Fourier          &               &           & Algebra  &          \\
+\midrule
+ imag                & atleast\us 1d & logsumexp & inv      & std      \\
+ conjugate           & atleast\us 2d & where     & norm     & mean  \\
+ angle               & atleast\us 3d & einsum    & det      & var   \\
+ real\us if\us close & full          & sort      & eigh     & prod     \\
+ real                & repeat        & partition & solve    & sum       \\
+ fabs                & split         & clip      & trace    & cumsum  \\
+ fft                 & concatenate   & outer     & diag     &        \\
+ fftshift            & roll          & dot       & tril     &         \\
+ fft2                & transpose     & tensordot & triu     &        \\
+ ifftn               & reshape       & rot90     &          &        \\
+ ifftshift           & squeeze       &           &          &        \\
+ ifft2               & ravel         &           &          &        \\
+ ifft                & expand\us dims&           &          &       
+\end{tabular}}
 }
 
 
@@ -105,6 +189,58 @@ Reverse update rule:
 \end{align*}
 }
 
+\frame[plain]{\frametitle{Reverse-mode differentiation of SGD}
+\hspace{-0.9cm}\begin{minipage}[t]{0.5\columnwidth}
+\begin{algorithm}[H]
+\tiny
+   \caption{SGD}
+   \label{alg:sgd}
+\begin{algorithmic}[1]
+   \State {\bfseries input:} initial $\params_1$, decays $\decays$, learning rates $\stepsizes$, loss function $L(\params, \hypers, t)$
+   \State initialize $\vv_1 = \vzero$
+   \For{$t=1$ {\bfseries to} $T$}
+   \State $\vg_t = \gradparams$ \Comment{evaluate gradient}
+   \State $\vv_{t+1} = \decay_t \vv_t - (1 - \decay_t) \vg_t$ \Comment{update velocity}  \label{step:update velocity}
+   \State $\params_{t+1} = \params_t + \stepsize_t \vv_t$ \Comment{update position} \label{step:update position}
+   \EndFor
+   \State \textbf{output} trained parameters $\params_T$
+\end{algorithmic}
+\end{algorithm}
+\end{minipage}
+\hfill
+\begin{minipage}[t]{0.55\columnwidth}
+\begin{algorithm}[H]
+   \caption{Gradient of SGD}
+   \label{alg:reverse-sgd}
+\begin{algorithmic}[1]
+\tiny
+   \State {\bfseries input:} $\params_T$, $\vv_T$, $\decays$, $\stepsizes$, train loss $L(\params, \hypers, t)$, loss $f(\params)$
+   \State initialize $d\vv = \vzero$, $d\hypers = \vzero$, $d\stepsize_t = \vzero$, $d\decay = \vzero$
+   \State initialize $d\params = \nabla_\params f(\params_T)$
+   \For{$t=T$ {\bfseries counting down to} $1$}
+   \State $d\stepsize_t = d\params\tra \vv_t$
+   \State $\params_{t-1} = \params_t - \stepsize_t \vv_t$ \Comment{downdate position}
+   %\vspace{-0.95\baselineskip}
+   \State $\vg_t = \gradparams$ \Comment{evaluate gradient}
+   %\hfill \scalebox{1.1}{\Bigg\}} \vspace{-\baselineskip} \begin{minipage}{2.5cm} reverse \\ SGD \\ ops \strut \end{minipage}
+   \State $\vv_{t-1} = [\vv_t + (1 - \decay_t) \vg_t] / \decay_t$ \Comment{downdate velocity}
+   \State $d\vv = d\vv + \stepsize_t d\params$
+   \State $d\decay_t = d\vv\tra (\vv_t + \vg_t)$
+   \State $d\params = d\params - (1 - \decay_t) d\vv \nabla_\params \gradparams$ \label{line:hvp1}
+   \State $d\hypers = d\hypers - (1 - \decay_t) d\vv \nabla_\hypers \gradparams$ \label{line:hvp2}
+   \State $d\vv = \decay_t d\vv$
+   \EndFor
+   \State \textbf{output} gradient of $f(\params_T)$ w.r.t $\params_1$, $\vv_1$, $\decays$, $\stepsizes$ and $\hypers$
+\end{algorithmic}
+\end{algorithm}
+\end{minipage}
+
+\vspace{1cm}
+
+Outputs gradients with respect to all inputs (hyperparameters).
+}
+
+
 \frame[plain]{\frametitle{Naive reversal \phantom{... Fails!}}
 \includegraphics[width=0.9\columnwidth]{../experiments/Jan_25_Figure_1/4_naive_reverse/learning_curve_forward.pdf}}
 
@@ -119,7 +255,7 @@ Forward update rule:
 \end{align*}
 %\begin{itemize}
 %\item 
-Destroys $\log_2 \beta$ bits per parameter per iteration 
+Destroys $\log_2 \beta$ bits per parameter per iteration
 %\end{itemize}
 
 \vspace{1cm}
@@ -149,7 +285,15 @@ Needs $\log_2 \beta$ bits per parameter per iteration
 \lstinputlisting{code/infobuffer.py}
 \begin{itemize} 
 \item 200X memory savings when $\beta = 0.9$
+\item Now we have scalable gradients of hypers, only twice as slow as original!
 \end{itemize}
+}
+
+\frame[plain]{\frametitle{}
+
+\Huge
+\centerline{
+Part 2: A Garden of Delights}
 }
 
 
@@ -169,6 +313,11 @@ Needs $\log_2 \beta$ bits per parameter per iteration
 }
 
 \frame[plain]{\frametitle{Optimized learning rates}
+\begin{itemize}
+\item Used SGD to optimize SGD
+\item 4-layer NN on MNIST
+\item Top layer learns early on; slowdown at end
+\end{itemize}
 \includegraphics[width=\columnwidth]{../experiments/Feb_3_training_schedules/3_adam_50/schedules_small.pdf}}
 
 \frame[plain]{\frametitle{Optimizing initialization scales} 
@@ -188,7 +337,7 @@ Needs $\log_2 \beta$ bits per parameter per iteration
 \begin{align*}
 \frac{\partial Loss \left( D_{val}, \params_{init}, \learnrate, \decay, D_{train}, \textnormal{reg} \right)}{\partial \textnormal{reg}}
 \end{align*}
-Optimized $L_2$ regularization hyperparameters for each weight in a logistic regression  trained on MNIST.
+Optimized $L_2$ hypers for each weight in logistic regression:
 \vspace{0.5in}
 \includegraphics[width=\columnwidth]{../experiments/Jan_21_nn_ard/2/penalties.pdf}
 }
@@ -196,10 +345,10 @@ Optimized $L_2$ regularization hyperparameters for each weight in a logistic reg
 \frame[plain]{\frametitle{Optimizing architecture}
 \begin{center}
 \begin{itemize} 
-  \item Architecture is regularization
-  \item Regularization can be continuous
-  \item Continuous functions can be differentiated
-  \item Could generalize convnets, recurrent nets, multi-task
+  \item Architecture = tying weights or setting to them zero
+  \item i.e. convnets, recurrent nets, multi-task  
+  \item Trying be enforced by L2 regularization
+  \item L2 regularization is differentiable
 \end{itemize}
 \vspace{1cm}
 \begin{columns}
@@ -220,6 +369,9 @@ Optimized $L_2$ regularization hyperparameters for each weight in a logistic reg
 
 \frame[plain]{\frametitle{Optimizing regularization}
 \begin{center}
+Matrices enforce weight sharing between tasks
+\vspace{0.5cm}
+
 \begin{tabular}{c@{\hskip 0.9em}ccc@{\hskip 0.9em}c@{\hskip 0.9em}c}%
 \renewcommand{\tabcolsep}{1pt}
 & Input   & Middle  & Output & Train & Test\\
@@ -235,7 +387,11 @@ Optimized $L_2$ regularization hyperparameters for each weight in a logistic reg
 \begin{align*}
 \frac{\partial Loss \left( D_{val}, \params_{init}, \learnrate, \decay, D_{train}, \textnormal{reg} \right)}{\partial D_{train}}
 \end{align*}
-\vspace{0.5in}
+\begin{itemize}
+\item Training set of size 10 with fixed labels on MNIST
+\item Started from blank images
+\end{itemize}
+%\vspace{0.5in}
 \includegraphics[width=\columnwidth]{../experiments/Jan_19_optimize_data/9_color_bar/fake_data.pdf}
 }
 
@@ -244,74 +400,6 @@ Optimized $L_2$ regularization hyperparameters for each weight in a logistic reg
 \vspace{-1.6em}
 \center Learning rate}
 
-
-
-\frame[plain]{\frametitle{Autograd: Automatic Differentiation} 
-\begin{itemize} 
-  \item \url{github.com/HIPS/autograd}
-  \item Simple ($\sim$ 300 lines of code)
-  \item Functional interface
-  \item Works with (almost) arbitrary Python/Numpy code
-  \item Can take gradients of gradients (of gradients...)
-\end{itemize}}
-
-\frame[plain]{\frametitle{Autograd Examples}
-\begin{columns}
-\begin{column}{5.5cm}
-\lstinputlisting{code/sinusoid.py} 
-\end{column}
-\begin{column}{5cm}
-\includegraphics[width=6cm]{code/sinusoid.png}
-\end{column}
-\end{columns}}
-
-\frame[plain]{\frametitle{Autograd Examples}
-\begin{columns}
-\begin{column}{5.5cm}
-\lstinputlisting{code/sinusoid-taylor.py} 
-\end{column}
-\begin{column}{5cm}
-\includegraphics[width=6cm]{code/sinusoid_taylor.png}
-\end{column}
-\end{columns}}
-
-\frame[plain]{\frametitle{Autograd Examples}
-\begin{columns}
-\begin{column}{5.5cm}
-\lstinputlisting{code/tanh.py}
-\end{column}
-\begin{column}{5cm}
-\includegraphics[width=6cm]{code/tanh.png}
-\end{column}
-\end{columns}}
-
-\frame[plain]{\frametitle{Most Numpy functions implemented}
-
-\vspace{0.5cm}
-
-\newcommand{\us}{\textunderscore}
-\centerline{
-\begin{tabular}{llllllll}
- Complex             & Array         & Misc      & Linear   & Stats   \\
- \& Fourier          &               &           & Algebra  &          \\
-\midrule
- imag                & atleast\us 1d & logsumexp & inv      & std      \\
- conjugate           & atleast\us 2d & where     & norm     & mean  \\
- angle               & atleast\us 3d & einsum    & det      & var   \\
- real\us if\us close & full          & sort      & eigh     & prod     \\
- real                & repeat        & partition & solve    & sum       \\
- fabs                & split         & clip      & trace    & cumsum  \\
- fft                 & concatenate   & outer     & diag     &        \\
- fftshift            & roll          & dot       & tril     &         \\
- fft2                & transpose     & tensordot & triu     &        \\
- ifftn               & reshape       & rot90     &          &        \\
- ifftshift           & squeeze       &           &          &        \\
- ifft2               & ravel         &           &          &        \\
- ifft                & expand\us dims&           &          &        \\
- fftn                & flipud        &           &          &        \\
-                     & fliplr        &           &          &        \\
-\end{tabular}}
-}
 
 
 %% \frame[plain]{\frametitle{Other possible applications}} % DM
