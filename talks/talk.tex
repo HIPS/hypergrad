@@ -11,6 +11,8 @@
 %\usepackage{algpseudocode}
 \usepackage{algorithm}
 \usepackage[noend]{algpseudocode}
+\usepackage{caption}
+
 
 \definecolor{Blue}{rgb}{0.0,0.0,1.0}
 \lstloadlanguages{Python}%
@@ -45,8 +47,8 @@
 \newcommand{\stepsizes}{{\boldsymbol{\stepsize}}}
 \newcommand{\gradparams}{\nabla_\params L(\params_t, \hypers, t)}
 
-\title{Hyperparameter optimization: \\ Why not use gradients?}
-%\title{Gradient-based Hyperparameter Optimization with Reversible Learning}
+%\title{Hyperparameter optimization: \\ Why not use gradients?}
+\title{Gradient-based Hyperparameter Optimization with Reversible Learning}
 
 \author{
 \includegraphics[height=0.16\textwidth]{talkfigs/dougal}
@@ -101,7 +103,7 @@ Dougal Maclaurin, David Duvenaud, Ryan Adams}
 \begin{minipage}[t]{0.8\columnwidth}
 \begin{algorithm}[H]
 \small
-   \caption{SGD}
+   \caption*{Stochastic Gradient Descent}
    \label{alg:sgd}
 \begin{algorithmic}[1]
    \State {\bfseries input:} initial $\params_1$, decay $\decays$, learning rate $\stepsizes$, regularization params $\theta$, loss function $L(\params, \hypers, t)$
@@ -127,8 +129,8 @@ Dougal Maclaurin, David Duvenaud, Ryan Adams}
 \frame[plain]{\frametitle{Autograd: Automatic Differentiation} 
 \begin{itemize} 
   \item \url{github.com/HIPS/autograd}
-  \item Simple ($\sim$ 300 lines of code)
-  \item Functional interface
+  %\item Simple ($\sim$ 300 lines of code)
+  %\item Functional interface
   \item Works with (almost) arbitrary Python/Numpy code
   \item Can take gradients of gradients (of gradients...)
 \end{itemize}}
@@ -193,7 +195,7 @@ Reverse update rule:
 \hspace{-0.9cm}\begin{minipage}[t]{0.5\columnwidth}
 \begin{algorithm}[H]
 \tiny
-   \caption{SGD}
+   \caption*{Stochastic Gradient Descent}
    \label{alg:sgd}
 \begin{algorithmic}[1]
    \State {\bfseries input:} initial $\params_1$, decays $\decays$, learning rates $\stepsizes$, loss function $L(\params, \hypers, t)$
@@ -210,7 +212,7 @@ Reverse update rule:
 \hfill
 \begin{minipage}[t]{0.55\columnwidth}
 \begin{algorithm}[H]
-   \caption{Gradient of SGD}
+   \caption*{Reverse-Mode Gradient of SGD}
    \label{alg:reverse-sgd}
 \begin{algorithmic}[1]
 \tiny
@@ -235,9 +237,12 @@ Reverse update rule:
 \end{algorithm}
 \end{minipage}
 
-\vspace{1cm}
+\vspace{0.5cm}
 
-Outputs gradients with respect to all inputs (hyperparameters).
+\begin{itemize}
+\item Outputs gradients with respect to all hypers.
+\item Reversing SGD avoids storing learning trajectory
+\end{itemize}
 }
 
 
