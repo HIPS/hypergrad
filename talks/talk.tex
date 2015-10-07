@@ -275,8 +275,45 @@ Reverse update rule:
 %\item 
 Needs $\log_2 \beta$ bits per parameter per iteration 
 %\end{itemize}
-
 }
+
+\newcommand{\trail}[2]{\includegraphics<#2>[width=6cm]{talkfigs/trails_0/iter_#1.pdf}}%
+\newcommand{\dist}[2]{\includegraphics<#2>[width=6cm]{talkfigs/dists/dists_#1.pdf}}%
+
+\frame[plain]{\frametitle{Optimization removes entropy}
+\begin{columns}
+\hspace{-1cm}\begin{column}{6cm}
+\begin{itemize} 
+  \item Optimization starts from random init, and move towards modes
+  \item Must forget where we started
+\end{itemize}
+\end{column}
+\begin{column}{5cm}
+\trail{0}{1}%
+\trail{1}{2}%
+\trail{2}{3}%
+\trail{3}{4}%
+\trail{4}{5}%
+\trail{5}{6}%
+\trail{6}{7}%
+\trail{7}{8}%
+\trail{8}{9}%
+\trail{9}{10}%
+\trail{10}{11}%
+\dist{0}{12}%
+\dist{1}{13}%
+\dist{2}{14}%
+\dist{3}{15}%
+\dist{4}{16}%
+\dist{5}{17}%
+\dist{6}{18}%
+\dist{7}{19}%
+\dist{8}{20}%
+\dist{9}{21}%
+\dist{10}{22}%
+\end{column}
+\end{columns}}
+
 
 \lstset{basicstyle=\small\ttfamily\bfseries}
 
@@ -372,7 +409,7 @@ Optimized $L_2$ hypers for each weight in logistic regression:
 \newcommand{\omniimagea}[2]{\parbox{4em}{\includegraphics[width=1.4cm]{../experiments/Feb_4_augmented_omniglot/2_rotated_90/minifigs/learned_corr_#1_#2.pdf}}}%
 \newcommand{\omniimageb}[1]{\omniimagea{#1}{0} & \omniimagea{#1}{1} & \omniimagea{#1}{2}}%
 
-\frame[plain]{\frametitle{Optimizing regularization}
+\frame[plain]{\frametitle{Optimizing architecture}
 \begin{center}
 Matrices enforce weight sharing between tasks
 \vspace{0.5cm}
