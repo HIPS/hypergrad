@@ -13,6 +13,21 @@ Authors:
 [David Duvenaud](http://mlg.eng.cam.ac.uk/duvenaud/), and
 [Ryan P. Adams](http://people.seas.harvard.edu/~rpa/)
 
+### How to run these experiments
+
+You'll need to install [autograd](https://github.com/HIPS/autograd), our automatic differentiation package.
+However, autograd (aka funkyYak) has changed a lot since we wrote the hypergrad code, and it would take a little bit of work to make them compatible again.
+
+However, the hypergrad code should work with the version of FunkyYak as of Feb 2, at this revision:
+https://github.com/HIPS/autograd/tree/be470d5b8d6c84bfa74074b238d43755f6f2c55c
+
+So if you clone autograd, then type
+git checkout be470d5b8d6c84bfa74074b238d43755f6f2c55c,
+you should be at the same version we used to run the experiments.
+
+That version also predates the setup.py file, so to get your code to use the old version, you'll either have to copy setup.py into the old revision and reinstall, or add FunkyYak to your PYTHONPATH.
+
+
 Feel free to email us with any questions at (maclaurin@physics.harvard.edu), (dduvenaud@seas.harvard.edu).
 
 For a look at some directions that didn't pan out, take a look at our early [research log](research-log.md).
