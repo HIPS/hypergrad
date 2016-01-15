@@ -11,7 +11,7 @@ paper/*.out
 paper/*.synctex.gz
 paper/*.pdf
 *.tex.swp
-data/omniglot/*
+data/omniglot/*.mat
 experiments/Feb_3_nn_ard/2_only_ard/results.pkl
 experiments/Feb_3_nn_ard/1/results.pkl
 experiments/Jan_19_optimize_data/5/results.pkl
